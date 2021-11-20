@@ -24,11 +24,11 @@
     "resolve.exports": "^1",
     "rollup": "^2",
     "rollup-plugin-dts": "^4",
-    "typescript": "^4"
+    "typescript": "^4",
+    "upath": "^2"
   },
   "devDependencies": {
-    "@typhonjs-utils/build-test": "^0.2.0"
-  },
+    "@typhonjs-utils/build-test": "^0.2.0"  },
   "engines": {
     "node": ">=12.2"
   },
@@ -52,7 +52,6 @@
     "eslint": "eslint .",
     "prepublishOnly": "npm run types && npm run test-node",
     "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 10000",
-    "types": "node gen/generateTypes.js",
-    "types2": "node -e \"import('./src/functions.js').then(module => { module.generateTSDef({ main: './src/functions.js' }) });\""
+    "types": "node -e \"import('./src/functions.js').then(module => { module.generateTSDef({ main: './src/functions.js', output: './test/index.d.ts' }) });\""
   }
 }

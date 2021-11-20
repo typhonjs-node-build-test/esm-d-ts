@@ -1,6 +1,5 @@
 import fs                     from 'fs-extra';
 import module                 from 'module';
-import path                   from 'path';
 
 import alias                  from "@rollup/plugin-alias";
 import { getPackageWithPath } from '@typhonjs-utils/package-json';
@@ -9,8 +8,10 @@ import { resolve }            from 'resolve.exports';
 import { rollup }             from 'rollup';
 import dts                    from 'rollup-plugin-dts';
 import ts                     from 'typescript';
+import upath                  from 'upath';
 
-const requireMod = module.createRequire(import.meta.url);
+// const requireMod = module.createRequire(import.meta.url);
+const requireMod = module.createRequire('file:///S:/program/Javascript/projects/TyphonJS/typhonjs-node-plugin/manager/node_modules/@typhonjs-build-test/esm-d-t/src/functions.js');
 
 const s_REGEX_EXPORT = /^\s*export/;
 const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
@@ -28,10 +29,24 @@ export async function generateTSDef(config)
    const { packages } = await parseFiles([config.main]);
 
    const packagePaths = {};
-   for (const pack of packages)
+   const packageAlias = {};
+
+   for (const packageName of packages)
    {
-      parsePackage(pack);
-      packagePaths[pack] = [`node_modules/${pack}`];
+      const { packageDir, resolveDTS } = parsePackage(packageName, config);
+      if (!resolveDTS)
+      {
+         console.warn(`generateTSDef warning: Could not locate TS declaration for '${packageName}'.`);
+         continue;
+      }
+// console.log(upath.relative('./.dts', exportDTS));
+      // packagePaths[packageName] = [`node_modules/${packageName}`];
+console.log(resolveDTS);
+console.log(packageDir);
+
+      packagePaths[packageName] = ['./node_modules/@typhonjs-plugin/eventbus/types/index.d.ts'];
+      // packagePaths[packageName] = [resolveDTS];
+      // packagePaths[packageName] = ['../node_modules/@typhonjs-plugin/eventbus'];
    }
 
    const compilerOptions = Object.assign({}, config.compilerOptions || s_DEFAULT_TS_OPTIONS, { paths: packagePaths });
@@ -39,13 +54,13 @@ export async function generateTSDef(config)
    fs.emptyDirSync('./.dts');
 
    const filePaths = Array.isArray(config.prependGen) ? [config.main, ...config.prependGen] : [config.main];
-
+console.log(compilerOptions);
    compile(Array.from(filePaths), compilerOptions);
 
-   const dtsMain = `./.dts/${path.basename(config.main, path.extname(config.main))}.d.ts`;
+   const dtsMain = `./.dts/${upath.basename(config.main, upath.extname(config.main))}.d.ts`;
    console.log(dtsMain);
 
-   await bundleTS({ output: './types/index.d.ts', ...config, dtsMain });
+   // await bundleTS({ output: './types/index.d.ts', ...config, dtsMain });
 }
 
 
@@ -60,26 +75,41 @@ export async function generateTSDef(config)
  */
 function parsePackage(packageName, config)
 {
+   // Split the package name into base and an export path. match[1] is the package name; match[2] is the export path
+   // which can be undefined if there is none.
    const match = packageName.startsWith('@') ? s_REGEX_PACKAGE_SCOPED.exec(packageName) :
     s_REGEX_PACKAGE.exec(packageName);
 
    if (!match) { return void 0; }
 
-   const packagePath = path.relative('.', requireMod.resolve(`${match[1]}/package.json`));
-   const packageDir = path.relative('.', path.dirname(packagePath));
+   const packagePath = `./${upath.relative('.', requireMod.resolve(`${match[1]}/package.json`))}`;
+   const packageDir = `./${upath.relative('.', upath.dirname(packagePath))}`;
 
-   console.log(packagePath);
-   console.log(packageDir);
+console.log(packagePath);
+console.log(packageDir);
 
    const packageJSON = JSON.parse(fs.readFileSync(packagePath).toString());
 
-   const resolvePath = resolve(packageJSON, match[2], { browser: true });
+   // Resolve any export path with `resolve.export`.
+   const resolvePath = upath.join(packageDir, resolve(packageJSON, match[2], config.exportCondition));
 
-   console.log(resolvePath);
+   const resolveDTS = `./${upath.changeExt(resolvePath, '.d.ts')}`;
 
-   // const packageJSONPath = requireMod.resolve(data);
-   // path.relative('.', modulePath);
-   // console.log(modulePath);
+console.log(resolveDTS);
+
+   // Found a TS declaration directly associated with the export.
+   if (fs.existsSync(resolveDTS)) { return { packageDir, resolveDTS }; }
+
+   const { packageObj, filepath } = getPackageWithPath({ filepath: resolvePath });
+
+   // A specific subpackage export was specified, but no associated declaration found and the package.json found
+   // is the root package, so a specific declaration for the subpackage is not resolved.
+   if (match[2] !== void 0 && upath.relative('.', filepath) === packagePath) { return void 0; }
+
+   return typeof packageObj.types === 'string' ? {
+      packageDir,
+      resolveDTS: `./${upath.join(packageDir, packageObj.types)}`
+   } : void 0;
 }
 
 /**
@@ -101,7 +131,7 @@ function compile(filePaths, options)
 }
 
 /**
- * @param {GenerateConfig} config - The config used to generate TS definitions.
+ * @param {GenerateConfig & {dtsMain: string}} config - The config used to generate TS definitions.
  *
  * @returns {Promise<void>}
  */
@@ -138,6 +168,8 @@ const s_DEFAULT_TS_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
+
+   // importsNotUsedAsValues: ts.ImportsNotUsedAsValues.Preserve,
    moduleResolution: ts.ModuleResolutionKind.Node12,
    module: ts.ModuleKind.ES2022,
    target: ts.ScriptTarget.ES2021,
@@ -183,13 +215,13 @@ export async function parseFiles(filePaths)
 
       for (const file of fileList)
       {
-         let resolved = path.isAbsolute(file) ? file : path.resolve(file);
+         let resolved = upath.isAbsolute(file) ? file : upath.resolve(file);
 
          if (parsedFiles.has(resolved)) { continue; }
 
          parsedFiles.add(resolved);
 
-         const dirpath = path.dirname(resolved);
+         const dirpath = upath.dirname(resolved);
 
          if (!fs.existsSync(resolved))
          {
@@ -212,14 +244,14 @@ export async function parseFiles(filePaths)
          {
             if (data.n === void 0 || data.d === -2) { continue; }
 
-            if (path.isAbsolute(data.n))
+            if (upath.isAbsolute(data.n))
             {
                toParseFiles.add(data.n);
                continue;
             }
             else if (data.n.startsWith('.'))
             {
-               toParseFiles.add(path.resolve(dirpath, data.n));
+               toParseFiles.add(upath.resolve(dirpath, data.n));
                continue;
             }
 
