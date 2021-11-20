@@ -1,2 +1,2 @@
 # esm-d-ts
-Generates Typescript definition files from ESM source.
+Generates a bundled Typescript declaration file from ESM source.

@@ -1,0 +1,58 @@
+{
+  "name": "@typhonjs-build-test/esm-d-ts",
+  "description": "Generates a bundled Typescript declaration file from ESM source.",
+  "version": "0.0.0",
+  "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
+  "type": "module",
+  "main": "src/functions.js",
+  "module": "src/functions.js",
+  "exports": {
+    ".": {
+      "import": "./src/functions.js"
+    },
+    "./package.json": "./package.json",
+    "./types": "./types/index.d.ts"
+  },
+  "contributors": [
+    "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
+  ],
+  "dependencies": {
+    "@rollup/plugin-alias": "^3",
+    "@typhonjs-utils/package-json": "^0.6.0",
+    "es-module-lexer": "^0.9.0",
+    "fs-extra": "^10",
+    "resolve.exports": "^1",
+    "rollup": "^2",
+    "rollup-plugin-dts": "^4",
+    "typescript": "^4"
+  },
+  "devDependencies": {
+    "@typhonjs-utils/build-test": "^0.2.0"
+  },
+  "engines": {
+    "node": ">=12.2"
+  },
+  "types": "./types/index.d.ts",
+  "files": [
+    "/npm-shrinkwrap.json",
+    "/src",
+    "/types"
+  ],
+  "homepage": "https://github.com/typhonjs-node-build-test/esm-d-ts#readme",
+  "keywords": [
+    "typhonjs",
+    "build",
+    "esm",
+    "d.ts"
+  ],
+  "license": "MPL-2.0",
+  "repository": "github:typhonjs-node-build-test/esm-d-ts",
+  "bugs": "https://github.com/typhonjs-node-build-test/esm-d-ts/issues",
+  "scripts": {
+    "eslint": "eslint .",
+    "prepublishOnly": "npm run types && npm run test-node",
+    "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 10000",
+    "types": "node gen/generateTypes.js",
+    "types2": "node -e \"import('./src/functions.js').then(module => { module.generateTSDef({ main: './src/functions.js' }) });\""
+  }
+}

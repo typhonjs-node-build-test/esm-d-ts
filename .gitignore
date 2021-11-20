@@ -1,0 +1,11 @@
+.idea
+.DS_Store
+npm-debug.log
+*-debug.log
+*-error.log
+/.dts
+/node_modules
+/dist
+/env
+/.nyc_output
+/coverage
