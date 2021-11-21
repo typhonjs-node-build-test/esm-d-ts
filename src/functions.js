@@ -2,6 +2,8 @@ import fs                     from 'fs-extra';
 import module                 from 'module';
 
 import alias                  from "@rollup/plugin-alias";
+import { commonPath }         from '@typhonjs-utils/file-util';
+import { isIterable }         from '@typhonjs-utils/object';
 import { getPackageWithPath } from '@typhonjs-utils/package-json';
 import { init, parse }        from 'es-module-lexer';
 import { resolve }            from 'resolve.exports';
@@ -10,8 +12,8 @@ import dts                    from 'rollup-plugin-dts';
 import ts                     from 'typescript';
 import upath                  from 'upath';
 
-// const requireMod = module.createRequire(import.meta.url);
-const requireMod = module.createRequire('file:///S:/program/Javascript/projects/TyphonJS/typhonjs-node-plugin/manager/node_modules/@typhonjs-build-test/esm-d-t/src/functions.js');
+const requireMod = module.createRequire(import.meta.url);
+// const requireMod = module.createRequire('file:///S:/program/Javascript/projects/TyphonJS/typhonjs-node-plugin/manager/node_modules/@typhonjs-build-test/esm-d-t/src/functions.js');
 
 const s_REGEX_EXPORT = /^\s*export/;
 const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
@@ -30,7 +32,7 @@ export async function generateTSDef(config)
 
    fs.emptyDirSync(compilerOptions.outDir);
 
-   const filePaths = Array.isArray(config.prependGen) ? [config.main, ...config.prependGen] : [config.main];
+   const filePaths = Array.isArray(config.prependGen) ? [...config.prependGen, config.main] : [config.main];
 
    compile(Array.from(filePaths), compilerOptions);
 
@@ -143,6 +145,31 @@ async function bundleTS(config)
       });
    }
 
+   let banner = '';
+
+   if (isIterable(config.prependGen))
+   {
+      const cpath = commonPath(...config.prependGen, config.main);
+
+      for (const prependGenPath of config.prependGen)
+      {
+         const prependDTSPath = `${config.outDir}/${upath.relative(cpath, upath.changeExt(prependGenPath, '.d.ts'))}`;
+
+         if (!fs.existsSync(prependDTSPath))
+         {
+            console.warn(`bundleTS warning: '${prependGenPath}' did not resolve to an emitted TS declaration.`)
+            continue;
+         }
+
+         banner += fs.readFileSync(prependDTSPath, 'utf-8');
+      }
+   }
+
+   if (isIterable(config.prependString))
+   {
+      for (const prependStr of config.prependString) { banner += prependStr; }
+   }
+
    const rollupConfig = {
       input: {
          input: config.dtsMain,
@@ -151,7 +178,7 @@ async function bundleTS(config)
             dts()
          ],
       },
-      output: { file: config.output, format: "es" },
+      output: { banner, file: config.output, format: "es" },
    };
 
    const bundle = await rollup(rollupConfig.input);
@@ -190,13 +217,13 @@ const s_DEFAULT_TS_OPTIONS = {
 
 
 /**
- * Parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
+ * Fully parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
  *
  * @param {Iterable<string>} filePaths - List of file paths to parse.
  *
  * @returns {Promise<{files: Set<string>, packages: Set<string>}>} Parsed files and top level packages exported.
  */
-export async function parseFiles(filePaths)
+async function parseFiles(filePaths)
 {
    await init;
 

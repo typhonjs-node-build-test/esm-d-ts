@@ -7,32 +7,6 @@
  */
 declare function generateTSDef(config: GenerateConfig): Promise<void>;
 /**
- * @typedef {object} GenerateConfig - Data used to generate TS definitions.
- *
- * @property {string}               main - The main entry ESM source path.
- *
- * @property {string}               [output='./types/index.d.ts'] - The bundled output TS definition path.
- *
- * @property {Iterable<string>}     [prependGen] - Generate TS definitions for these files prepending to bundled output.
- *
- * @property {Iterable<string>}     [prependString] - Directly prepend these strings to the bundled output.
- *
- * @property {object}               [compilerOptions] - Typescript compiler options.
- *
- * @property {object}               [exportCondition] - `resolve.exports` conditional options.
- */
-/**
- * Parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
- *
- * @param {Iterable<string>} filePaths - List of file paths to parse.
- *
- * @returns {Promise<{files: Set<string>, packages: Set<string>}>} Parsed files and top level packages exported.
- */
-declare function parseFiles(filePaths: Iterable<string>): Promise<{
-    files: Set<string>;
-    packages: Set<string>;
-}>;
-/**
  * - Data used to generate TS definitions.
  */
 type GenerateConfig = {
@@ -62,4 +36,4 @@ type GenerateConfig = {
     exportCondition?: object;
 };
 
-export { GenerateConfig, generateTSDef, parseFiles };
+export { GenerateConfig, generateTSDef };
