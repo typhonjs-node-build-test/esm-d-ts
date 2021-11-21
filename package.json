@@ -28,7 +28,8 @@
     "upath": "^2"
   },
   "devDependencies": {
-    "@typhonjs-utils/build-test": "^0.2.0"  },
+    "@typhonjs-utils/build-test": "^0.2.0"
+  },
   "engines": {
     "node": ">=12.2"
   },

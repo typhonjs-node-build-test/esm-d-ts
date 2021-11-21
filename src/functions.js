@@ -26,41 +26,17 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  */
 export async function generateTSDef(config)
 {
-   const { packages } = await parseFiles([config.main]);
+   const compilerOptions = Object.assign({}, config.compilerOptions || s_DEFAULT_TS_OPTIONS);
 
-   const packagePaths = {};
-   const packageAlias = {};
-
-   for (const packageName of packages)
-   {
-      const { packageDir, resolveDTS } = parsePackage(packageName, config);
-      if (!resolveDTS)
-      {
-         console.warn(`generateTSDef warning: Could not locate TS declaration for '${packageName}'.`);
-         continue;
-      }
-// console.log(upath.relative('./.dts', exportDTS));
-      // packagePaths[packageName] = [`node_modules/${packageName}`];
-console.log(resolveDTS);
-console.log(packageDir);
-
-      packagePaths[packageName] = ['./node_modules/@typhonjs-plugin/eventbus/types/index.d.ts'];
-      // packagePaths[packageName] = [resolveDTS];
-      // packagePaths[packageName] = ['../node_modules/@typhonjs-plugin/eventbus'];
-   }
-
-   const compilerOptions = Object.assign({}, config.compilerOptions || s_DEFAULT_TS_OPTIONS, { paths: packagePaths });
-
-   fs.emptyDirSync('./.dts');
+   fs.emptyDirSync(compilerOptions.outDir);
 
    const filePaths = Array.isArray(config.prependGen) ? [config.main, ...config.prependGen] : [config.main];
-console.log(compilerOptions);
+
    compile(Array.from(filePaths), compilerOptions);
 
-   const dtsMain = `./.dts/${upath.basename(config.main, upath.extname(config.main))}.d.ts`;
-   console.log(dtsMain);
+   const dtsMain = `${compilerOptions.outDir}/${upath.basename(config.main, upath.extname(config.main))}.d.ts`;
 
-   // await bundleTS({ output: './types/index.d.ts', ...config, dtsMain });
+   await bundleTS({ output: './types/index.d.ts', ...config, dtsMain, outDir: compilerOptions.outDir });
 }
 
 
@@ -85,31 +61,40 @@ function parsePackage(packageName, config)
    const packagePath = `./${upath.relative('.', requireMod.resolve(`${match[1]}/package.json`))}`;
    const packageDir = `./${upath.relative('.', upath.dirname(packagePath))}`;
 
-console.log(packagePath);
-console.log(packageDir);
-
    const packageJSON = JSON.parse(fs.readFileSync(packagePath).toString());
 
    // Resolve any export path with `resolve.export`.
-   const resolvePath = upath.join(packageDir, resolve(packageJSON, match[2], config.exportCondition));
+   // First attempt to resolve most recent Typescript support for `types` in exports.
+   let resolvePath = upath.join(packageDir, resolve(packageJSON, match[2], { conditions: ['types'] }));
 
-   const resolveDTS = `./${upath.changeExt(resolvePath, '.d.ts')}`;
+   // If a declaration is found and the file exists return now.
+   if (resolvePath.endsWith('.d.ts') && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
 
-console.log(resolveDTS);
+   // Now resolve any provided export condition configuration option or default to `imports`.
+   resolvePath = upath.join(packageDir, resolve(packageJSON, match[2], config.exportCondition));
 
-   // Found a TS declaration directly associated with the export.
-   if (fs.existsSync(resolveDTS)) { return { packageDir, resolveDTS }; }
+   // In the chance case that the user provided export condition matches `types` check again for declaration file before
+   // changing the extension and resolving further.
+   const resolveDTS = resolvePath.endsWith('.d.ts') ? `./${resolvePath}` : `./${upath.changeExt(resolvePath, '.d.ts')}`;
 
+   // Found a TS declaration directly associated with the export then return it..
+   if (fs.existsSync(resolveDTS)) { return resolveDTS; }
+
+   // Now attempt to find the nearest `package.json` that isn't the root `package.json`.
    const { packageObj, filepath } = getPackageWithPath({ filepath: resolvePath });
 
    // A specific subpackage export was specified, but no associated declaration found and the package.json found
    // is the root package, so a specific declaration for the subpackage is not resolved.
    if (match[2] !== void 0 && upath.relative('.', filepath) === packagePath) { return void 0; }
 
-   return typeof packageObj.types === 'string' ? {
-      packageDir,
-      resolveDTS: `./${upath.join(packageDir, packageObj.types)}`
-   } : void 0;
+   // Now check `package.json` `types` as last fallback.
+   if (typeof packageObj.types === 'string')
+   {
+      const lastResolveDTS = `./${upath.join(packageDir, packageObj.types)}`;
+      if (lastResolveDTS.endsWith('.d.ts') && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+   }
+
+   return void 0;
 }
 
 /**
@@ -131,24 +116,38 @@ function compile(filePaths, options)
 }
 
 /**
- * @param {GenerateConfig & {dtsMain: string}} config - The config used to generate TS definitions.
+ * @param {GenerateConfig & {dtsMain: string, outDir: string}} config - The config used to generate TS definitions.
  *
  * @returns {Promise<void>}
  */
 async function bundleTS(config)
 {
+   // Parse main source file and gather any top level NPM packages that may be referenced.
+   const { packages } = await parseFiles([config.main]);
+
+   // Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
+   // outDir; default: `./.dts`.
+   const packageAlias = [];
+   for (const packageName of packages)
+   {
+      const resolveDTS = parsePackage(packageName, config);
+      if (!resolveDTS)
+      {
+         console.warn(`generateTSDef warning: Could not locate TS declaration for '${packageName}'.`);
+         continue;
+      }
+
+      packageAlias.push({
+         find: packageName,
+         replacement: upath.relative(config.outDir, resolveDTS)
+      });
+   }
+
    const rollupConfig = {
       input: {
          input: config.dtsMain,
          plugins: [
-            // alias({
-            //    entries: [
-            //       {
-            //          find: '@typhonjs-plugin/eventbus',
-            //          replacement: './node_modules/@typhonjs-plugin/eventbus/types/index.d.ts'
-            //       }
-            //    ]
-            // }),
+            alias({ entries: packageAlias }),
             dts()
          ],
       },
@@ -159,18 +158,15 @@ async function bundleTS(config)
 
    await bundle.write(rollupConfig.output);
 
-// closes the bundle
+   // closes the bundle
    await bundle.close();
 }
 
 const s_DEFAULT_TS_OPTIONS = {
-   baseUrl: '.',
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
-
-   // importsNotUsedAsValues: ts.ImportsNotUsedAsValues.Preserve,
-   moduleResolution: ts.ModuleResolutionKind.Node12,
+   moduleResolution: ts.ModuleResolutionKind.NodeNext,
    module: ts.ModuleKind.ES2022,
    target: ts.ScriptTarget.ES2021,
    outDir: './.dts'
