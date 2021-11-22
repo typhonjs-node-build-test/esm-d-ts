@@ -13,7 +13,6 @@ import ts                     from 'typescript';
 import upath                  from 'upath';
 
 const requireMod = module.createRequire(import.meta.url);
-// const requireMod = module.createRequire('file:///S:/program/Javascript/projects/TyphonJS/typhonjs-node-plugin/manager/node_modules/@typhonjs-build-test/esm-d-t/src/functions.js');
 
 const s_REGEX_EXPORT = /^\s*export/;
 const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
@@ -28,7 +27,7 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  */
 export async function generateTSDef(config)
 {
-   const compilerOptions = Object.assign({}, config.compilerOptions || s_DEFAULT_TS_OPTIONS);
+   const compilerOptions = Object.assign({}, s_DEFAULT_TS_OPTIONS, config.compilerOptions);
 
    fs.emptyDirSync(compilerOptions.outDir);
 
@@ -193,8 +192,11 @@ const s_DEFAULT_TS_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
-   moduleResolution: ts.ModuleResolutionKind.NodeNext,
-   module: ts.ModuleKind.ES2022,
+   moduleResolution: ts.ModuleResolutionKind.NodeJs,
+   module: ts.ModuleKind.ES2020,
+   // TODO When moving to Typescript 4.5.2+ switch to the below.
+   // moduleResolution: ts.ModuleResolutionKind.NodeNext,
+   // module: ts.ModuleKind.ES2022,
    target: ts.ScriptTarget.ES2021,
    outDir: './.dts'
 };
