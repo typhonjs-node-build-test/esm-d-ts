@@ -56,7 +56,7 @@
   "bugs": "https://github.com/typhonjs-node-build-test/esm-d-ts/issues",
   "scripts": {
     "eslint": "eslint .",
-    "prepublishOnly": "npm run types && npm run test-node",
+    "prepublishOnly": "npm run types",
     "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 10000",
     "types": "node -e \"import('./src/functions.js').then(module => { module.generateTSDef({ main: './src/functions.js', output: './types/index.d.ts' }) });\""
   }
