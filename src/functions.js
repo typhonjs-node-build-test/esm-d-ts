@@ -194,8 +194,13 @@ async function parseFiles(filePaths)
 
             const substring = fileData.substring(data.ss, data.se);
 
-            // Only add packages exported from the top level as part of the public contract.
-            if (topLevel && s_REGEX_EXPORT.exec(substring)) { packages.add(data.n); }
+            // Only add packages exported from the top level as part of the public contract. Ignore any packages
+            // that don't resolve to local node_modules.
+            try
+            {
+               if (topLevel && s_REGEX_EXPORT.exec(substring) && requireMod.resolve(data.n)) { packages.add(data.n); }
+            }
+            catch(err) { /* */ }
          }
       }
 
