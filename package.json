@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/esm-d-ts",
   "description": "Generates a bundled Typescript declaration file from ESM source.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "main": "src/functions.js",
@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "@rollup/plugin-alias": "^3",
-    "@typhonjs-utils/file-util": "^0.0.3",
+    "@typhonjs-utils/file-util": "^0.0.4",
     "@typhonjs-utils/object": "^0.0.3",
     "@typhonjs-utils/package-json": "^0.6.0",
     "es-module-lexer": "^0.9.0",

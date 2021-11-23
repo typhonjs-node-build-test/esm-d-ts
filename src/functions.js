@@ -35,20 +35,27 @@ export async function generateTSDef(config)
 
    compile(Array.from(filePaths), compilerOptions);
 
-   const dtsMain = `${compilerOptions.outDir}/${upath.basename(config.main, upath.extname(config.main))}.d.ts`;
-
-   await bundleTS({ output: './types/index.d.ts', ...config, dtsMain, outDir: compilerOptions.outDir });
+   await bundleTS({ output: './types/index.d.ts', ...config, outDir: compilerOptions.outDir });
 }
 
 /**
- * @param {GenerateConfig & {dtsMain: string, outDir: string}} config - The config used to generate TS definitions.
+ * @param {GenerateConfig & {outDir: string}} config - The config used to generate TS definitions.
  *
  * @returns {Promise<void>}
  */
 async function bundleTS(config)
 {
    // Parse main source file and gather any top level NPM packages that may be referenced.
-   const { packages } = await parseFiles([config.main]);
+   const { files, packages } = await parseFiles([config.main]);
+
+   const parseFilesCommonPath = commonPath(...files);
+
+   // Find the common base path for all parsed files and find the relative path to the main source file.
+   const mainRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.main) :
+    upath.basename(config.main);
+
+   // Get the main DTS entry point; append mainRelativePath after changing extensions to the compilerOptions outDir.
+   const dtsMain = `${config.outDir}/${upath.changeExt(mainRelativePath, '.d.ts')}`;
 
    // Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
    // outDir; default: `./.dts`.
@@ -95,7 +102,7 @@ async function bundleTS(config)
 
    const rollupConfig = {
       input: {
-         input: config.dtsMain,
+         input: dtsMain,
          plugins: [
             alias({ entries: packageAlias }),
             dts()
