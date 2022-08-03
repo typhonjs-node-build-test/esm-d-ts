@@ -31,22 +31,29 @@ export async function generateTSDef(config)
 
    fs.emptyDirSync(compilerOptions.outDir);
 
-   const filePaths = Array.isArray(config.prependGen) ? [...config.prependGen, config.main] : [config.main];
+   // Parse imports from package.json resolved from main entry point.
+   const importMap = parsePackageImports(config.main);
+
+   // Note: TS still doesn't seem to resolve import paths from `package.json`, so add any parsed import paths.
+   const filePaths = Array.isArray(config.prependGen) ? [...config.prependGen, config.main, ...importMap.values()] :
+    [config.main, ...importMap.values()];
 
    compile(Array.from(filePaths), compilerOptions);
 
-   await bundleTS({ output: './types/index.d.ts', ...config, outDir: compilerOptions.outDir });
+   await bundleTS({ output: './types/index.d.ts', ...config, outDir: compilerOptions.outDir }, importMap);
 }
 
 /**
  * @param {GenerateConfig & {outDir: string}} config - The config used to generate TS definitions.
  *
+ * @param {Map<string, string>} importMap - The parsed package.json import map.
+ *
  * @returns {Promise<void>}
  */
-async function bundleTS(config)
+async function bundleTS(config, importMap)
 {
    // Parse main source file and gather any top level NPM packages that may be referenced.
-   const { files, packages } = await parseFiles([config.main]);
+   const { files, packages } = await parseFiles([config.main], importMap);
 
    const parseFilesCommonPath = commonPath(...files);
 
@@ -142,9 +149,11 @@ function compile(filePaths, options)
  *
  * @param {Iterable<string>} filePaths - List of file paths to parse.
  *
+ * @param {Map<string, string>} [importMap] - An optional map of imports from a given package.json
+ *
  * @returns {Promise<{files: Set<string>, packages: Set<string>}>} Parsed files and top level packages exported.
  */
-async function parseFiles(filePaths)
+async function parseFiles(filePaths, importMap = new Map())
 {
    await init;
 
@@ -187,6 +196,12 @@ async function parseFiles(filePaths)
          for (const data of imports)
          {
             if (data.n === void 0 || data.d === -2) { continue; }
+
+            // Check importMap for paths specified in `package.json` imports.
+            if (data.n.startsWith('#') && importMap.has(data.n))
+            {
+               data.n = importMap.get(data.n);
+            }
 
             if (upath.isAbsolute(data.n))
             {
@@ -276,13 +291,43 @@ function parsePackage(packageName, config)
    return void 0;
 }
 
+/**
+ * Parses the closest package.json to `resolvePath` resolving any imports that directly point to a string / file path.
+ *
+ * @param {string}   filepath - A file path to resolve closest `package.json`.
+ *
+ * @returns {Map<string, string>} Import map.
+ */
+function parsePackageImports(filepath)
+{
+   /** @type {Map<string, string>} */
+   const importMap = new Map();
+
+   // Now attempt to find the nearest `package.json` that isn't the root `package.json`.
+   const { packageObj } = getPackageWithPath({ filepath });
+
+   if (packageObj && typeof packageObj.imports === 'object')
+   {
+      for (const [key, value] of Object.entries(packageObj.imports))
+      {
+         if (typeof value === 'string')
+         {
+            const resolvedPath = upath.resolve(value);
+            if (fs.existsSync(resolvedPath))
+            {
+               importMap.set(key, resolvedPath);
+            }
+         }
+      }
+   }
+
+   return importMap;
+}
+
 const s_DEFAULT_TS_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
-   // TODO Old options prior to Typescript 4.6
-   // moduleResolution: ts.ModuleResolutionKind.NodeJs,
-   // module: ts.ModuleKind.ES2020,
    moduleResolution: ts.ModuleResolutionKind.NodeNext,
    module: ts.ModuleKind.ES2022,
    target: ts.ScriptTarget.ES2022,
