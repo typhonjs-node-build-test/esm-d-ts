@@ -87,7 +87,7 @@ async function bundleTS(config)
 
          if (!fs.existsSync(prependDTSPath))
          {
-            console.warn(`bundleTS warning: '${prependGenPath}' did not resolve to an emitted TS declaration.`)
+            console.warn(`bundleTS warning: '${prependGenPath}' did not resolve to an emitted TS declaration.`);
             continue;
          }
 
@@ -207,7 +207,7 @@ async function parseFiles(filePaths)
             {
                if (topLevel && s_REGEX_EXPORT.exec(substring) && requireMod.resolve(data.n)) { packages.add(data.n); }
             }
-            catch(err) { /* */ }
+            catch (err) { /* */ }
          }
       }
 
@@ -280,12 +280,12 @@ const s_DEFAULT_TS_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
-   moduleResolution: ts.ModuleResolutionKind.NodeJs,
-   module: ts.ModuleKind.ES2020,
-   // TODO When moving to Typescript 4.5.2+ switch to the below.
-   // moduleResolution: ts.ModuleResolutionKind.NodeNext,
-   // module: ts.ModuleKind.ES2022,
-   target: ts.ScriptTarget.ES2021,
+   // TODO Old options prior to Typescript 4.6
+   // moduleResolution: ts.ModuleResolutionKind.NodeJs,
+   // module: ts.ModuleKind.ES2020,
+   moduleResolution: ts.ModuleResolutionKind.NodeNext,
+   module: ts.ModuleKind.ES2022,
+   target: ts.ScriptTarget.ES2022,
    outDir: './.dts'
 };
 
