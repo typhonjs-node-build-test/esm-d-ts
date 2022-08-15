@@ -170,6 +170,24 @@ async function parseFiles(filePaths, importMap = new Map())
       {
          let resolved = upath.isAbsolute(file) ? file : upath.resolve(file);
 
+         // Must indicate warnings for the case when an `index.js` / `index.mjs` file is referenced by directory.
+         const stats = fs.statSync(resolved);
+         if (stats.isDirectory())
+         {
+            if (fs.existsSync(`${resolved}/index.js`) || fs.existsSync(`${resolved}/index.mjs`))
+            {
+               // Could not resolve index reference so skip file.
+               console.warn(
+                `TSDefGenerator - parse warning: detected bare directory import without expected '/index.(m)js'`);
+            }
+            else
+            {
+               console.warn(`TSDefGenerator - parse warning: could not resolve directory: ${resolved}`);
+            }
+
+            continue;
+         }
+
          if (parsedFiles.has(resolved)) { continue; }
 
          parsedFiles.add(resolved);
@@ -220,7 +238,9 @@ async function parseFiles(filePaths, importMap = new Map())
             // that don't resolve to local node_modules.
             try
             {
-               if (topLevel && s_REGEX_EXPORT.exec(substring) && requireMod.resolve(data.n)) { packages.add(data.n); }
+               // TODO: Evaluate if a require check is necessary. This seemed to exclude valid packages.
+               // if (topLevel && s_REGEX_EXPORT.exec(substring) && requireMod.resolve(data.n)) { packages.add(data.n); }
+               if (topLevel && s_REGEX_EXPORT.exec(substring)) { packages.add(data.n); }
             }
             catch (err) { /* */ }
          }
@@ -245,10 +265,11 @@ async function parseFiles(filePaths, importMap = new Map())
  */
 function parsePackage(packageName, config)
 {
+   const isOrgPackage = packageName.startsWith('@');
+
    // Split the package name into base and an export path. match[1] is the package name; match[2] is the export path
    // which can be undefined if there is none.
-   const match = packageName.startsWith('@') ? s_REGEX_PACKAGE_SCOPED.exec(packageName) :
-    s_REGEX_PACKAGE.exec(packageName);
+   const match = isOrgPackage ? s_REGEX_PACKAGE_SCOPED.exec(packageName) : s_REGEX_PACKAGE.exec(packageName);
 
    if (!match) { return void 0; }
 
@@ -257,36 +278,65 @@ function parsePackage(packageName, config)
 
    const packageJSON = JSON.parse(fs.readFileSync(packagePath).toString());
 
-   // Resolve any export path with `resolve.export`.
-   // First attempt to resolve most recent Typescript support for `types` in exports.
-   let resolvePath = upath.join(packageDir, resolve(packageJSON, match[2], { conditions: ['types'] }));
+   // Handle parsing package exports.
+   if (typeof packageJSON.exports === 'object')
+   {
+      // Depending on whether the package name is an organization the export path is 1 or 2.
+      const exportPath = `.${match[isOrgPackage ? 2 : 1]}`;
 
-   // If a declaration is found and the file exists return now.
-   if (resolvePath.endsWith('.d.ts') && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
+      const exportTypesPath = resolve(packageJSON, exportPath, { conditions: ['types'] });
 
-   // Now resolve any provided export condition configuration option or default to `imports`.
-   resolvePath = upath.join(packageDir, resolve(packageJSON, match[2], config.exportCondition));
+      let resolvePath;
 
-   // In the chance case that the user provided export condition matches `types` check again for declaration file before
-   // changing the extension and resolving further.
-   const resolveDTS = resolvePath.endsWith('.d.ts') ? `./${resolvePath}` : `./${upath.changeExt(resolvePath, '.d.ts')}`;
+      if (exportTypesPath)
+      {
+         // Resolve any export path with `resolve.export`.
+         // First attempt to resolve most recent Typescript support for `types` in exports.
+         resolvePath = upath.join(packageDir, exportTypesPath);
 
-   // Found a TS declaration directly associated with the export then return it..
-   if (fs.existsSync(resolveDTS)) { return resolveDTS; }
+         // If a declaration is found and the file exists return now.
+         if (resolvePath.endsWith('.d.ts') && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
+      }
 
-   // Now attempt to find the nearest `package.json` that isn't the root `package.json`.
-   const { packageObj, filepath } = getPackageWithPath({ filepath: resolvePath });
+      const exportConditionPath = resolve(packageJSON, exportPath, config.exportCondition);
 
-   // A specific subpackage export was specified, but no associated declaration found and the package.json found
-   // is the root package, so a specific declaration for the subpackage is not resolved.
-   if (match[2] !== void 0 && upath.relative('.', filepath) === packagePath) { return void 0; }
+      if (exportConditionPath)
+      {
+         // Now resolve any provided export condition configuration option or default to `imports`.
+         resolvePath = upath.join(packageDir, exportConditionPath);
+
+         // In the chance case that the user provided export condition matches `types` check again for declaration file
+         // before changing the extension and resolving further.
+         const resolveDTS = resolvePath.endsWith('.d.ts') ? `./${resolvePath}` :
+          `./${upath.changeExt(resolvePath, '.d.ts')}`;
+
+         // Found a TS declaration directly associated with the export then return it.
+         if (fs.existsSync(resolveDTS)) { return resolveDTS; }
+      }
+
+      // Now attempt to find the nearest `package.json` that isn't the root `package.json`.
+      const { packageObj, filepath } = getPackageWithPath({ filepath: resolvePath });
+
+      // A specific subpackage export was specified, but no associated declaration found and the package.json found
+      // is the root package, so a specific declaration for the subpackage is not resolved.
+      if (upath.relative('.', filepath) === packagePath) { return void 0; }
+
+      // Now check `package.json` `types` as last fallback.
+      if (packageObj && typeof packageObj.types === 'string')
+      {
+         const lastResolveDTS = `./${upath.join(packageDir, packageObj.types)}`;
+         if (lastResolveDTS.endsWith('.d.ts') && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+      }
+   }
 
    // Now check `package.json` `types` as last fallback.
-   if (typeof packageObj.types === 'string')
+   if (typeof packageJSON.types === 'string')
    {
-      const lastResolveDTS = `./${upath.join(packageDir, packageObj.types)}`;
+      const lastResolveDTS = `./${upath.join(packageDir, packageJSON.types)}`;
       if (lastResolveDTS.endsWith('.d.ts') && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
    }
+
+   // TODO: Consider default index.js / index.d.ts locations.
 
    return void 0;
 }
@@ -329,7 +379,7 @@ const s_DEFAULT_TS_OPTIONS = {
    declaration: true,
    emitDeclarationOnly: true,
    moduleResolution: ts.ModuleResolutionKind.NodeNext,
-   module: ts.ModuleKind.ES2022,
+   module: ts.ModuleKind.NodeNext,
    target: ts.ScriptTarget.ES2022,
    outDir: './.dts'
 };
