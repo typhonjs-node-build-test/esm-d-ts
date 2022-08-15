@@ -278,11 +278,13 @@ function parsePackage(packageName, config)
 
    const packageJSON = JSON.parse(fs.readFileSync(packagePath).toString());
 
+   // Depending on whether the package name is an organization the export path is 1 or 2.
+   const exportPathMatch = match[isOrgPackage ? 2 : 1];
+
    // Handle parsing package exports.
-   if (typeof packageJSON.exports === 'object')
+   if (typeof packageJSON.exports === 'object' && typeof exportPathMatch === 'string')
    {
-      // Depending on whether the package name is an organization the export path is 1 or 2.
-      const exportPath = `.${match[isOrgPackage ? 2 : 1]}`;
+      const exportPath = `.${exportPathMatch}`;
 
       const exportTypesPath = resolve(packageJSON, exportPath, { conditions: ['types'] });
 
