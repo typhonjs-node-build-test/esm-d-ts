@@ -267,8 +267,8 @@ function parsePackage(packageName, config)
 {
    const isOrgPackage = packageName.startsWith('@');
 
-   // Split the package name into base and an export path. match[1] is the package name; match[2] is the export path
-   // which can be undefined if there is none.
+   // Split the package name into base and an export path. The last match index is either the package name or export
+   // path.
    const match = isOrgPackage ? s_REGEX_PACKAGE_SCOPED.exec(packageName) : s_REGEX_PACKAGE.exec(packageName);
 
    if (!match) { return void 0; }
@@ -278,13 +278,15 @@ function parsePackage(packageName, config)
 
    const packageJSON = JSON.parse(fs.readFileSync(packagePath).toString());
 
-   // Depending on whether the package name is an organization the export path is 1 or 2.
-   const exportPathMatch = match[isOrgPackage ? 2 : 1];
+   // The export path is the last match. This may be the actual package name which in this case '.' is used to match
+   // the default export path.
+   const exportPathMatch = match[match.length - 1];
 
    // Handle parsing package exports.
    if (typeof packageJSON.exports === 'object' && typeof exportPathMatch === 'string')
    {
-      const exportPath = `.${exportPathMatch}`;
+      // If exportPathMatch is the packageName use '.' instead of the a path lookup.
+      const exportPath = exportPathMatch === packageName ? '.' : `.${exportPathMatch}`;
 
       const exportTypesPath = resolve(packageJSON, exportPath, { conditions: ['types'] });
 
