@@ -6,7 +6,7 @@ import { commonPath }         from '@typhonjs-utils/file-util';
 import { isIterable }         from '@typhonjs-utils/object';
 import { getPackageWithPath } from '@typhonjs-utils/package-json';
 import { init, parse }        from 'es-module-lexer';
-import { resolve }            from 'resolve.exports';
+import { exports }            from 'resolve.exports';
 import { rollup }             from 'rollup';
 import dts                    from 'rollup-plugin-dts';
 import ts                     from 'typescript';
@@ -288,7 +288,7 @@ function parsePackage(packageName, config)
       // If exportPathMatch is the packageName use '.' instead of the a path lookup.
       const exportPath = exportPathMatch === packageName ? '.' : `.${exportPathMatch}`;
 
-      const exportTypesPath = resolve(packageJSON, exportPath, { conditions: ['types'] });
+      const exportTypesPath = exports(packageJSON, exportPath, { conditions: ['types'] });
 
       let resolvePath;
 
@@ -296,18 +296,18 @@ function parsePackage(packageName, config)
       {
          // Resolve any export path with `resolve.export`.
          // First attempt to resolve most recent Typescript support for `types` in exports.
-         resolvePath = upath.join(packageDir, exportTypesPath);
+         resolvePath = upath.join(packageDir, ...exportTypesPath);
 
          // If a declaration is found and the file exists return now.
          if (resolvePath.endsWith('.d.ts') && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
       }
 
-      const exportConditionPath = resolve(packageJSON, exportPath, config.exportCondition);
+      const exportConditionPath = exports(packageJSON, exportPath, config.exportCondition);
 
       if (exportConditionPath)
       {
          // Now resolve any provided export condition configuration option or default to `imports`.
-         resolvePath = upath.join(packageDir, exportConditionPath);
+         resolvePath = upath.join(packageDir, ...exportConditionPath);
 
          // In the chance case that the user provided export condition matches `types` check again for declaration file
          // before changing the extension and resolving further.
