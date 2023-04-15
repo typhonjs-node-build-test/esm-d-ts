@@ -309,15 +309,15 @@ function parsePackage(packageName, config)
 
    const packageJSON = JSON.parse(fs.readFileSync(packagePath).toString());
 
-   // The export path is the last match. This may be the actual package name which in this case '.' is used to match
-   // the default export path.
-   const exportPathMatch = match[match.length - 1];
-
    // Handle parsing package exports.
-   if (typeof packageJSON.exports === 'object' && typeof exportPathMatch === 'string')
+   if (typeof packageJSON.exports === 'object')
    {
-      // If exportPathMatch is the packageName use '.' instead of the a path lookup.
-      const exportPath = exportPathMatch === packageName ? '.' : `.${exportPathMatch}`;
+      // The export path is the last match. This may not be defined which in this case '.' is used to match
+      // the default export path.
+      const exportPathMatch = match[match.length - 1];
+
+      // If exportPathMatch is not defined use '.' instead of the path lookup.
+      const exportPath = typeof exportPathMatch === 'string' ? `.${exportPathMatch}` : '.';
 
       const exportTypesPath = exports(packageJSON, exportPath, { conditions: ['types'] });
 
