@@ -19,13 +19,11 @@ type GenerateConfig = {
      */
     output?: string;
     /**
-     * - Generate TS definitions for these files prepending to bundled output.
+     * - When true attempt to bundle types of top level
+     *    exported packages. This is useful for re-bundling
+     *    libraries.
      */
-    prependGen?: Iterable<string>;
-    /**
-     * - Directly prepend these strings to the bundled output.
-     */
-    prependString?: Iterable<string>;
+    bundlePackageExports?: boolean;
     /**
      * - Typescript compiler options.
      */
@@ -34,6 +32,14 @@ type GenerateConfig = {
      * - `resolve.exports` conditional options.
      */
     exportCondition?: object;
+    /**
+     * - Generate TS definitions for these files prepending to bundled output.
+     */
+    prependGen?: Iterable<string>;
+    /**
+     * - Directly prepend these strings to the bundled output.
+     */
+    prependString?: Iterable<string>;
 };
 
 export { GenerateConfig, generateTSDef };

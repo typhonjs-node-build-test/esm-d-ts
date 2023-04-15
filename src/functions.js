@@ -64,23 +64,8 @@ async function bundleTS(config, importMap)
    // Get the main DTS entry point; append mainRelativePath after changing extensions to the compilerOptions outDir.
    const dtsMain = `${config.outDir}/${upath.changeExt(mainRelativePath, '.d.ts')}`;
 
-   // Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
-   // outDir; default: `./.dts`.
-   const packageAlias = [];
-   for (const packageName of packages)
-   {
-      const resolveDTS = parsePackage(packageName, config);
-      if (!resolveDTS)
-      {
-         console.warn(`generateTSDef warning: Could not locate TS declaration for '${packageName}'.`);
-         continue;
-      }
-
-      packageAlias.push({
-         find: packageName,
-         replacement: upath.relative(config.outDir, resolveDTS)
-      });
-   }
+   const packageAlias = typeof config.bundlePackageExports === 'boolean' && config.bundlePackageExports ?
+    resolvePackageExports(packages, config) : [];
 
    let banner = '';
 
@@ -94,7 +79,8 @@ async function bundleTS(config, importMap)
 
          if (!fs.existsSync(prependDTSPath))
          {
-            console.warn(`bundleTS warning: '${prependGenPath}' did not resolve to an emitted TS declaration.`);
+            console.warn(
+             `esm-d-ts - bundleTS warning: '${prependGenPath}' did not resolve to an emitted TS declaration.`);
             continue;
          }
 
@@ -124,6 +110,51 @@ async function bundleTS(config, importMap)
 
    // closes the bundle
    await bundle.close();
+}
+
+/**
+ * Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
+ * outDir; default: `./.dts`. As of Typescript v5 it is necessary to copy the external NPM package types to the local
+ * output directory.
+ *
+ * Note: This is useful for libraries that re-bundle NPM modules.
+ *
+ * @param {string[]} packages - List of top level exported packages.
+ *
+ * @param {GenerateConfig} config - The config object.
+ *
+ * @returns {string[]} Resolved local package types.
+ */
+function resolvePackageExports(packages, config)
+{
+   const packageAlias = [];
+
+   for (const packageName of packages)
+   {
+      const resolveDTS = parsePackage(packageName, config);
+      if (!resolveDTS)
+      {
+         console.warn(
+          `esm-d-ts - resolvePackageExports warning: Could not locate TS declaration for '${packageName}'.`);
+         continue;
+      }
+
+      const dtsBasename = upath.basename(resolveDTS);
+
+      const dtsFileData = fs.readFileSync(resolveDTS, 'utf-8');
+      const outputDir = `${config.outDir}${upath.sep}._node_modules${upath.sep}${packageName}`;
+      const outputFilepath = `${outputDir}${upath.sep}${dtsBasename}`;
+
+      fs.ensureDirSync(outputDir);
+      fs.writeFileSync(outputFilepath, dtsFileData, 'utf-8');
+
+      packageAlias.push({
+         find: packageName,
+         replacement: outputFilepath
+      });
+   }
+
+   return packageAlias;
 }
 
 /**
@@ -178,11 +209,11 @@ async function parseFiles(filePaths, importMap = new Map())
             {
                // Could not resolve index reference so skip file.
                console.warn(
-                `TSDefGenerator - parse warning: detected bare directory import without expected '/index.(m)js'`);
+                `esm-d-ts - parse warning: detected bare directory import without expected '/index.(m)js'`);
             }
             else
             {
-               console.warn(`TSDefGenerator - parse warning: could not resolve directory: ${resolved}`);
+               console.warn(`esm-d-ts - parse warning: could not resolve directory: ${resolved}`);
             }
 
             continue;
@@ -200,7 +231,7 @@ async function parseFiles(filePaths, importMap = new Map())
             else if (fs.existsSync(`${resolved}.mjs`)) { resolved = `${resolved}.mjs`; }
             else
             {
-               console.warn(`TSDefGenerator - parse warning: could not resolve: ${resolved}`);
+               console.warn(`esm-d-ts - parse warning: could not resolve: ${resolved}`);
                continue;
             }
          }
@@ -382,7 +413,7 @@ const s_DEFAULT_TS_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
-   moduleResolution: ts.ModuleResolutionKind.NodeNext,
+   moduleResolution: ts.ModuleResolutionKind.Bundler,
    module: ts.ModuleKind.NodeNext,
    target: ts.ScriptTarget.ES2022,
    outDir: './.dts'
@@ -395,11 +426,15 @@ const s_DEFAULT_TS_OPTIONS = {
  *
  * @property {string}               [output='./types/index.d.ts'] - The bundled output TS definition path.
  *
- * @property {Iterable<string>}     [prependGen] - Generate TS definitions for these files prepending to bundled output.
- *
- * @property {Iterable<string>}     [prependString] - Directly prepend these strings to the bundled output.
+ * @property {boolean}              [bundlePackageExports=false] - When true attempt to bundle types of top level
+ *                                                                 exported packages. This is useful for re-bundling
+ *                                                                 libraries.
  *
  * @property {object}               [compilerOptions] - Typescript compiler options.
  *
  * @property {object}               [exportCondition] - `resolve.exports` conditional options.
+ *
+ * @property {Iterable<string>}     [prependGen] - Generate TS definitions for these files prepending to bundled output.
+ *
+ * @property {Iterable<string>}     [prependString] - Directly prepend these strings to the bundled output.
  */
