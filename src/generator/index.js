@@ -14,18 +14,14 @@ import upath                  from 'upath';
 
 const requireMod = module.createRequire(import.meta.url);
 
-const s_REGEX_EXPORT = /^\s*export/;
-const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
-const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
-
 /**
- * Generates TS definitions from ESM source.
+ * Generates TS declarations from ESM source.
  *
- * @param {GenerateConfig}       config - The config used to generate TS definitions.
+ * @param {GenerateConfig}       config - Generation configuration object.
  *
  * @returns {Promise<void>}
  */
-export async function generateTSDef(config)
+export async function generateDTS(config)
 {
    const compilerOptions = Object.assign({}, s_DEFAULT_TS_OPTIONS, config.compilerOptions);
 
@@ -35,13 +31,15 @@ export async function generateTSDef(config)
    const importMap = parsePackageImports(config.main);
 
    // Note: TS still doesn't seem to resolve import paths from `package.json`, so add any parsed import paths.
-   const filePaths = Array.isArray(config.prependGen) ? [...config.prependGen, config.main, ...importMap.values()] :
+   const filePaths = isIterable(config.prependGen) ? [...config.prependGen, config.main, ...importMap.values()] :
     [config.main, ...importMap.values()];
 
-   compile(Array.from(filePaths), compilerOptions);
+   compile(filePaths, compilerOptions, config);
 
    await bundleTS({ output: './types/index.d.ts', ...config, outDir: compilerOptions.outDir }, importMap);
 }
+
+// Internal Implementation -------------------------------------------------------------------------------------------
 
 /**
  * @param {GenerateConfig & {outDir: string}} config - The config used to generate TS definitions.
@@ -113,66 +111,52 @@ async function bundleTS(config, importMap)
 }
 
 /**
- * Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
- * outDir; default: `./.dts`. As of Typescript v5 it is necessary to copy the external NPM package types to the local
- * output directory.
- *
- * Note: This is useful for libraries that re-bundle NPM modules.
- *
- * @param {string[]} packages - List of top level exported packages.
- *
- * @param {GenerateConfig} config - The config object.
- *
- * @returns {string[]} Resolved local package types.
- */
-function resolvePackageExports(packages, config)
-{
-   const packageAlias = [];
-
-   for (const packageName of packages)
-   {
-      const resolveDTS = parsePackage(packageName, config);
-      if (!resolveDTS)
-      {
-         console.warn(
-          `esm-d-ts - resolvePackageExports warning: Could not locate TS declaration for '${packageName}'.`);
-         continue;
-      }
-
-      const dtsBasename = upath.basename(resolveDTS);
-
-      const dtsFileData = fs.readFileSync(resolveDTS, 'utf-8');
-      const outputDir = `${config.outDir}${upath.sep}._node_modules${upath.sep}${packageName}`;
-      const outputFilepath = `${outputDir}${upath.sep}${dtsBasename}`;
-
-      fs.ensureDirSync(outputDir);
-      fs.writeFileSync(outputFilepath, dtsFileData, 'utf-8');
-
-      packageAlias.push({
-         find: packageName,
-         replacement: outputFilepath
-      });
-   }
-
-   return packageAlias;
-}
-
-/**
  * Compiles TS declaration files from the provided list of ESM files.
  *
- * @param {Iterable<string>}  filePaths - A list of file paths to parse.
+ * @param {string[]}             filePaths - A list of file paths to parse.
  *
- * @param {object}            options - TS compiler options.
+ * @param {ts.CompilerOptions}   options - TS compiler options.
+ *
+ * @param {GenerateConfig}       config - Configuration object.
  */
-function compile(filePaths, options)
+function compile(filePaths, options, config)
 {
    delete options.paths;
 
-   const host = ts.createCompilerHost(options);
+   const host = ts.createCompilerHost(options, /* setParentNodes */ true);
 
    // Prepare and emit the d.ts files
    const program = ts.createProgram(Array.from(filePaths), options, host);
-   program.emit();
+
+   let emitResult;
+
+   if (isIterable(config.transformers))
+   {
+      emitResult = program.emit(void 0, void 0, void 0, void 0, {
+         afterDeclarations: Array.from(config.transformers),
+      });
+   }
+   else
+   {
+      emitResult = program.emit();
+   }
+
+   const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+
+   for (const diagnostic of allDiagnostics)
+   {
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+      if (diagnostic.file)
+      {
+         const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
+         const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
+         console.error(`${fileName} (${line + 1},${character + 1}): ${message}`);
+      }
+      else
+      {
+         console.error(message);
+      }
+   }
 }
 
 /**
@@ -330,7 +314,7 @@ function parsePackage(packageName, config)
          resolvePath = upath.join(packageDir, ...exportTypesPath);
 
          // If a declaration is found and the file exists return now.
-         if (resolvePath.endsWith('.d.ts') && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
+         if (resolvePath.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
       }
 
       const exportConditionPath = exports(packageJSON, exportPath, config.exportCondition);
@@ -342,7 +326,7 @@ function parsePackage(packageName, config)
 
          // In the chance case that the user provided export condition matches `types` check again for declaration file
          // before changing the extension and resolving further.
-         const resolveDTS = resolvePath.endsWith('.d.ts') ? `./${resolvePath}` :
+         const resolveDTS = resolvePath.match(s_REGEX_DTS_EXTENSIONS) ? `./${resolvePath}` :
           `./${upath.changeExt(resolvePath, '.d.ts')}`;
 
          // Found a TS declaration directly associated with the export then return it.
@@ -360,7 +344,7 @@ function parsePackage(packageName, config)
       if (packageObj && typeof packageObj.types === 'string')
       {
          const lastResolveDTS = `./${upath.join(packageDir, packageObj.types)}`;
-         if (lastResolveDTS.endsWith('.d.ts') && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+         if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
       }
    }
 
@@ -368,10 +352,16 @@ function parsePackage(packageName, config)
    if (typeof packageJSON.types === 'string')
    {
       const lastResolveDTS = `./${upath.join(packageDir, packageJSON.types)}`;
-      if (lastResolveDTS.endsWith('.d.ts') && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+      if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
    }
 
-   // TODO: Consider default index.js / index.d.ts locations.
+   // The reason this is gated behind a config option is that typically a package without an `exports` / `types` field
+   // in `package.json` is indicative of an older package that might not have compliant types.
+   if (config.checkDefaultPath)
+   {
+      const lastResolveDTS = `./${packageDir}/index.d.ts`;
+      if (fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+   }
 
    return void 0;
 }
@@ -409,15 +399,68 @@ function parsePackageImports(filepath)
    return importMap;
 }
 
+/**
+ * Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
+ * outDir; default: `./.dts`. As of Typescript v5 it is necessary to copy the external NPM package types to the local
+ * output directory.
+ *
+ * Note: This is useful for libraries that re-bundle NPM modules.
+ *
+ * @param {Set<string>} packages - List of top level exported packages.
+ *
+ * @param {GenerateConfig} config - The config object.
+ *
+ * @returns {string[]} Resolved local package types.
+ */
+function resolvePackageExports(packages, config)
+{
+   const packageAlias = [];
+
+   for (const packageName of packages)
+   {
+      const resolveDTS = parsePackage(packageName, config);
+      if (!resolveDTS)
+      {
+         console.warn(
+          `esm-d-ts - resolvePackageExports warning: Could not locate TS declaration for '${packageName}'.`);
+         continue;
+      }
+
+      const dtsBasename = upath.basename(resolveDTS);
+
+      const dtsFileData = fs.readFileSync(resolveDTS, 'utf-8');
+      const outputDir = `${config.outDir}${upath.sep}._node_modules${upath.sep}${packageName}`;
+      const outputFilepath = `${outputDir}${upath.sep}${dtsBasename}`;
+
+      fs.ensureDirSync(outputDir);
+      fs.writeFileSync(outputFilepath, dtsFileData, 'utf-8');
+
+      packageAlias.push({
+         find: packageName,
+         replacement: outputFilepath
+      });
+   }
+
+   return packageAlias;
+}
+
+/**
+ * @type {ts.CompilerOptions}
+ */
 const s_DEFAULT_TS_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
    moduleResolution: ts.ModuleResolutionKind.Bundler,
-   module: ts.ModuleKind.NodeNext,
-   target: ts.ScriptTarget.ES2022,
+   module: ts.ModuleKind.ESNext,
+   target: ts.ScriptTarget.Latest,
    outDir: './.dts'
 };
+
+const s_REGEX_DTS_EXTENSIONS = /\.d\.(c|m)?tsx?$/;
+const s_REGEX_EXPORT = /^\s*export/;
+const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
+const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 
 /**
  * @typedef {object} GenerateConfig - Data used to generate TS definitions.
@@ -430,11 +473,18 @@ const s_DEFAULT_TS_OPTIONS = {
  *                                                                 exported packages. This is useful for re-bundling
  *                                                                 libraries.
  *
- * @property {object}               [compilerOptions] - Typescript compiler options.
+ * @property {boolean}              [checkDefaultPath=false] - When true and bundling top level package exports check
+ *                                                             for `index.d.ts` in package root.
  *
- * @property {object}               [exportCondition] - `resolve.exports` conditional options.
+ * @property {ts.CompilerOptions}   [compilerOptions] - Typescript compiler options.
+ *
+ * @property {import('resolve.exports').Options}   [exportCondition] - `resolve.exports` conditional options.
  *
  * @property {Iterable<string>}     [prependGen] - Generate TS definitions for these files prepending to bundled output.
  *
  * @property {Iterable<string>}     [prependString] - Directly prepend these strings to the bundled output.
+ *
+ * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [transformers] -
+ *           A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST
+ *           while emitting intermediate types for bundling.
  */
