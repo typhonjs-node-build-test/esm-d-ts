@@ -24,8 +24,12 @@ scripts: {
 }
 ```
 
-There are more options available. Note: top-level re-exporting of NPM modules that provide TS declarations are added to the public API of declarations. For questions in the
-meantime please join the TyphonJS Discord server to discuss any concerns on usage.
+There are more options available and a full description will be provided soon.
+
+Note: When re-bundling packages in creating an integrated library top-level re-exporting of NPM modules that provide 
+TS declarations are added to the public API of declarations. 
+
+For questions in the meantime please join the TyphonJS Discord server to discuss any concerns on usage.
 
 ## TODO
 - Provide a way to manage the generation process entirely in memory. Presently the intermediate individual TS 
