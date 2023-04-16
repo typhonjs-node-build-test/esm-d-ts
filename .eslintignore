@@ -2,4 +2,4 @@
 /dist
 /test/fixture
 /test/public
-/types
+*.d.ts
