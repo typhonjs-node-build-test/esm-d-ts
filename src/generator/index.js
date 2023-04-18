@@ -3,7 +3,9 @@ import module                 from 'module';
 
 import alias                  from "@rollup/plugin-alias";
 import { commonPath }         from '@typhonjs-utils/file-util';
-import { isIterable }         from '@typhonjs-utils/object';
+import {
+   isIterable,
+   isObject }                 from '@typhonjs-utils/object';
 import { getPackageWithPath } from '@typhonjs-utils/package-json';
 import { init, parse }        from 'es-module-lexer';
 import { exports }            from 'resolve.exports';
@@ -23,9 +25,37 @@ const requireMod = module.createRequire(import.meta.url);
  */
 async function generateDTS(config)
 {
-   const compilerOptions = Object.assign({}, s_DEFAULT_TS_OPTIONS, config.compilerOptions);
+   // Initial sanity checks.
+   if (!isObject(config))
+   {
+      console.error(`esm-d-ts generateDTS error: Aborting as 'config' is not an object.`);
+      return;
+   }
 
-   fs.emptyDirSync(compilerOptions.outDir);
+   if (config.compilerOptions !== void 0 && !isObject(config.compilerOptions))
+   {
+      console.error(`esm-d-ts generateDTS error: Aborting as 'config.compilerOptions' is not an object.`);
+      return;
+   }
+
+   // Set default output extension and output file if not defined.
+   if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
+   if (config.output === void 0) { config.output = `./types/index${config.outputExt}`; }
+
+   let compilerOptions = Object.assign({}, s_DEFAULT_TS_OPTIONS, config.compilerOptions);
+
+   // TODO: Validate config!
+   compilerOptions = validateCompilerOptions(compilerOptions);
+
+   // Return now if compiler options failed to validate.
+   if (!compilerOptions)
+   {
+      console.error(`esm-d-ts generateDTS error: Aborting as 'config.compilerOptions' failed validation.`);
+      return;
+   }
+
+   // Empty intermediate declaration output directory.
+   if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
 
    // Parse imports from package.json resolved from main entry point.
    const importMap = parsePackageImports(config.main);
@@ -36,7 +66,7 @@ async function generateDTS(config)
 
    compile(filePaths, compilerOptions, config);
 
-   await bundleTS({ output: './types/index.d.ts', ...config, outDir: compilerOptions.outDir }, importMap);
+   await bundleTS({ ...config, outDir: compilerOptions.outDir }, importMap);
 }
 
 /**
@@ -44,32 +74,47 @@ async function generateDTS(config)
  *
  * @param {GeneratePluginConfig} config - Generation configuration object.
  *
- * @returns {import('rollup').PluginImpl} Rollup plugin.
+ * @returns {import('rollup').Plugin} Rollup plugin.
  */
 generateDTS.plugin = function(config)
 {
    let input;
+   let validInput = true;
 
    return {
       name: 'esm-d-ts',
 
+      /**
+       * @param {import('rollup').InputOptions}   options - Rollup input options.
+       */
       options(options)
       {
          input = options.input;
+
+         if (typeof input !== 'string')
+         {
+            console.error(`esm-d-ts generateDTS.plugin error: Rollup input options 'input' is not a string.`);
+            validInput = false;
+         }
       },
 
       writeBundle:
-       {
-          sequential: true,
-          order: 'post',
-          async handler({ file })
-          {
-             if (config.main !== 'string') { config.main = input; }
-             if (config.main !== 'string') { config.output = upath.changeExt(file, '.d.ts'); }
+      {
+         sequential: true,
+         order: 'post',
+         async handler({ file })
+         {
+            // Skip processing if the input is not valid.
+            if (!validInput) { return; }
 
-             return generateDTS(config);
-          }
-       }
+            const outputExt = typeof config.outputExt === 'string' ? config.outputExt : '.d.ts';
+
+            if (config.main !== 'string') { config.main = input; }
+            if (config.output !== 'string') { config.output = upath.changeExt(file, outputExt); }
+
+            return generateDTS(config);
+         }
+      }
    };
 };
 
@@ -481,15 +526,40 @@ function resolvePackageExports(packages, config)
 }
 
 /**
+ * Validates the TS compiler options.
+ *
+ * @param {ts.CompilerOptions} compilerOptions - The TS compiler options.
+ *
+ * @returns {ts.CompilerOptions|void} The validated compiler options or undefined if failure.
+ */
+function validateCompilerOptions(compilerOptions)
+{
+   // Validate `config.compilerOptions` ------------------------------------------------------------------------------
+
+   // Use the current working directory as the base path.
+   const basePath = process.cwd();
+
+   const { options, errors } = ts.convertCompilerOptionsFromJson(compilerOptions, basePath);
+
+   if (errors.length > 0)
+   {
+      for (const error of errors) { console.error(ts.flattenDiagnosticMessageText(error.messageText, '\n')); }
+      return void 0;
+   }
+
+   return options;
+}
+
+/**
  * @type {ts.CompilerOptions}
  */
 const s_DEFAULT_TS_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
-   moduleResolution: ts.ModuleResolutionKind.Bundler,
-   module: ts.ModuleKind.ESNext,
-   target: ts.ScriptTarget.Latest,
+   moduleResolution: 'bundler',
+   module: 'es2022',
+   target: 'es2022',
    outDir: './.dts'
 };
 
@@ -508,6 +578,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {string}               [main] - The main entry ESM source path.
  *
  * @property {string}               [output='./types/index.d.ts'] - The bundled output TS declaration path.
+ *
+ * @property {string}               [outputExt='.d.ts'] - The bundled output TS declaration file extension.
  *
  * @property {boolean}              [bundlePackageExports=false] - When true attempt to bundle types of top level
  *                                                                 exported packages. This is useful for re-bundling

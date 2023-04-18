@@ -21,6 +21,10 @@ type GeneratePluginConfig = {
      */
     output?: string;
     /**
+     * - The bundled output TS declaration file extension.
+     */
+    outputExt?: string;
+    /**
      * - When true attempt to bundle types of top level
      *    exported packages. This is useful for re-bundling
      *    libraries.
@@ -68,9 +72,9 @@ declare namespace generateDTS {
      *
      * @param {GeneratePluginConfig} config - Generation configuration object.
      *
-     * @returns {import('rollup').PluginImpl} Rollup plugin.
+     * @returns {import('rollup').Plugin} Rollup plugin.
      */
-    function plugin(config: GeneratePluginConfig): rollup.PluginImpl<object>;
+    function plugin(config: GeneratePluginConfig): rollup.Plugin;
 }
 
 export { GenerateConfig, GeneratePluginConfig, generateDTS };
