@@ -6,16 +6,16 @@ import ts from 'typescript';
  * - Data used to generate TS declarations.
  */
 type GenerateConfig = {
-    main: string;
+    input: string;
 } & GeneratePluginConfig;
 /**
  * - Data used to generate TS declaration.
  */
 type GeneratePluginConfig = {
     /**
-     * - The main entry ESM source path.
+     * - The input entry ESM source path.
      */
-    main?: string;
+    input?: string;
     /**
      * - The bundled output TS declaration path.
      */
@@ -61,7 +61,7 @@ type GeneratePluginConfig = {
 /**
  * Generates TS declarations from ESM source.
  *
- * @param {GenerateConfig}       config - Generation configuration object.
+ * @param {GenerateConfig} config - Generation configuration object.
  *
  * @returns {Promise<void>}
  */

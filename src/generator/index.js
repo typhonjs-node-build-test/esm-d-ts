@@ -19,7 +19,7 @@ const requireMod = module.createRequire(import.meta.url);
 /**
  * Generates TS declarations from ESM source.
  *
- * @param {GenerateConfig}       config - Generation configuration object.
+ * @param {GenerateConfig} config - Generation configuration object.
  *
  * @returns {Promise<void>}
  */
@@ -57,12 +57,12 @@ async function generateDTS(config)
    // Empty intermediate declaration output directory.
    if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
 
-   // Parse imports from package.json resolved from main entry point.
-   const importMap = parsePackageImports(config.main);
+   // Parse imports from package.json resolved from input entry point.
+   const importMap = parsePackageImports(config.input);
 
    // Note: TS still doesn't seem to resolve import paths from `package.json`, so add any parsed import paths.
-   const filePaths = isIterable(config.prependGen) ? [...config.prependGen, config.main, ...importMap.values()] :
-    [config.main, ...importMap.values()];
+   const filePaths = isIterable(config.prependGen) ? [...config.prependGen, config.input, ...importMap.values()] :
+    [config.input, ...importMap.values()];
 
    compile(filePaths, compilerOptions, config);
 
@@ -109,7 +109,7 @@ generateDTS.plugin = function(config)
 
             const outputExt = typeof config.outputExt === 'string' ? config.outputExt : '.d.ts';
 
-            if (config.main !== 'string') { config.main = input; }
+            if (config.input !== 'string') { config.input = input; }
             if (config.output !== 'string') { config.output = upath.changeExt(file, outputExt); }
 
             return generateDTS(config);
@@ -131,17 +131,17 @@ export { generateDTS };
  */
 async function bundleTS(config, importMap)
 {
-   // Parse main source file and gather any top level NPM packages that may be referenced.
-   const { files, packages } = await parseFiles([config.main], importMap);
+   // Parse input source file and gather any top level NPM packages that may be referenced.
+   const { files, packages } = await parseFiles([config.input], importMap);
 
    const parseFilesCommonPath = commonPath(...files);
 
-   // Find the common base path for all parsed files and find the relative path to the main source file.
-   const mainRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.main) :
-    upath.basename(config.main);
+   // Find the common base path for all parsed files and find the relative path to the input source file.
+   const inputRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.input) :
+    upath.basename(config.input);
 
-   // Get the main DTS entry point; append mainRelativePath after changing extensions to the compilerOptions outDir.
-   const dtsMain = `${config.outDir}/${upath.changeExt(mainRelativePath, '.d.ts')}`;
+   // Get the input DTS entry point; append inputRelativePath after changing extensions to the compilerOptions outDir.
+   const dtsMain = `${config.outDir}/${upath.changeExt(inputRelativePath, '.d.ts')}`;
 
    const packageAlias = typeof config.bundlePackageExports === 'boolean' && config.bundlePackageExports ?
     resolvePackageExports(packages, config) : [];
@@ -150,7 +150,7 @@ async function bundleTS(config, importMap)
 
    if (isIterable(config.prependGen))
    {
-      const cpath = commonPath(...config.prependGen, config.main);
+      const cpath = commonPath(...config.prependGen, config.input);
 
       for (const prependGenPath of config.prependGen)
       {
@@ -569,13 +569,13 @@ const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 
 /**
- * @typedef {{ main: string } & GeneratePluginConfig} GenerateConfig - Data used to generate TS declarations.
+ * @typedef {{ input: string } & GeneratePluginConfig} GenerateConfig - Data used to generate TS declarations.
  */
 
 /**
  * @typedef {object} GeneratePluginConfig - Data used to generate TS declaration.
  *
- * @property {string}               [main] - The main entry ESM source path.
+ * @property {string}               [input] - The input entry ESM source path.
  *
  * @property {string}               [output='./types/index.d.ts'] - The bundled output TS declaration path.
  *
