@@ -33,4 +33,35 @@ declare function jsdocTransformer(handler: (data: {
     lastParsed: comment_parser.Block;
 }) => any): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
 
-export { jsdocRemoveNodeByTags, jsdocTransformer };
+/**
+ * Returns the leading comment strings for a Node.
+ *
+ * @param {ts.Node}  node - Node being processed.
+ *
+ * @param {ts.SourceFile}  sourceFile - The source file of the Node.
+ *
+ * @returns {string[]|undefined} All leading comment block strings.
+ */
+declare function getLeadingComments(node: ts.Node, sourceFile: ts.SourceFile): string[] | undefined;
+/**
+ * Parses all leading JSDoc like block comments for the given Node.
+ *
+ * @param {ts.Node}  node - Node being processed.
+ *
+ * @param {ts.SourceFile}  sourceFile - The source file of the Node.
+ *
+ * @returns {{
+ *    comments: string[],
+ *    parsed: import('comment-parser').Block[],
+ *    lastComment: string,
+ *    lastParsed: import('comment-parser').Block
+ * }} The parsed leading comments.
+ */
+declare function parseLeadingComments(node: ts.Node, sourceFile: ts.SourceFile): {
+    comments: string[];
+    parsed: comment_parser.Block[];
+    lastComment: string;
+    lastParsed: comment_parser.Block;
+};
+
+export { getLeadingComments, jsdocRemoveNodeByTags, jsdocTransformer, parseLeadingComments };
