@@ -1,15 +1,17 @@
 import * as rollup from 'rollup';
+import * as ts from 'typescript';
+import ts__default from 'typescript';
 import * as resolve_exports from 'resolve.exports';
-import ts from 'typescript';
 
 /**
- * - Data used to generate TS declarations.
+ * - Data used to generate the bundled TS
+ *          declaration.
  */
 type GenerateConfig = {
     input: string;
 } & GeneratePluginConfig;
 /**
- * - Data used to generate TS declaration.
+ * - Data used to generate the bundled TS declaration.
  */
 type GeneratePluginConfig = {
     /**
@@ -22,25 +24,23 @@ type GeneratePluginConfig = {
     output?: string;
     /**
      * - When true attempt to bundle types of top level
-     *    exported packages. This is useful for re-bundling
-     *    libraries.
+     * exported packages. This is useful for re-bundling libraries.
      */
     bundlePackageExports?: boolean;
     /**
      * - When true and bundling top level package exports check
-     *    for `index.d.ts` in package root.
+     * for `index.d.ts` in package root.
      */
     checkDefaultPath?: boolean;
     /**
-     * - Typescript compiler options.
-     */
-    compilerOptions?: ts.CompilerOptions;
-    /**
-     * - `resolve.exports` conditional options.
+     * - `resolve.exports` conditional options for
+     * `package.json` exports field type.
      */
     exportCondition?: resolve_exports.Options;
     /**
-     * - The bundled output TS declaration file extension.
+     * - The bundled output TS declaration file extension. Normally a
+     * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup
+     * plugin to change the extension as desired.
      */
     outputExt?: string;
     /**
@@ -54,14 +54,44 @@ type GeneratePluginConfig = {
     /**
      * - Options for naive text replacement operating on the final bundled
      * TS declaration file.
+     *
+     * // Typescript specific options for compilation --------------------------------------------------------------------
      */
     replace?: Record<string, string>;
     /**
-     * -
+     * - Typescript compiler options.
+     * {@link https://www.typescriptlang.org/tsconfig}
+     */
+    compilerOptions?: ts__default.CompilerOptions;
+    /**
+     * - Optional
+     * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return
+     * `true` to filter the given diagnostic from posting to `console.error`.
+     */
+    filterDiagnostic?: (diagnostic: ts.Diagnostic, message?: string) => boolean;
+    /**
      * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST
      * while emitting intermediate types for bundling.
+     * {@link https://github.com/itsdouges/typescript-transformer-handbook}
+     *
+     * // Rollup specific options that are the same as Rollup configuration options when bundling declaration file -------
      */
-    transformers?: Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>;
+    transformers?: Iterable<ts__default.TransformerFactory<ts__default.Bundle | ts__default.SourceFile> | ts__default.CustomTransformerFactory>;
+    /**
+     * - Rollup `external` option.
+     * {@link https://rollupjs.org/configuration-options/#external}
+     */
+    external?: string | RegExp | (string | RegExp)[] | ((id: string, parentId: string, isResolved: boolean) => boolean);
+    /**
+     * - Rollup `paths` option.
+     * {@link https://rollupjs.org/configuration-options/#output-paths}
+     */
+    paths?: Record<string, string> | ((id: string) => string);
+    /**
+     * - Rollup `onwarn` option.
+     * {@link https://rollupjs.org/configuration-options/#onwarn}
+     */
+    onwarn: (warning: rollup.RollupWarning, defaultHandler: (warning: string | rollup.RollupWarning) => void) => void;
 };
 /**
  * Generates TS declarations from ESM source.

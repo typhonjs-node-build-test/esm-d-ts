@@ -150,24 +150,30 @@ async function bundleTS(config, files, packages, parseFilesCommonPath)
          input: dtsMain,
          plugins: [
             alias({ entries: packageAlias }),
-            dts(),
-            ...(isObject(config.replace) ? [plugins.naiveReplace(config.replace)] : []),
+            dts()
          ],
-         external: isObject(config.externalPaths) ? Object.keys(config.externalPaths) : []
       },
       output: {
          banner,
          file: config.output,
-         format: "es",
-         paths: isObject(config.externalPaths) ? config.externalPaths : {}
-      },
+         format: 'es',
+      }
    };
 
+   // Further config modification through optional GenerateConfig parameters -----------------------------------------
+
+   if (config.external !== void 0) { rollupConfig.input.external = config.external; }
+
+   if (config.onwarn !== void 0) { rollupConfig.input.onwarn = config.onwarn; }
+
+   if (config.paths !== void 0) { rollupConfig.output.paths = config.paths; }
+
+   if (isObject(config.replace)) { rollupConfig.input.plugins.push(plugins.naiveReplace(config.replace)); }
+
+   // ----------------------------------------------------------------------------------------------------------------
+
    const bundle = await rollup(rollupConfig.input);
-
    await bundle.write(rollupConfig.output);
-
-   // closes the bundle
    await bundle.close();
 }
 
@@ -212,9 +218,15 @@ function compile(filePaths, options, config, parseFilesCommonPath)
 
    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
+   // Provide a default implementation to allow all diagnostic messages through.
+   const filterDiagnostic = config.filterDiagnostic ?? (() => false);
+
    for (const diagnostic of allDiagnostics)
    {
       const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+
+      if (filterDiagnostic(diagnostic, message)) { continue; }
+
       if (diagnostic.file)
       {
          const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
@@ -589,11 +601,12 @@ const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 
 /**
- * @typedef {{ input: string } & GeneratePluginConfig} GenerateConfig - Data used to generate TS declarations.
+ * @typedef {{ input: string } & GeneratePluginConfig} GenerateConfig - Data used to generate the bundled TS
+ *          declaration.
  */
 
 /**
- * @typedef {object} GeneratePluginConfig - Data used to generate TS declaration.
+ * @typedef {object} GeneratePluginConfig - Data used to generate the bundled TS declaration.
  *
  * @property {string}               [input] - The input entry ESM source path.
  *
@@ -605,14 +618,14 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}              [checkDefaultPath=false] - When true and bundling top level package exports check
  *           for `index.d.ts` in package root.
  *
- * @property {ts.CompilerOptions}   [compilerOptions] - Typescript compiler options.
  *
- * @property {import('resolve.exports').Options}   [exportCondition] - `resolve.exports` conditional options.
  *
- * @property {Record<string, string>}  [externalPaths] - Rollup `output.paths` option for bundled TS declaration
- *           generation.
+ * @property {import('resolve.exports').Options}   [exportCondition] - `resolve.exports` conditional options for
+ *  `package.json` exports field type.
  *
- * @property {string}               [outputExt='.d.ts'] - The bundled output TS declaration file extension.
+ * @property {string}               [outputExt='.d.ts'] - The bundled output TS declaration file extension. Normally a
+ *           complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup
+ *           plugin to change the extension as desired.
  *
  * @property {Iterable<string>}     [prependGen] - Generate TS definitions for these files prepending to bundled output.
  *
@@ -621,7 +634,30 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {Record<string, string>} [replace] - Options for naive text replacement operating on the final bundled
  *           TS declaration file.
  *
- * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [transformers] -
+ * // Typescript specific options for compilation --------------------------------------------------------------------
+ *
+ * @property {ts.CompilerOptions}   [compilerOptions] - Typescript compiler options.
+ *           {@link https://www.typescriptlang.org/tsconfig}
+ *
+ * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [filterDiagnostic] - Optional
+ *           filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return
+ *           `true` to filter the given diagnostic from posting to `console.error`.
+ *
+ * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [transformers]
  *           A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST
  *           while emitting intermediate types for bundling.
+ *           {@link https://github.com/itsdouges/typescript-transformer-handbook}
+ *
+ * // Rollup specific options that are the same as Rollup configuration options when bundling declaration file -------
+ *
+ * @property {(string | RegExp)[] | RegExp | string |
+ * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [external] - Rollup `external` option.
+ *           {@link https://rollupjs.org/configuration-options/#external}
+ *
+ * @property {Record<string, string> | ((id: string) => string)} [paths] - Rollup `paths` option.
+ *           {@link https://rollupjs.org/configuration-options/#output-paths}
+ *
+ * @property {(warning: import('rollup').RollupWarning,
+ * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} onwarn - Rollup `onwarn` option.
+ *           {@link https://rollupjs.org/configuration-options/#onwarn}
  */
