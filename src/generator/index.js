@@ -204,6 +204,9 @@ function compile(filePaths, options, config)
 {
    delete options.paths;
 
+   // Set `rootDir` for common path of input files to compile.
+   options.rootDir = commonPath(...filePaths);
+
    const host = ts.createCompilerHost(options, /* setParentNodes */ true);
 
    // Prepare and emit the d.ts files
