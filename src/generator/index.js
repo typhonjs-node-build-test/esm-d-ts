@@ -14,7 +14,7 @@ import dts                    from 'rollup-plugin-dts';
 import ts                     from 'typescript';
 import upath                  from 'upath';
 
-import { generateDTSPlugin }  from './plugins.js';
+import * as plugins           from './plugins.js';
 
 const requireMod = module.createRequire(import.meta.url);
 
@@ -72,9 +72,15 @@ async function generateDTS(config)
    const filePaths = isIterable(config.prependGen) ? [...config.prependGen, config.input, ...importMap.values()] :
     [config.input, ...importMap.values()];
 
-   compile(filePaths, compilerOptions, config);
+   // Parse input source file and gather any top level NPM packages that may be referenced.
+   const { files, packages } = await parseFiles([config.input], importMap);
 
-   await bundleTS({ ...config, outDir: compilerOptions.outDir }, importMap);
+   // Common path for all input source files linked to the entry point.
+   const parseFilesCommonPath = commonPath(...files);
+
+   compile(filePaths, compilerOptions, config, parseFilesCommonPath);
+
+   await bundleTS({ ...config, outDir: compilerOptions.outDir }, files, packages, parseFilesCommonPath);
 }
 
 /**
@@ -84,7 +90,7 @@ async function generateDTS(config)
  *
  * @returns {import('rollup').Plugin} Rollup plugin.
  */
-generateDTS.plugin = generateDTSPlugin(generateDTS);
+generateDTS.plugin = plugins.generateDTSPlugin(generateDTS);
 
 export { generateDTS };
 
@@ -93,17 +99,16 @@ export { generateDTS };
 /**
  * @param {GenerateConfig & {outDir: string}} config - The config used to generate TS definitions.
  *
- * @param {Map<string, string>} importMap - The parsed package.json import map.
+ * @param {Set<string>} files - All files included from input point entry location.
+ *
+ * @param {Set<string>} packages - All top level imported packages.
+ *
+ * @param {string}      parseFilesCommonPath - The common path for all files referenced by input entry point.
  *
  * @returns {Promise<void>}
  */
-async function bundleTS(config, importMap)
+async function bundleTS(config, files, packages, parseFilesCommonPath)
 {
-   // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { files, packages } = await parseFiles([config.input], importMap);
-
-   const parseFilesCommonPath = commonPath(...files);
-
    // Find the common base path for all parsed files and find the relative path to the input source file.
    const inputRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.input) :
     upath.basename(config.input);
@@ -145,10 +150,17 @@ async function bundleTS(config, importMap)
          input: dtsMain,
          plugins: [
             alias({ entries: packageAlias }),
-            dts()
+            dts(),
+            ...(isObject(config.replace) ? [plugins.naiveReplace(config.replace)] : []),
          ],
+         external: isObject(config.externalPaths) ? Object.keys(config.externalPaths) : []
       },
-      output: { banner, file: config.output, format: "es" },
+      output: {
+         banner,
+         file: config.output,
+         format: "es",
+         paths: isObject(config.externalPaths) ? config.externalPaths : {}
+      },
    };
 
    const bundle = await rollup(rollupConfig.input);
@@ -162,18 +174,23 @@ async function bundleTS(config, importMap)
 /**
  * Compiles TS declaration files from the provided list of ESM files.
  *
- * @param {string[]}             filePaths - A list of file paths to parse.
+ * @param {string[]}             filePaths - A list input entry file paths to parse.
  *
  * @param {ts.CompilerOptions}   options - TS compiler options.
  *
  * @param {GenerateConfig}       config - Configuration object.
+ *
+ * @param {string}               parseFilesCommonPath - The common path for all files referenced by input entry point.
  */
-function compile(filePaths, options, config)
+function compile(filePaths, options, config, parseFilesCommonPath)
 {
    delete options.paths;
 
-   // Set `rootDir` for common path of input files to compile.
-   options.rootDir = filePaths.length === 1 ? upath.dirname(filePaths[0]) : commonPath(...filePaths);
+   if (options.rootDir === void 0)
+   {
+      options.rootDir = parseFilesCommonPath === '' && filePaths.length === 1 ? upath.dirname(filePaths[0]) :
+       parseFilesCommonPath;
+   }
 
    const host = ts.createCompilerHost(options, /* setParentNodes */ true);
 
@@ -583,15 +600,17 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {string}               [output='./types/index.d.ts'] - The bundled output TS declaration path.
  *
  * @property {boolean}              [bundlePackageExports=false] - When true attempt to bundle types of top level
- *                                                                 exported packages. This is useful for re-bundling
- *                                                                 libraries.
+ *           exported packages. This is useful for re-bundling libraries.
  *
  * @property {boolean}              [checkDefaultPath=false] - When true and bundling top level package exports check
- *                                                             for `index.d.ts` in package root.
+ *           for `index.d.ts` in package root.
  *
  * @property {ts.CompilerOptions}   [compilerOptions] - Typescript compiler options.
  *
  * @property {import('resolve.exports').Options}   [exportCondition] - `resolve.exports` conditional options.
+ *
+ * @property {Record<string, string>}  [externalPaths] - Rollup `output.paths` option for bundled TS declaration
+ *           generation.
  *
  * @property {string}               [outputExt='.d.ts'] - The bundled output TS declaration file extension.
  *

@@ -34,22 +34,62 @@ export function generateDTSPlugin(generateDTS)
          },
 
          writeBundle:
-          {
-             sequential: true,
-             order: 'post',
-             async handler({ file })
-             {
-                // Skip processing if the input is not valid.
-                if (!validInput) { return; }
+         {
+            sequential: true,
+            order: 'post',
+            async handler({ file })
+            {
+               // Skip processing if the input is not valid.
+               if (!validInput) { return; }
 
-                const outputExt = typeof config.outputExt === 'string' ? config.outputExt : '.d.ts';
+               const outputExt = typeof config.outputExt === 'string' ? config.outputExt : '.d.ts';
 
-                if (config.input !== 'string') { config.input = input; }
-                if (config.output !== 'string') { config.output = upath.changeExt(file, outputExt); }
+               if (config.input !== 'string') { config.input = input; }
+               if (config.output !== 'string') { config.output = upath.changeExt(file, outputExt); }
 
-                return generateDTS(config);
-             }
-          }
+               return generateDTS(config);
+            }
+         }
       };
+   };
+}
+
+/**
+ * Performs a naive string replacement on the bundled TS declaration. Be careful! Can't use `@rollup/plugin-replace` as
+ * it only operates on Javascript code.
+ *
+ * TODO: Consider writing a more comprehensive replacement implementation using TS AST!
+ *
+ * @param {Record<string, string>} replace - The replacement configuration object.
+ *
+ * @returns {import('rollup').Plugin} The replace Rollup plugin.
+ */
+export function naiveReplace(replace)
+{
+   return {
+      name: 'esm-d-ts-replace',
+
+      renderChunk:
+      {
+         order: 'post',
+
+         /**
+          * @param {string}   code - Chunk code.
+          *
+          * @returns {{code, map: null}} Updated chunk.
+          */
+         handler(code)
+         {
+            let updatedCode = code;
+
+            for (const [search, replacement] of Object.entries(replace))
+            {
+               const regex = new RegExp(search, 'g');
+               updatedCode = updatedCode.replace(regex, replacement);
+            }
+
+            return { code: updatedCode, map: null };
+         }
+      }
    };
 }
