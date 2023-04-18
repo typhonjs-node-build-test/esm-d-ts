@@ -21,7 +21,7 @@ const requireMod = module.createRequire(import.meta.url);
  *
  * @returns {Promise<void>}
  */
-export async function generateDTS(config)
+async function generateDTS(config)
 {
    const compilerOptions = Object.assign({}, s_DEFAULT_TS_OPTIONS, config.compilerOptions);
 
@@ -38,6 +38,42 @@ export async function generateDTS(config)
 
    await bundleTS({ output: './types/index.d.ts', ...config, outDir: compilerOptions.outDir }, importMap);
 }
+
+/**
+ * Provides a Rollup plugin generating the declaration sequentially after the bundle has been written.
+ *
+ * @param {GenerateConfig} config - Generation configuration object.
+ *
+ * @returns {import('rollup').PluginImpl} Rollup plugin.
+ */
+generateDTS.plugin = function(config)
+{
+   let input;
+
+   return {
+      name: 'esm-d-ts',
+
+      options(options)
+      {
+         input = options.input;
+      },
+
+      writeBundle:
+       {
+          sequential: true,
+          order: 'post',
+          async handler({ file })
+          {
+             if (config.main !== 'string') { config.main = input; }
+             if (config.main !== 'string') { config.output = upath.changeExt(file, '.d.ts'); }
+
+             return generateDTS(config);
+          }
+       }
+   };
+};
+
+export { generateDTS };
 
 // Internal Implementation -------------------------------------------------------------------------------------------
 

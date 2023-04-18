@@ -1,36 +1,70 @@
-import * as comment_parser from 'comment-parser';
+import * as rollup from 'rollup';
+import * as resolve_exports from 'resolve.exports';
 import ts from 'typescript';
 
 /**
- * Removes all nodes with the matching JSDoc tags provided. This is useful for handling the `@internal` tag removing
- * all declarations that are not part of the public API.
- *
- * @param {string|Set<string>}  tags - A single tag or set of tags that trigger removing the given AST Node.
- *
- * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} A custom transformer to remove nodes by JSDoc tags.
+ * - Data used to generate TS definitions.
  */
-declare function jsdocRemoveNodeByTags(tags: string | Set<string>): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
+type GenerateConfig = {
+    /**
+     * - The main entry ESM source path.
+     */
+    main: string;
+    /**
+     * - The bundled output TS definition path.
+     */
+    output?: string;
+    /**
+     * - When true attempt to bundle types of top level
+     *    exported packages. This is useful for re-bundling
+     *    libraries.
+     */
+    bundlePackageExports?: boolean;
+    /**
+     * - When true and bundling top level package exports check
+     *    for `index.d.ts` in package root.
+     */
+    checkDefaultPath?: boolean;
+    /**
+     * - Typescript compiler options.
+     */
+    compilerOptions?: ts.CompilerOptions;
+    /**
+     * - `resolve.exports` conditional options.
+     */
+    exportCondition?: resolve_exports.Options;
+    /**
+     * - Generate TS definitions for these files prepending to bundled output.
+     */
+    prependGen?: Iterable<string>;
+    /**
+     * - Directly prepend these strings to the bundled output.
+     */
+    prependString?: Iterable<string>;
+    /**
+     * -
+     * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST
+     * while emitting intermediate types for bundling.
+     */
+    transformers?: Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>;
+};
 /**
- * Provides a convenient "meta-transformer" that invokes a handler function for each Node w/ the parsed leading
- * comment data for the Node. Only leading block comments are parsed. The `parsed` array is in the data format provided
- * by the `comment-parser` package. For convenience there are `lastComment` and `lastParsed` fields that return the
- * last comment block respectively before the node. Typically, the last comment is the active JSDoc block for a Node.
+ * Generates TS declarations from ESM source.
  *
- * Note: In the handler return null to remove the Node.
+ * @param {GenerateConfig}       config - Generation configuration object.
  *
- * @param {(data: { node: ts.Node, sourceFile: ts.SourceFile, comments: string[],
- *         parsed: import('comment-parser').Block[], lastComment: string,
- *          lastParsed: import('comment-parser').Block }) => *}  handler - A function to process JSDoc comments.
- *
- * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} JSDoc custom "meta-transformer".
+ * @returns {Promise<void>}
  */
-declare function jsdocTransformer(handler: (data: {
-    node: ts.Node;
-    sourceFile: ts.SourceFile;
-    comments: string[];
-    parsed: comment_parser.Block[];
-    lastComment: string;
-    lastParsed: comment_parser.Block;
-}) => any): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
+declare function generateDTS(config: GenerateConfig): Promise<void>;
+declare namespace generateDTS {
+    /**
+     * Provides a Rollup plugin generating the declaration sequentially after the bundle has been written.
+     *
+     * @param {GenerateConfig} config - Generation configuration object.
+     *
+     * @returns {import('rollup').PluginImpl} Rollup plugin.
+     */
+    function plugin(config: GenerateConfig): rollup.PluginImpl<object>;
+}
 
-export { jsdocRemoveNodeByTags, jsdocTransformer };
+export { GenerateConfig, generateDTS };
