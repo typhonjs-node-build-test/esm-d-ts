@@ -3,15 +3,21 @@ import * as resolve_exports from 'resolve.exports';
 import ts from 'typescript';
 
 /**
- * - Data used to generate TS definitions.
+ * - Data used to generate TS declarations.
  */
 type GenerateConfig = {
+    main: string;
+} & GeneratePluginConfig;
+/**
+ * - Data used to generate TS declaration.
+ */
+type GeneratePluginConfig = {
     /**
      * - The main entry ESM source path.
      */
-    main: string;
+    main?: string;
     /**
-     * - The bundled output TS definition path.
+     * - The bundled output TS declaration path.
      */
     output?: string;
     /**
@@ -60,11 +66,11 @@ declare namespace generateDTS {
     /**
      * Provides a Rollup plugin generating the declaration sequentially after the bundle has been written.
      *
-     * @param {GenerateConfig} config - Generation configuration object.
+     * @param {GeneratePluginConfig} config - Generation configuration object.
      *
      * @returns {import('rollup').PluginImpl} Rollup plugin.
      */
-    function plugin(config: GenerateConfig): rollup.PluginImpl<object>;
+    function plugin(config: GeneratePluginConfig): rollup.PluginImpl<object>;
 }
 
-export { GenerateConfig, generateDTS };
+export { GenerateConfig, GeneratePluginConfig, generateDTS };
