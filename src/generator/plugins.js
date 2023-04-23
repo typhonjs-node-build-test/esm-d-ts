@@ -1,53 +1,90 @@
-import upath from 'upath';
+import {
+   isIterable,
+   isObject }        from '@typhonjs-utils/object';
+
+import upath         from 'upath';
 
 // The following are internal Rollup plugin implementations. ---------------------------------------------------------
 
 /**
- * Provides a Rollup plugin generating the declaration sequentially after the bundle has been written.
+ * Provides a Rollup plugin generating the declaration after the bundle has been written.
  *
- * @param {Function} generateDTS - Generation configuration object.
+ * @param {function(import('.').GenerateConfig): Promise<void>} generateDTS - Generation function.
  *
- * @returns {(config: GeneratePluginConfig) => import('rollup').Plugin} The Rollup plugin.
+ * @returns {(options?: import('.').GeneratePluginConfig) => import('rollup').Plugin} The Rollup plugin.
  */
 export function generateDTSPlugin(generateDTS)
 {
-   return function(config)
+   return function(options)
    {
-      let input;
-      let validInput = true;
+      let rollupOptionInput;
+      let rollupOptionFile;
+
+      let validRollupOptions = true;
+
+      // Make a shallow copy as various top level attributes may be automatically set.
+      const config = Object.assign({}, options);
 
       return {
-         name: 'esm-d-ts',
+         name: '@typhonjs-build-test/esm-d-ts/generate',
 
          /**
           * @param {import('rollup').InputOptions}   options - Rollup input options.
           */
          options(options)
          {
-            input = options.input;
+            rollupOptionInput = options.input;
 
-            if (typeof input !== 'string')
+            if (typeof rollupOptionInput !== 'string')
             {
-               console.error(`esm-d-ts generateDTS.plugin error: Rollup input options 'input' is not a string.`);
-               validInput = false;
+               console.error(`esm-d-ts generateDTS.plugin error: Rollup 'input' option is not a string.`);
+               validRollupOptions = false;
+            }
+
+            // Examine configured Rollup plugins and find `@typhonjs-build-test/rollup-external-imports storing
+            // The configuration for use in generateDTS.
+            if (isIterable(options.plugins))
+            {
+               for (const plugin of options.plugins)
+               {
+                  if (isObject(plugin) && plugin?.name === '@typhonjs-build-test/rollup-external-imports')
+                  {
+                     config.importsExternalOptions = isObject(plugin.importsExternalOptions) ?
+                      plugin.importsExternalOptions : {};
+                  }
+               }
             }
          },
 
          writeBundle:
          {
-            sequential: true,
-            order: 'post',
-            async handler({ file })
+            order: 'pre',
+            handler({ file })
             {
-               // Skip processing if the input is not valid.
-               if (!validInput) { return; }
+               rollupOptionFile = file;
+
+               if (typeof rollupOptionFile !== 'string')
+               {
+                  console.error(`esm-d-ts generateDTS.plugin error: Rollup 'file' option is not a string.`);
+                  validRollupOptions = false;
+               }
+            }
+         },
+
+         closeBundle:
+         {
+            order: 'post',
+            handler()
+            {
+               // Skip processing if stored Rollup options are not valid.
+               if (!validRollupOptions) { return; }
 
                const outputExt = typeof config.outputExt === 'string' ? config.outputExt : '.d.ts';
 
-               if (config.input !== 'string') { config.input = input; }
-               if (config.output !== 'string') { config.output = upath.changeExt(file, outputExt); }
+               if (typeof config.input !== 'string') { config.input = rollupOptionInput; }
+               if (typeof config.output !== 'string') { config.output = upath.changeExt(rollupOptionFile, outputExt); }
 
-               return generateDTS(config);
+               generateDTS(config);
             }
          }
       };
@@ -67,7 +104,7 @@ export function generateDTSPlugin(generateDTS)
 export function naiveReplace(replace)
 {
    return {
-      name: 'esm-d-ts-replace',
+      name: '@typhonjs-build-test/esm-d-ts/replace',
 
       renderChunk:
       {

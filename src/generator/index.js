@@ -2,6 +2,7 @@ import fs                     from 'fs-extra';
 import module                 from 'module';
 
 import alias                  from '@rollup/plugin-alias';
+import { importsExternal }    from '@typhonjs-build-test/rollup-external-imports';
 import { commonPath }         from '@typhonjs-utils/file-util';
 import {
    isIterable,
@@ -84,11 +85,9 @@ async function generateDTS(config)
 }
 
 /**
- * Provides a Rollup plugin generating a bundled TS declaration sequentially after the bundle has been written.
+ * Provides a Rollup plugin generating a bundled TS declaration after the bundle has been written.
  *
- * @param {GeneratePluginConfig} config - Generation configuration object.
- *
- * @returns {import('rollup').Plugin} Rollup plugin.
+ * @type {function(import('.').GeneratePluginConfig=): import('rollup').Plugin}
  */
 generateDTS.plugin = plugins.generateDTSPlugin(generateDTS);
 
@@ -145,13 +144,23 @@ async function bundleTS(config, files, packages, parseFilesCommonPath)
       for (const prependStr of config.prependString) { banner += prependStr; }
    }
 
+   const plugins = [];
+
+   // Add `importsExternal` plugin if configured.
+   if (isObject(config.importsExternalOptions))
+   {
+      plugins.push(importsExternal(config.importsExternalOptions));
+   }
+
+   plugins.push(...[
+      alias({ entries: packageAlias }),
+      dts()
+   ]);
+
    const rollupConfig = {
       input: {
          input: dtsMain,
-         plugins: [
-            alias({ entries: packageAlias }),
-            dts()
-         ],
+         plugins
       },
       output: {
          banner,
@@ -622,6 +631,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * @property {import('resolve.exports').Options}   [exportCondition] - `resolve.exports` conditional options for
  *  `package.json` exports field type.
+ *
+ * @property {import('@typhonjs-build-test/rollup-external-imports').ImportsExternalOptions} [importsExternalOptions] -
+ *           Options to configure `@typhonjs-build-test/rollup-external-imports` plugin.
  *
  * @property {string}               [outputExt='.d.ts'] - The bundled output TS declaration file extension. Normally a
  *           complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup

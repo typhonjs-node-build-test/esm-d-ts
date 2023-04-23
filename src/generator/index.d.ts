@@ -1,6 +1,7 @@
 import * as rollup from 'rollup';
 import * as ts from 'typescript';
 import ts__default from 'typescript';
+import * as _typhonjs_build_test_rollup_external_imports from '@typhonjs-build-test/rollup-external-imports';
 import * as resolve_exports from 'resolve.exports';
 
 /**
@@ -37,6 +38,11 @@ type GeneratePluginConfig = {
      * `package.json` exports field type.
      */
     exportCondition?: resolve_exports.Options;
+    /**
+     * -
+     * Options to configure `@typhonjs-build-test/rollup-external-imports` plugin.
+     */
+    importsExternalOptions?: _typhonjs_build_test_rollup_external_imports.ImportsExternalOptions;
     /**
      * - The bundled output TS declaration file extension. Normally a
      * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup
@@ -102,7 +108,7 @@ type GeneratePluginConfig = {
  */
 declare function generateDTS(config: GenerateConfig): Promise<void>;
 declare namespace generateDTS {
-    const plugin: (config: GeneratePluginConfig) => rollup.Plugin;
+    const plugin: (arg0: GeneratePluginConfig | undefined) => rollup.Plugin;
 }
 
 export { GenerateConfig, GeneratePluginConfig, generateDTS };
