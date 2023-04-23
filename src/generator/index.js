@@ -1,45 +1,54 @@
-import fs                     from 'fs-extra';
-import module                 from 'module';
+import fs                        from 'fs-extra';
+import module                    from 'module';
 
-import alias                  from '@rollup/plugin-alias';
-import { importsExternal }    from '@typhonjs-build-test/rollup-external-imports';
-import { commonPath }         from '@typhonjs-utils/file-util';
+import alias                     from '@rollup/plugin-alias';
+import { importsExternal }       from '@typhonjs-build-test/rollup-external-imports';
+import { commonPath }            from '@typhonjs-utils/file-util';
 import {
    isIterable,
-   isObject }                 from '@typhonjs-utils/object';
-import { getPackageWithPath } from '@typhonjs-utils/package-json';
-import { init, parse }        from 'es-module-lexer';
-import { exports }            from 'resolve.exports';
-import { rollup }             from 'rollup';
-import dts                    from 'rollup-plugin-dts';
-import ts                     from 'typescript';
-import upath                  from 'upath';
+   isObject }                    from '@typhonjs-utils/object';
+import { getPackageWithPath }    from '@typhonjs-utils/package-json';
+import { init, parse }           from 'es-module-lexer';
+import { exports }               from 'resolve.exports';
+import { rollup }                from 'rollup';
+import dts                       from 'rollup-plugin-dts';
+import ts                        from 'typescript';
+import upath                     from 'upath';
 
-import * as plugins           from './plugins.js';
+import * as plugins              from './plugins.js';
+
+import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
 const requireMod = module.createRequire(import.meta.url);
 
 /**
  * Generates TS declarations from ESM source.
  *
- * @param {GenerateConfig} config - Generation configuration object.
+ * @param {GenerateConfig} options - Generation configuration object.
  *
  * @returns {Promise<void>}
  */
-async function generateDTS(config)
+async function generateDTS(options)
 {
    // Initial sanity checks.
-   if (!isObject(config))
+   if (!isObject(options))
    {
       console.error(`esm-d-ts generateDTS error: Aborting as 'config' is not an object.`);
       return;
    }
 
-   if (config.compilerOptions !== void 0 && !isObject(config.compilerOptions))
+   if (options.compilerOptions !== void 0 && !isObject(options.compilerOptions))
    {
       console.error(`esm-d-ts generateDTS error: Aborting as 'config.compilerOptions' is not an object.`);
       return;
    }
+
+   /**
+    * A shallow copy of configuration options w/ default value for `filterTags` enabled.
+    *
+    * @type {GenerateConfig}
+    */
+   const config = Object.assign({ filterTags: 'internal' }, options);
 
    // Set default output extension and output file if not defined.
    if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
@@ -214,10 +223,18 @@ function compile(filePaths, options, config, parseFilesCommonPath)
 
    let emitResult;
 
-   if (isIterable(config.transformers))
+   // Prepend `jsdocRemoveNodeByTags` to remove internal tags if `filterInternalTag` is true to any user configured
+   // transformers.
+   const transformers = [
+      ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
+       [jsdocRemoveNodeByTags(config.filterTags)] : []),
+      ...(isIterable(config.transformers) ? config.transformers : [])
+   ];
+
+   if (transformers.length)
    {
       emitResult = program.emit(void 0, void 0, void 0, void 0, {
-         afterDeclarations: Array.from(config.transformers),
+         afterDeclarations: transformers,
       });
    }
    else
@@ -627,10 +644,12 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}              [checkDefaultPath=false] - When true and bundling top level package exports check
  *           for `index.d.ts` in package root.
  *
- *
- *
  * @property {import('resolve.exports').Options}   [exportCondition] - `resolve.exports` conditional options for
  *  `package.json` exports field type.
+ *
+ * @property {string|Iterable<string>|false|null|undefined} [filterTags='internal'] - By default
+ *           `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have
+ *           the `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
  *
  * @property {import('@typhonjs-build-test/rollup-external-imports').ImportsExternalOptions} [importsExternalOptions] -
  *           Options to configure `@typhonjs-build-test/rollup-external-imports` plugin.
@@ -670,6 +689,6 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *           {@link https://rollupjs.org/configuration-options/#output-paths}
  *
  * @property {(warning: import('rollup').RollupWarning,
- * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} onwarn - Rollup `onwarn` option.
- *           {@link https://rollupjs.org/configuration-options/#onwarn}
+ * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} [onwarn] - Rollup `onwarn`
+ *           option. {@link https://rollupjs.org/configuration-options/#onwarn}
  */

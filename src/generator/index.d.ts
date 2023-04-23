@@ -39,6 +39,12 @@ type GeneratePluginConfig = {
      */
     exportCondition?: resolve_exports.Options;
     /**
+     * - By default
+     * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have
+     * the `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
+     */
+    filterTags?: string | Iterable<string> | false | null | undefined;
+    /**
      * -
      * Options to configure `@typhonjs-build-test/rollup-external-imports` plugin.
      */
@@ -94,19 +100,19 @@ type GeneratePluginConfig = {
      */
     paths?: Record<string, string> | ((id: string) => string);
     /**
-     * - Rollup `onwarn` option.
-     * {@link https://rollupjs.org/configuration-options/#onwarn}
+     * - Rollup `onwarn`
+     * option. {@link https://rollupjs.org/configuration-options/#onwarn}
      */
-    onwarn: (warning: rollup.RollupWarning, defaultHandler: (warning: string | rollup.RollupWarning) => void) => void;
+    onwarn?: (warning: rollup.RollupWarning, defaultHandler: (warning: string | rollup.RollupWarning) => void) => void;
 };
 /**
  * Generates TS declarations from ESM source.
  *
- * @param {GenerateConfig} config - Generation configuration object.
+ * @param {GenerateConfig} options - Generation configuration object.
  *
  * @returns {Promise<void>}
  */
-declare function generateDTS(config: GenerateConfig): Promise<void>;
+declare function generateDTS(options: GenerateConfig): Promise<void>;
 declare namespace generateDTS {
     const plugin: (options?: GeneratePluginConfig) => rollup.Plugin;
 }
