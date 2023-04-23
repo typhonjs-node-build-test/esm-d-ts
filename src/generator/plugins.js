@@ -73,8 +73,9 @@ export function generateDTSPlugin(generateDTS)
 
          closeBundle:
          {
+            sequential: true,
             order: 'post',
-            handler()
+            async handler()
             {
                // Skip processing if stored Rollup options are not valid.
                if (!validRollupOptions) { return; }
@@ -84,7 +85,7 @@ export function generateDTSPlugin(generateDTS)
                if (typeof config.input !== 'string') { config.input = rollupOptionInput; }
                if (typeof config.output !== 'string') { config.output = upath.changeExt(rollupOptionFile, outputExt); }
 
-               generateDTS(config);
+               return generateDTS(config);
             }
          }
       };
