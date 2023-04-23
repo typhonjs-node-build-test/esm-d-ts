@@ -87,7 +87,7 @@ async function generateDTS(config)
 /**
  * Provides a Rollup plugin generating a bundled TS declaration after the bundle has been written.
  *
- * @type {function(import('.').GeneratePluginConfig=): import('rollup').Plugin}
+ * @type {(options?: import('.').GeneratePluginConfig) => import('rollup').Plugin}
  */
 generateDTS.plugin = plugins.generateDTSPlugin(generateDTS);
 

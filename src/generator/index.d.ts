@@ -108,7 +108,7 @@ type GeneratePluginConfig = {
  */
 declare function generateDTS(config: GenerateConfig): Promise<void>;
 declare namespace generateDTS {
-    const plugin: (arg0: GeneratePluginConfig | undefined) => rollup.Plugin;
+    const plugin: (options?: GeneratePluginConfig) => rollup.Plugin;
 }
 
 export { GenerateConfig, GeneratePluginConfig, generateDTS };
