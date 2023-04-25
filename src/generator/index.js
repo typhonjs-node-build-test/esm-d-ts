@@ -15,7 +15,7 @@ import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
 import upath                     from 'upath';
 
-import * as plugins              from './plugins.js';
+import * as internalPlugins      from './plugins.js';
 
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
@@ -98,7 +98,7 @@ async function generateDTS(options)
  *
  * @type {(options?: import('.').GeneratePluginConfig) => import('rollup').Plugin}
  */
-generateDTS.plugin = plugins.generateDTSPlugin(generateDTS);
+generateDTS.plugin = internalPlugins.generateDTSPlugin(generateDTS);
 
 export { generateDTS };
 
@@ -186,7 +186,7 @@ async function bundleTS(config, files, packages, parseFilesCommonPath)
 
    if (config.paths !== void 0) { rollupConfig.output.paths = config.paths; }
 
-   if (isObject(config.replace)) { rollupConfig.input.plugins.push(plugins.naiveReplace(config.replace)); }
+   if (isObject(config.replace)) { rollupConfig.input.plugins.push(internalPlugins.naiveReplace(config.replace)); }
 
    // ----------------------------------------------------------------------------------------------------------------
 
