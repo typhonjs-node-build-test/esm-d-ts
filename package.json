@@ -35,7 +35,7 @@
     "upath": "^2"
   },
   "devDependencies": {
-    "@typhonjs-config/eslint-config": "^0.5.0",
+    "@typhonjs-config/eslint-config": "^0.6.0",
     "eslint": "^8"
   },
   "peerDependencies": {
