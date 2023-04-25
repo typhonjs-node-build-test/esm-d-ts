@@ -2,5 +2,8 @@
  * NPM: https://www.npmjs.com/package/@typhonjs-config/eslint-config
  */
 {
-  "extends": "@typhonjs-config/eslint-config/esm/2022/node"
+  "extends": [
+    "@typhonjs-config/eslint-config/esm/2022/node",
+    "@typhonjs-config/eslint-config/esm/2022/no-undefined-types"
+  ]
 }
