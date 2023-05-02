@@ -45,11 +45,11 @@ async function generateDTS(options)
    }
 
    /**
-    * A shallow copy of configuration options w/ default value for `filterTags` enabled.
+    * A shallow copy of configuration options w/ default values for `filterTags` and `removePrivateStatic`.
     *
     * @type {GenerateConfig}
     */
-   const config = Object.assign({ filterTags: 'internal' }, options);
+   const config = Object.assign({ filterTags: 'internal', removePrivateStatic: true }, options);
 
    // Set default output extension and output file if not defined.
    if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
@@ -231,7 +231,7 @@ function compile(filePaths, options, config, parseFilesCommonPath)
     * Prepend `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
     */
    const transformers = [
-      removePrivateStatic(),
+      ...(typeof config.removePrivateStatic === 'boolean' && config.removePrivateStatic ? [removePrivateStatic()] : []),
       ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
        [jsdocRemoveNodeByTags(config.filterTags)] : []),
       ...(isIterable(config.transformers) ? config.transformers : [])
@@ -633,8 +633,7 @@ const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 
 /**
- * @typedef {{ input: string } & GeneratePluginConfig} GenerateConfig - Data used to generate the bundled TS
- *          declaration.
+ * @typedef {{ input: string } & GeneratePluginConfig} GenerateConfig Data used to generate the bundled TS declaration.
  */
 
 /**
@@ -667,6 +666,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {Iterable<string>}     [prependGen] - Generate TS definitions for these files prepending to bundled output.
  *
  * @property {Iterable<string>}     [prependString] - Directly prepend these strings to the bundled output.
+ *
+ * @property {boolean}              [removePrivateStatic=true] When true a custom transformer is added to remove the
+ *           renaming of private static class members that Typescript currently renames.
  *
  * @property {Record<string, string>} [replace] - Options for naive text replacement operating on the final bundled
  *           TS declaration file.

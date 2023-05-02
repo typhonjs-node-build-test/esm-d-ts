@@ -5,8 +5,7 @@ import * as _typhonjs_build_test_rollup_external_imports from '@typhonjs-build-t
 import * as resolve_exports from 'resolve.exports';
 
 /**
- * - Data used to generate the bundled TS
- *          declaration.
+ * Data used to generate the bundled TS declaration.
  */
 type GenerateConfig = {
     input: string;
@@ -63,6 +62,11 @@ type GeneratePluginConfig = {
      * - Directly prepend these strings to the bundled output.
      */
     prependString?: Iterable<string>;
+    /**
+     * When true a custom transformer is added to remove the
+     * renaming of private static class members that Typescript currently renames.
+     */
+    removePrivateStatic?: boolean;
     /**
      * - Options for naive text replacement operating on the final bundled
      * TS declaration file.
