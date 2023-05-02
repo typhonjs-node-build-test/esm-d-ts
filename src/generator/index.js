@@ -18,6 +18,7 @@ import upath                     from 'upath';
 import * as internalPlugins      from './plugins.js';
 
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
+import { removePrivateStatic } from '../transformer/internal.js';
 
 const requireMod = module.createRequire(import.meta.url);
 
@@ -223,9 +224,14 @@ function compile(filePaths, options, config, parseFilesCommonPath)
 
    let emitResult;
 
-   // Prepend `jsdocRemoveNodeByTags` to remove internal tags if `filterInternalTag` is true to any user configured
-   // transformers.
+   /**
+    * Prepend `removePrivateStatic` as the Typescript compiler changes private static members to become public
+    * defined with a string pattern that can be detected.
+    *
+    * Prepend `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
+    */
    const transformers = [
+      removePrivateStatic(),
       ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
        [jsdocRemoveNodeByTags(config.filterTags)] : []),
       ...(isIterable(config.transformers) ? config.transformers : [])
