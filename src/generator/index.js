@@ -4,9 +4,6 @@ import module                    from 'module';
 import alias                     from '@rollup/plugin-alias';
 import { importsExternal }       from '@typhonjs-build-test/rollup-external-imports';
 import { commonPath }            from '@typhonjs-utils/file-util';
-import {
-   isIterable,
-   isObject }                    from '@typhonjs-utils/object';
 import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
 import { exports }               from 'resolve.exports';
@@ -14,6 +11,10 @@ import { rollup }                from 'rollup';
 import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
 import upath                     from 'upath';
+
+import {
+   isIterable,
+   isObject }                    from '../util/index.js';
 
 import * as internalPlugins      from './plugins.js';
 

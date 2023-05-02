@@ -1,6 +1,6 @@
 import {
    isIterable,
-   isObject }        from '@typhonjs-utils/object';
+   isObject }        from '../util/index.js';
 
 import upath         from 'upath';
 
