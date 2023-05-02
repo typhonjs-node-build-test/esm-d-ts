@@ -29,6 +29,9 @@ function filterPrivateStatic(node)
  *
  * This transformer removes all private static members.
  *
+ * Note: A side effect of removing renamed private static nodes is that there may be leftover imports that were used
+ * in the private static member. A Rollup warning will be generated in this case.
+ *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} Transformer to remove private static nodes.
  */
 export function removePrivateStatic()
