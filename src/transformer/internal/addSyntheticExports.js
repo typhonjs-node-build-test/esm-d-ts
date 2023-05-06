@@ -8,7 +8,8 @@ import ts   from 'typescript';
  *
  * @param {string[]} filepaths - The file paths of extra generated TS declaration files.
  *
- * @returns {function(*): function(*): ts.Node | (* & undefined) | (ts.Node & undefined)}
+ * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} Transformer add synthetic exports to entry file from file
+ * paths given.
  */
 export function addSyntheticExports(entryFilepath, filepaths)
 {
