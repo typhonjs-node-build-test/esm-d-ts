@@ -50,14 +50,14 @@ export function removePrivateStatic()
 
          if (ts.isSourceFile(sourceFileOrBundle))
          {
-            return ts.visitNode(sourceFileOrBundle, (node) => visit(node, sourceFileOrBundle));
+            return ts.visitNode(sourceFileOrBundle, (node) => visit(node));
          }
          else if (ts.isBundle(sourceFileOrBundle))
          {
             const newSourceFiles = sourceFileOrBundle.sourceFiles.map(
-             (sourceFile) => ts.visitNode(sourceFile, (node) => visit(node, sourceFile)));
+             (sourceFile) => ts.visitNode(sourceFile, (node) => visit(node)));
 
-            return ts.updateBundle(sourceFileOrBundle, newSourceFiles);
+            return ts.factory.updateBundle(sourceFileOrBundle, newSourceFiles);
          }
       };
    };

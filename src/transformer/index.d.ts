@@ -32,7 +32,6 @@ declare function jsdocTransformer(handler: (data: {
     lastComment: string;
     lastParsed: comment_parser.Block;
 }) => any): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
-
 /**
  * Returns the leading comment strings for a Node.
  *
