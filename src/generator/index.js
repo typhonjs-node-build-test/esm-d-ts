@@ -654,66 +654,70 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  */
 
 /**
- * @typedef {object} GeneratePluginConfig - Data used to generate the bundled TS declaration.
+ * @typedef {object} GeneratePluginConfig Data used to generate the bundled TS declaration.
  *
- * @property {string}               [input] - The input entry ESM source path.
+ * @property {string}               [input] The input entry ESM source path.
  *
- * @property {string}               [output='./types/index.d.ts'] - The bundled output TS declaration path.
+ * @property {string}               [output='./types/index.d.ts'] The bundled output TS declaration path.
  *
- * @property {boolean}              [bundlePackageExports=false] - When true attempt to bundle types of top level
- *           exported packages. This is useful for re-bundling libraries.
+ * @property {boolean}              [bundlePackageExports=false] When true attempt to bundle types of top level
+ * exported packages. This is useful for re-bundling libraries.
  *
- * @property {boolean}              [checkDefaultPath=false] - When true and bundling top level package exports check
- *           for `index.d.ts` in package root.
+ * @property {boolean}              [checkDefaultPath=false] When true and bundling top level package exports check
+ * for `index.d.ts` in package root.
  *
- * @property {boolean}              [checkJs=true] - When true set `checkJs` to default compiler options.
+ * @property {boolean}              [checkJs=true] When true set `checkJs` to default compiler options.
  *
- * @property {import('resolve.exports').Options}   [exportCondition] - `resolve.exports` conditional options for
- *  `package.json` exports field type.
+ * @property {import('resolve.exports').Options}   [exportCondition] `resolve.exports` conditional options for
+ * `package.json` exports field type.
  *
- * @property {string|Iterable<string>|false|null|undefined} [filterTags='internal'] - By default
- *           `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have
- *           the `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
+ * @property {string|Iterable<string>|false|null|undefined} [filterTags='internal'] By default
+ * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
+ * `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
  *
- * @property {import('@typhonjs-build-test/rollup-external-imports').ImportsExternalOptions} [importsExternalOptions] -
- *           Options to configure `@typhonjs-build-test/rollup-external-imports` plugin.
+ * @property {import('@typhonjs-build-test/rollup-external-imports').ImportsExternalOptions} [importsExternalOptions]
+ * Options to configure `@typhonjs-build-test/rollup-external-imports` plugin.
  *
- * @property {string}               [outputExt='.d.ts'] - The bundled output TS declaration file extension. Normally a
- *           complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup
- *           plugin to change the extension as desired.
+ * @property {string}               [outputExt='.d.ts'] The bundled output TS declaration file extension. Normally a
+ * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
+ * change the extension as desired.
  *
- * @property {Iterable<string>}     [prependString] - Directly prepend these strings to the bundled output.
+ * @property {Iterable<string>}     [prependFiles] Directly prepend these files to the bundled output. The files are
+ * first attempted to resolve relative to the entry point folder allowing a common configuration to be applied across
+ * multiple subpath exports. If a file is not This is useful
+ * for
+ *
+ * @property {Iterable<string>}     [prependString] Directly prepend these strings to the bundled output.
  *
  * @property {boolean}              [removePrivateStatic=true] When true a custom transformer is added to remove the
- *           renaming of private static class members that Typescript currently renames.
+ * renaming of private static class members that Typescript currently renames.
  *
  * @property {Record<string, string>} [replace] - Options for naive text replacement operating on the final bundled
- *           TS declaration file.
+ * TS declaration file.
  *
  * // Typescript specific options for compilation --------------------------------------------------------------------
  *
  * @property {ts.CompilerOptions}   [compilerOptions] - Typescript compiler options.
- *           {@link https://www.typescriptlang.org/tsconfig}
+ * {@link https://www.typescriptlang.org/tsconfig}
  *
  * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [filterDiagnostic] - Optional
- *           filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return
- *           `true` to filter the given diagnostic from posting to `console.error`.
+ * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
+ * filter the given diagnostic from posting to `console.error`.
  *
  * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [transformers]
- *           A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST
- *           while emitting intermediate types for bundling.
- *           {@link https://github.com/itsdouges/typescript-transformer-handbook}
+ * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
+ * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
  *
  * // Rollup specific options that are the same as Rollup configuration options when bundling declaration file -------
  *
  * @property {(string | RegExp)[] | RegExp | string |
  * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [external] - Rollup `external` option.
- *           {@link https://rollupjs.org/configuration-options/#external}
+ * {@link https://rollupjs.org/configuration-options/#external}
  *
  * @property {Record<string, string> | ((id: string) => string)} [paths] - Rollup `paths` option.
- *           {@link https://rollupjs.org/configuration-options/#output-paths}
+ * {@link https://rollupjs.org/configuration-options/#output-paths}
  *
  * @property {(warning: import('rollup').RollupWarning,
  * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} [onwarn] - Rollup `onwarn`
- *           option. {@link https://rollupjs.org/configuration-options/#onwarn}
+ * option. {@link https://rollupjs.org/configuration-options/#onwarn}
  */
