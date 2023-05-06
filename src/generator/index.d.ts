@@ -33,6 +33,10 @@ type GeneratePluginConfig = {
      */
     checkDefaultPath?: boolean;
     /**
+     * - When true set `checkJs` to default compiler options.
+     */
+    checkJs?: boolean;
+    /**
      * - `resolve.exports` conditional options for
      * `package.json` exports field type.
      */
@@ -54,10 +58,6 @@ type GeneratePluginConfig = {
      * plugin to change the extension as desired.
      */
     outputExt?: string;
-    /**
-     * - Generate TS definitions for these files prepending to bundled output.
-     */
-    prependGen?: Iterable<string>;
     /**
      * - Directly prepend these strings to the bundled output.
      */

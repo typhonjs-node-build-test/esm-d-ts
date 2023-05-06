@@ -1,9 +1,12 @@
 import fs                        from 'fs-extra';
-import module                    from 'module';
+import module                    from 'node:module';
+import path                      from 'node:path';
 
 import alias                     from '@rollup/plugin-alias';
 import { importsExternal }       from '@typhonjs-build-test/rollup-external-imports';
-import { commonPath }            from '@typhonjs-utils/file-util';
+import {
+   commonPath,
+   getFileList }                 from '@typhonjs-utils/file-util';
 import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
 import { exports }               from 'resolve.exports';
@@ -19,7 +22,10 @@ import {
 import * as internalPlugins      from './plugins.js';
 
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
-import { removePrivateStatic } from '../transformer/internal.js';
+
+import {
+   addSyntheticExports,
+   removePrivateStatic }         from '../transformer/internal/index.js';
 
 const requireMod = module.createRequire(import.meta.url);
 
@@ -50,19 +56,19 @@ async function generateDTS(options)
     *
     * @type {GenerateConfig}
     */
-   const config = Object.assign({ filterTags: 'internal', removePrivateStatic: true }, options);
+   const config = Object.assign({ checkJs: true, filterTags: 'internal', removePrivateStatic: true }, options);
 
    // Set default output extension and output file if not defined.
    if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
    if (config.output === void 0) { config.output = `./types/index${config.outputExt}`; }
-
-   let compilerOptions = Object.assign({}, s_DEFAULT_TS_OPTIONS, config.compilerOptions);
 
    if (!validateOptions(config))
    {
       console.error(`esm-d-ts generateDTS error: Aborting as 'config' failed validation.`);
       return;
    }
+
+   let compilerOptions = Object.assign({ checkJs: config.checkJs }, s_DEFAULT_TS_OPTIONS, config.compilerOptions);
 
    // Validate compiler options with Typescript.
    compilerOptions = validateCompilerOptions(compilerOptions);
@@ -80,9 +86,19 @@ async function generateDTS(options)
    // Parse imports from package.json resolved from input entry point.
    const importMap = parsePackageImports(config.input);
 
+   // Get all files ending in `.ts` that are in the entry point folder or sub-folders. These TS files will be compiled
+   // and added to the declaration bundle generated as synthetic wildcard exports.
+   const tsFilepaths = await getFileList({
+      dir: path.dirname(config.input),
+      ext: new Set(['.ts']),
+      skipEndsWith: '.d.ts'
+   });
+
+   // Resolve to full path.
+   config.input = upath.resolve(config.input);
+
    // Note: TS still doesn't seem to resolve import paths from `package.json`, so add any parsed import paths.
-   const filePaths = isIterable(config.prependGen) ? [...config.prependGen, config.input, ...importMap.values()] :
-    [config.input, ...importMap.values()];
+   const filepaths = [config.input, ...tsFilepaths, ...importMap.values()];
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
    const { files, packages } = await parseFiles([config.input], importMap);
@@ -90,9 +106,9 @@ async function generateDTS(options)
    // Common path for all input source files linked to the entry point.
    const parseFilesCommonPath = commonPath(...files);
 
-   compile(filePaths, compilerOptions, config, parseFilesCommonPath);
+   compile(filepaths, tsFilepaths, compilerOptions, config, parseFilesCommonPath);
 
-   await bundleTS({ ...config, outDir: compilerOptions.outDir }, files, packages, parseFilesCommonPath);
+   await bundleTS({ ...config, outDir: compilerOptions.outDir }, packages, parseFilesCommonPath);
 }
 
 /**
@@ -107,9 +123,7 @@ export { generateDTS };
 // Internal Implementation -------------------------------------------------------------------------------------------
 
 /**
- * @param {GenerateConfig & {outDir: string}} config - The config used to generate TS definitions.
- *
- * @param {Set<string>} files - All files included from input point entry location.
+ * @param {GenerateConfig & {outDir: string}} config - The config used to generate TS declarations.
  *
  * @param {Set<string>} packages - All top level imported packages.
  *
@@ -117,7 +131,7 @@ export { generateDTS };
  *
  * @returns {Promise<void>}
  */
-async function bundleTS(config, files, packages, parseFilesCommonPath)
+async function bundleTS(config, packages, parseFilesCommonPath)
 {
    // Find the common base path for all parsed files and find the relative path to the input source file.
    const inputRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.input) :
@@ -131,24 +145,24 @@ async function bundleTS(config, files, packages, parseFilesCommonPath)
 
    let banner = '';
 
-   if (isIterable(config.prependGen))
-   {
-      const cpath = commonPath(...config.prependGen, config.input);
-
-      for (const prependGenPath of config.prependGen)
-      {
-         const prependDTSPath = `${config.outDir}/${upath.relative(cpath, upath.changeExt(prependGenPath, '.d.ts'))}`;
-
-         if (!fs.existsSync(prependDTSPath))
-         {
-            console.warn(
-             `esm-d-ts - bundleTS warning: '${prependGenPath}' did not resolve to an emitted TS declaration.`);
-            continue;
-         }
-
-         banner += fs.readFileSync(prependDTSPath, 'utf-8');
-      }
-   }
+   // if (isIterable(config.prependGen))
+   // {
+   //    const cpath = commonPath(...config.prependGen, config.input);
+   //
+   //    for (const prependGenPath of config.prependGen)
+   //    {
+   //       const prependDTSPath = `${config.outDir}/${upath.relative(cpath, upath.changeExt(prependGenPath, '.d.ts'))}`;
+   //
+   //       if (!fs.existsSync(prependDTSPath))
+   //       {
+   //          console.warn(
+   //           `esm-d-ts - bundleTS warning: '${prependGenPath}' did not resolve to an emitted TS declaration.`);
+   //          continue;
+   //       }
+   //
+   //       banner += fs.readFileSync(prependDTSPath, 'utf-8');
+   //    }
+   // }
 
    if (isIterable(config.prependString))
    {
@@ -198,9 +212,11 @@ async function bundleTS(config, files, packages, parseFilesCommonPath)
 }
 
 /**
- * Compiles TS declaration files from the provided list of ESM files.
+ * Compiles TS declaration files from the provided list of ESM & TS files.
  *
- * @param {string[]}             filePaths - A list input entry file paths to parse.
+ * @param {string[]}             filepaths - A list of all file paths to compile.
+ *
+ * @param {string[]}             tsFilepaths - A list of all TS files to add synthetic exports.
  *
  * @param {ts.CompilerOptions}   options - TS compiler options.
  *
@@ -208,20 +224,20 @@ async function bundleTS(config, files, packages, parseFilesCommonPath)
  *
  * @param {string}               parseFilesCommonPath - The common path for all files referenced by input entry point.
  */
-function compile(filePaths, options, config, parseFilesCommonPath)
+function compile(filepaths, tsFilepaths, options, config, parseFilesCommonPath)
 {
    delete options.paths;
 
    if (options.rootDir === void 0)
    {
-      options.rootDir = parseFilesCommonPath === '' && filePaths.length === 1 ? upath.dirname(filePaths[0]) :
+      options.rootDir = parseFilesCommonPath === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
        parseFilesCommonPath;
    }
 
    const host = ts.createCompilerHost(options, /* setParentNodes */ true);
 
    // Prepare and emit the d.ts files
-   const program = ts.createProgram(filePaths, options, host);
+   const program = ts.createProgram(filepaths, options, host);
 
    let emitResult;
 
@@ -235,6 +251,7 @@ function compile(filePaths, options, config, parseFilesCommonPath)
       ...(typeof config.removePrivateStatic === 'boolean' && config.removePrivateStatic ? [removePrivateStatic()] : []),
       ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
        [jsdocRemoveNodeByTags(config.filterTags)] : []),
+      ...(tsFilepaths.length ? [addSyntheticExports(config.input, tsFilepaths)] : []),
       ...(isIterable(config.transformers) ? config.transformers : [])
    ];
 
@@ -276,13 +293,13 @@ function compile(filePaths, options, config, parseFilesCommonPath)
 /**
  * Fully parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
  *
- * @param {Iterable<string>} filePaths - List of file paths to parse.
+ * @param {Iterable<string>} filepaths - List of file paths to parse.
  *
  * @param {Map<string, string>} [importMap] - An optional map of imports from a given package.json
  *
  * @returns {Promise<{files: Set<string>, packages: Set<string>}>} Parsed files and top level packages exported.
  */
-async function parseFiles(filePaths, importMap = new Map())
+async function parseFiles(filepaths, importMap = new Map())
 {
    await init;
 
@@ -363,22 +380,15 @@ async function parseFiles(filePaths, importMap = new Map())
 
             const substring = fileData.substring(data.ss, data.se);
 
-            // Only add packages exported from the top level as part of the public contract. Ignore any packages
-            // that don't resolve to local node_modules.
-            try
-            {
-               // TODO: Evaluate if a require check is necessary. This seemed to exclude valid packages.
-               // if (topLevel && s_REGEX_EXPORT.exec(substring) && requireMod.resolve(data.n)) { packages.add(data.n); }
-               if (topLevel && s_REGEX_EXPORT.exec(substring)) { packages.add(data.n); }
-            }
-            catch (err) { /* */ }
+            // Only add packages exported from the top level as part of the public contract.
+            if (topLevel && s_REGEX_EXPORT.exec(substring)) { packages.add(data.n); }
          }
       }
 
       if (toParseFiles.size > 0) { parsePaths(toParseFiles); }
    };
 
-   parsePaths(filePaths, true);
+   parsePaths(filepaths, true);
 
    return { files, packages };
 }
@@ -524,7 +534,7 @@ function parsePackageImports(filepath)
  *
  * @param {GenerateConfig} config - The config object.
  *
- * @returns {string[]} Resolved local package types.
+ * @returns {{}[]} Resolved local package types.
  */
 function resolvePackageExports(packages, config)
 {
@@ -612,6 +622,12 @@ function validateOptions(config)
       return false;
    }
 
+   if (config.checkJs !== void 0 && typeof config.checkJs !== 'boolean')
+   {
+      console.error(`esm-d-ts validateOptions error: 'config.checkJs' is not a boolean.`);
+      return false;
+   }
+
    return true;
 }
 
@@ -650,6 +666,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}              [checkDefaultPath=false] - When true and bundling top level package exports check
  *           for `index.d.ts` in package root.
  *
+ * @property {boolean}              [checkJs=true] - When true set `checkJs` to default compiler options.
+ *
  * @property {import('resolve.exports').Options}   [exportCondition] - `resolve.exports` conditional options for
  *  `package.json` exports field type.
  *
@@ -663,8 +681,6 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {string}               [outputExt='.d.ts'] - The bundled output TS declaration file extension. Normally a
  *           complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup
  *           plugin to change the extension as desired.
- *
- * @property {Iterable<string>}     [prependGen] - Generate TS definitions for these files prepending to bundled output.
  *
  * @property {Iterable<string>}     [prependString] - Directly prepend these strings to the bundled output.
  *
