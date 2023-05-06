@@ -575,7 +575,6 @@ function resolvePackageExports(packages, config)
    for (const packageName of packages)
    {
       const resolveDTS = parsePackage(packageName, config);
-console.log(`!!!! resolvePackageExports - resolveDTS: `, resolveDTS)
       if (!resolveDTS)
       {
          console.warn(
