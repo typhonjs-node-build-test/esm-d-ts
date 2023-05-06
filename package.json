@@ -23,7 +23,7 @@
   "dependencies": {
     "@rollup/plugin-alias": "^5",
     "@typhonjs-build-test/rollup-external-imports": "^0.0.1",
-    "@typhonjs-utils/file-util": "^0.0.6",
+    "@typhonjs-utils/file-util": "^0.0.8",
     "@typhonjs-utils/package-json": "^0.6.0",
     "comment-parser": "^1",
     "es-module-lexer": "^1",
@@ -64,6 +64,6 @@
   "scripts": {
     "eslint": "eslint .",
     "prepublishOnly": "npm run types",
-    "types": "node -e \"import('./src/generator/index.js').then(async module => { await module.generateDTS({ input: './src/generator/index.js', output: './src/generator/index.d.ts' }); await module.generateDTS({ input: './src/transformer/index.js', output: './src/transformer/index.d.ts' }); });\""
+    "types": "node -e \"import('./src/generator/index.js').then(async module => { await module.generateDTS({ input: './src/generator/index.js', output: './src/generator/index.d.ts', checkJs: false }); await module.generateDTS({ input: './src/transformer/index.js', output: './src/transformer/index.d.ts', checkJs: false }); });\""
   }
 }
