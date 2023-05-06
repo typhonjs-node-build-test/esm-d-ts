@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/esm-d-ts",
   "description": "Generates a bundled Typescript declaration file from ESM source.",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "main": "src/generator/index.js",
