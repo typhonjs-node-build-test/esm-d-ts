@@ -55,7 +55,7 @@ async function generateDTS(options)
     *
     * @type {GenerateConfig}
     */
-   const config = Object.assign({ checkJs: true, filterTags: 'internal', removePrivateStatic: true }, options);
+   const config = Object.assign({ checkJs: false, filterTags: 'internal', removePrivateStatic: true }, options);
 
    // Set default output extension and output file if not defined.
    if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
@@ -698,7 +698,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}              [checkDefaultPath=false] When true and bundling top level package exports check
  * for `index.d.ts` in package root.
  *
- * @property {boolean}              [checkJs=true] When true set `checkJs` to default compiler options.
+ * @property {boolean}              [checkJs=false] When true set `checkJs` to default compiler options. This is a
+ * convenience parameter to quickly turn `checkJs` on / off.
  *
  * @property {import('resolve.exports').Options}   [exportCondition] `resolve.exports` conditional options for
  * `package.json` exports field type.

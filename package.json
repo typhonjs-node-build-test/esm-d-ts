@@ -64,6 +64,6 @@
   "scripts": {
     "eslint": "eslint .",
     "prepublishOnly": "npm run types",
-    "types": "node -e \"import('./src/generator/index.js').then(async module => { await module.generateDTS({ input: './src/generator/index.js', output: './src/generator/index.d.ts', checkJs: false }); await module.generateDTS({ input: './src/transformer/index.js', output: './src/transformer/index.d.ts', checkJs: false }); });\""
+    "types": "node -e \"import('./src/generator/index.js').then(async module => { await module.generateDTS({ input: './src/generator/index.js', output: './src/generator/index.d.ts' }); await module.generateDTS({ input: './src/transformer/index.js', output: './src/transformer/index.d.ts' }); });\""
   }
 }

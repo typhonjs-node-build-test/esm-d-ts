@@ -33,7 +33,8 @@ type GeneratePluginConfig = {
      */
     checkDefaultPath?: boolean;
     /**
-     * When true set `checkJs` to default compiler options.
+     * When true set `checkJs` to default compiler options. This is a
+     * convenience parameter to quickly turn `checkJs` on / off.
      */
     checkJs?: boolean;
     /**
