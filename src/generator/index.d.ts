@@ -11,55 +11,60 @@ type GenerateConfig = {
     input: string;
 } & GeneratePluginConfig;
 /**
- * - Data used to generate the bundled TS declaration.
+ * Data used to generate the bundled TS declaration.
  */
 type GeneratePluginConfig = {
     /**
-     * - The input entry ESM source path.
+     * The input entry ESM source path.
      */
     input?: string;
     /**
-     * - The bundled output TS declaration path.
+     * The bundled output TS declaration path.
      */
     output?: string;
     /**
-     * - When true attempt to bundle types of top level
+     * When true attempt to bundle types of top level
      * exported packages. This is useful for re-bundling libraries.
      */
     bundlePackageExports?: boolean;
     /**
-     * - When true and bundling top level package exports check
+     * When true and bundling top level package exports check
      * for `index.d.ts` in package root.
      */
     checkDefaultPath?: boolean;
     /**
-     * - When true set `checkJs` to default compiler options.
+     * When true set `checkJs` to default compiler options.
      */
     checkJs?: boolean;
     /**
-     * - `resolve.exports` conditional options for
+     * `resolve.exports` conditional options for
      * `package.json` exports field type.
      */
     exportCondition?: resolve_exports.Options;
     /**
-     * - By default
-     * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have
-     * the `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
+     * By default
+     * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
+     * `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
      */
     filterTags?: string | Iterable<string> | false | null | undefined;
     /**
-     * -
      * Options to configure `@typhonjs-build-test/rollup-external-imports` plugin.
      */
     importsExternalOptions?: _typhonjs_build_test_rollup_external_imports.ImportsExternalOptions;
     /**
-     * - The bundled output TS declaration file extension. Normally a
-     * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup
-     * plugin to change the extension as desired.
+     * The bundled output TS declaration file extension. Normally a
+     * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
+     * change the extension as desired.
      */
     outputExt?: string;
     /**
-     * - Directly prepend these strings to the bundled output.
+     * Directly prepend these files to the bundled output. The files are
+     * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied
+     * across multiple subpath exports. Then a second attempt is made with the path provided.
+     */
+    prependFiles?: Iterable<string>;
+    /**
+     * Directly prepend these strings to the bundled output.
      */
     prependString?: Iterable<string>;
     /**
@@ -81,14 +86,13 @@ type GeneratePluginConfig = {
     compilerOptions?: ts__default.CompilerOptions;
     /**
      * - Optional
-     * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return
-     * `true` to filter the given diagnostic from posting to `console.error`.
+     * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
+     * filter the given diagnostic from posting to `console.error`.
      */
     filterDiagnostic?: (diagnostic: ts.Diagnostic, message?: string) => boolean;
     /**
-     * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST
-     * while emitting intermediate types for bundling.
-     * {@link https://github.com/itsdouges/typescript-transformer-handbook}
+     * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
+     * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
      *
      * // Rollup specific options that are the same as Rollup configuration options when bundling declaration file -------
      */

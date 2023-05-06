@@ -1,6 +1,5 @@
 import fs                        from 'fs-extra';
 import module                    from 'node:module';
-import path                      from 'node:path';
 
 import alias                     from '@rollup/plugin-alias';
 import { importsExternal }       from '@typhonjs-build-test/rollup-external-imports';
@@ -89,7 +88,7 @@ async function generateDTS(options)
    // Get all files ending in `.ts` that are in the entry point folder or sub-folders. These TS files will be compiled
    // and added to the declaration bundle generated as synthetic wildcard exports.
    const tsFilepaths = await getFileList({
-      dir: path.dirname(config.input),
+      dir: upath.dirname(config.input),
       ext: new Set(['.ts']),
       skipEndsWith: '.d.ts'
    });
@@ -145,24 +144,31 @@ async function bundleTS(config, packages, parseFilesCommonPath)
 
    let banner = '';
 
-   // if (isIterable(config.prependGen))
-   // {
-   //    const cpath = commonPath(...config.prependGen, config.input);
-   //
-   //    for (const prependGenPath of config.prependGen)
-   //    {
-   //       const prependDTSPath = `${config.outDir}/${upath.relative(cpath, upath.changeExt(prependGenPath, '.d.ts'))}`;
-   //
-   //       if (!fs.existsSync(prependDTSPath))
-   //       {
-   //          console.warn(
-   //           `esm-d-ts - bundleTS warning: '${prependGenPath}' did not resolve to an emitted TS declaration.`);
-   //          continue;
-   //       }
-   //
-   //       banner += fs.readFileSync(prependDTSPath, 'utf-8');
-   //    }
-   // }
+   if (isIterable(config.prependFiles))
+   {
+      const dir = upath.dirname(config.input);
+
+      for (const prependFile of config.prependFiles)
+      {
+         const resolvedPath = upath.resolve(dir, prependFile);
+
+         // First attempt to load the file relative to the entry point file.
+         if (fs.existsSync(resolvedPath))
+         {
+            banner += fs.readFileSync(resolvedPath, 'utf-8');
+            continue;
+         }
+
+         // Make a second attempt to load the file with the path provided.
+         if (fs.existsSync(prependFile))
+         {
+            banner += fs.readFileSync(prependFile, 'utf-8');
+            continue;
+         }
+
+         console.warn(`esm-d-ts - warning could not prepend file: '${prependFile}'.`);
+      }
+   }
 
    if (isIterable(config.prependString))
    {
@@ -683,9 +689,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * change the extension as desired.
  *
  * @property {Iterable<string>}     [prependFiles] Directly prepend these files to the bundled output. The files are
- * first attempted to resolve relative to the entry point folder allowing a common configuration to be applied across
- * multiple subpath exports. If a file is not This is useful
- * for
+ * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied
+ * across multiple subpath exports. Then a second attempt is made with the path provided.
  *
  * @property {Iterable<string>}     [prependString] Directly prepend these strings to the bundled output.
  *
