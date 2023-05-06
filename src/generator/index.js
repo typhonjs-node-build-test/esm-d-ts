@@ -418,10 +418,36 @@ function parsePackage(packageName, config)
 
    if (!match) { return void 0; }
 
-   const packagePath = `./${upath.relative('.', requireMod.resolve(`${match[1]}/package.json`))}`;
-   const packageDir = `./${upath.relative('.', upath.dirname(packagePath))}`;
+   let packagePath;
+   let packageJSON;
 
-   const packageJSON = JSON.parse(fs.readFileSync(packagePath).toString());
+   try
+   {
+      // Attempt to load explicit `./package.json` export.
+      packagePath = `./${upath.relative('.', requireMod.resolve(`${match[1]}/package.json`))}`;
+      packageJSON = JSON.parse(fs.readFileSync(packagePath, 'utf-8').toString());
+   }
+   catch (err)
+   {
+      try
+      {
+         // Attempt to load exact package name / path.
+         const exportedPath = `./${upath.relative('.', requireMod.resolve(packageName))}`;
+         const { packageObj, filepath } = getPackageWithPath({ filepath: exportedPath });
+
+         packageJSON = packageObj;
+         packagePath = filepath;
+      }
+      catch (err) { /**/ }
+   }
+
+   if (typeof packageJSON !== 'object')
+   {
+      console.warn(`esm-d-ts - warning could not locate package.json; top level exported package: ${packageName}`);
+      return void 0;
+   }
+
+   const packageDir = `./${upath.relative('.', upath.dirname(packagePath))}`;
 
    // Handle parsing package exports.
    if (typeof packageJSON.exports === 'object')
@@ -549,6 +575,7 @@ function resolvePackageExports(packages, config)
    for (const packageName of packages)
    {
       const resolveDTS = parsePackage(packageName, config);
+console.log(`!!!! resolvePackageExports - resolveDTS: `, resolveDTS)
       if (!resolveDTS)
       {
          console.warn(
