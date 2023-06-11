@@ -1,22 +1,30 @@
+import { fileURLToPath }         from 'node:url';
+
 import fs                        from 'fs-extra';
-import module                    from 'node:module';
 
 import alias                     from '@rollup/plugin-alias';
-import { importsExternal }       from '@typhonjs-build-test/rollup-external-imports';
+
+import {
+   importsExternal,
+   importsResolve }              from '@typhonjs-build-test/rollup-plugin-pkg-imports';
+
 import {
    commonPath,
    getFileList }                 from '@typhonjs-utils/file-util';
+
+import {
+   isIterable,
+   isObject }                    from '@typhonjs-utils/object';
+
 import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
+import { resolve }               from 'import-meta-resolve';
 import { exports }               from 'resolve.exports';
 import { rollup }                from 'rollup';
 import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
 import upath                     from 'upath';
 
-import {
-   isIterable,
-   isObject }                    from '../util/index.js';
 
 import * as internalPlugins      from './plugins.js';
 
@@ -25,8 +33,6 @@ import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 import {
    addSyntheticExports,
    removePrivateStatic }         from '../transformer/internal/index.js';
-
-const requireMod = module.createRequire(import.meta.url);
 
 /**
  * Generates TS declarations from ESM source.
@@ -181,6 +187,12 @@ async function bundleTS(config, packages, parseFilesCommonPath)
    if (isObject(config.importsExternalOptions))
    {
       plugins.push(importsExternal(config.importsExternalOptions));
+   }
+
+   // Add `importsResolve` plugin if configured.
+   if (isObject(config.importsResolveOptions))
+   {
+      plugins.push(importsResolve(config.importsResolveOptions));
    }
 
    plugins.push(...[
@@ -424,7 +436,9 @@ function parsePackage(packageName, config)
    try
    {
       // Attempt to load explicit `./package.json` export.
-      packagePath = `./${upath.relative('.', requireMod.resolve(`${match[1]}/package.json`))}`;
+      // packagePath = `./${upath.relative('.', requireMod.resolve(`${match[1]}/package.json`))}`;
+      packagePath = fileURLToPath(resolve(`${match[1]}/package.json`, import.meta.url));
+
       packageJSON = JSON.parse(fs.readFileSync(packagePath, 'utf-8').toString());
    }
    catch (err)
@@ -432,7 +446,9 @@ function parsePackage(packageName, config)
       try
       {
          // Attempt to load exact package name / path.
-         const exportedPath = `./${upath.relative('.', requireMod.resolve(packageName))}`;
+         // const exportedPath = `./${upath.relative('.', requireMod.resolve(packageName))}`;
+         const exportedPath = fileURLToPath(resolve(packageName, import.meta.url));
+
          const { packageObj, filepath } = getPackageWithPath({ filepath: exportedPath });
 
          packageJSON = packageObj;
@@ -708,8 +724,11 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
  * `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
  *
- * @property {import('@typhonjs-build-test/rollup-external-imports').ImportsExternalOptions} [importsExternalOptions]
- * Options to configure `@typhonjs-build-test/rollup-external-imports` plugin.
+ * @property {import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsExternalOptions]
+ * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsExternal` plugin.
+ *
+ * @property {import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsResolveOptions]
+ * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsResolve` plugin.
  *
  * @property {string}               [outputExt='.d.ts'] The bundled output TS declaration file extension. Normally a
  * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to

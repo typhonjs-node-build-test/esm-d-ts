@@ -1,6 +1,6 @@
 import {
    isIterable,
-   isObject }        from '../util/index.js';
+   isObject }        from '@typhonjs-utils/object';
 
 import upath         from 'upath';
 
@@ -41,16 +41,27 @@ export function generateDTSPlugin(generateDTS)
                validRollupOptions = false;
             }
 
-            // Examine configured Rollup plugins and find `@typhonjs-build-test/rollup-external-imports storing
-            // The configuration for use in generateDTS.
+            // Examine configured Rollup plugins and find either `@typhonjs-build-test/rollup-plugin-pkg-imports`
+            // plugins storing the options in the configuration for use in generateDTS.
             if (isIterable(options.plugins))
             {
                for (const plugin of options.plugins)
                {
-                  if (isObject(plugin) && plugin?.name === '@typhonjs-build-test/rollup-external-imports')
+                  if (isObject(plugin))
                   {
-                     config.importsExternalOptions = isObject(plugin.importsExternalOptions) ?
-                      plugin.importsExternalOptions : {};
+                     if (config.importsExternalOptions === void 0 &&
+                      plugin?.name === '@typhonjs-build-test/rollup-plugin-pkg-imports/importsExternal')
+                     {
+                        config.importsExternalOptions = isObject(plugin.importsPluginOptions) ?
+                         plugin.importsPluginOptions : {};
+                     }
+
+                     if (config.importsResolveOptions === void 0 &&
+                      plugin?.name === '@typhonjs-build-test/rollup-plugin-pkg-imports/importsResolve')
+                     {
+                        config.importsResolveOptions = isObject(plugin.importsPluginOptions) ?
+                         plugin.importsPluginOptions : {};
+                     }
                   }
                }
             }
