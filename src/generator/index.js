@@ -25,7 +25,6 @@ import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
 import upath                     from 'upath';
 
-
 import * as internalPlugins      from './plugins.js';
 
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
@@ -46,13 +45,13 @@ async function generateDTS(options)
    // Initial sanity checks.
    if (!isObject(options))
    {
-      console.error(`esm-d-ts generateDTS error: Aborting as 'config' is not an object.`);
+      logError(`generateDTS error: Aborting as 'config' is not an object.`);
       return;
    }
 
    if (options.compilerOptions !== void 0 && !isObject(options.compilerOptions))
    {
-      console.error(`esm-d-ts generateDTS error: Aborting as 'config.compilerOptions' is not an object.`);
+      logError(`generateDTS error: Aborting as 'config.compilerOptions' is not an object.`);
       return;
    }
 
@@ -69,7 +68,7 @@ async function generateDTS(options)
 
    if (!validateOptions(config))
    {
-      console.error(`esm-d-ts generateDTS error: Aborting as 'config' failed validation.`);
+      logError(`generateDTS error: Aborting as 'config' failed validation.`);
       return;
    }
 
@@ -81,7 +80,7 @@ async function generateDTS(options)
    // Return now if compiler options failed to validate.
    if (!compilerOptions)
    {
-      console.error(`esm-d-ts generateDTS error: Aborting as 'config.compilerOptions' failed validation.`);
+      logError(`generateDTS error: Aborting as 'config.compilerOptions' failed validation.`);
       return;
    }
 
@@ -91,12 +90,11 @@ async function generateDTS(options)
    // Parse imports from package.json resolved from input entry point.
    const importMap = parsePackageImports(config.input);
 
-   // Get all files ending in `.ts` that are in the entry point folder or sub-folders. These TS files will be compiled
-   // and added to the declaration bundle generated as synthetic wildcard exports.
+   // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS files
+   // will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
    const tsFilepaths = await getFileList({
       dir: upath.dirname(config.input),
-      ext: new Set(['.ts']),
-      skipEndsWith: '.d.ts'
+      includeFile: /^(?!.*\.d\.ts$).*\.ts$/
    });
 
    // Resolve to full path.
@@ -309,6 +307,16 @@ function compile(filepaths, tsFilepaths, options, config, parseFilesCommonPath)
 }
 
 /**
+ * Log an error message.
+ *
+ * @param {string} message - A message.
+ */
+function logError(message)
+{
+   console.error(`[31m[esm-d-ts] ${message}`);
+}
+
+/**
  * Fully parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
  *
  * @param {Iterable<string>} filepaths - List of file paths to parse.
@@ -436,7 +444,6 @@ function parsePackage(packageName, config)
    try
    {
       // Attempt to load explicit `./package.json` export.
-      // packagePath = `./${upath.relative('.', requireMod.resolve(`${match[1]}/package.json`))}`;
       packagePath = fileURLToPath(resolve(`${match[1]}/package.json`, import.meta.url));
 
       packageJSON = JSON.parse(fs.readFileSync(packagePath, 'utf-8').toString());
@@ -446,7 +453,6 @@ function parsePackage(packageName, config)
       try
       {
          // Attempt to load exact package name / path.
-         // const exportedPath = `./${upath.relative('.', requireMod.resolve(packageName))}`;
          const exportedPath = fileURLToPath(resolve(packageName, import.meta.url));
 
          const { packageObj, filepath } = getPackageWithPath({ filepath: exportedPath });
@@ -654,25 +660,25 @@ function validateOptions(config)
 {
    if (typeof config.input !== 'string')
    {
-      console.error(`esm-d-ts validateOptions error: 'config.input' is not a string.`);
+      logError(`validateOptions error: 'config.input' is not a string.`);
       return false;
    }
 
    if (!fs.existsSync(config.input))
    {
-      console.error(`esm-d-ts validateOptions error: 'config.input' file does not exist.`);
+      logError(`validateOptions error: 'config.input' file does not exist.`);
       return false;
    }
 
    if (typeof config.output !== 'string')
    {
-      console.error(`esm-d-ts validateOptions error: 'config.output' is not a string.`);
+      logError(`validateOptions error: 'config.output' is not a string.`);
       return false;
    }
 
    if (config.checkJs !== void 0 && typeof config.checkJs !== 'boolean')
    {
-      console.error(`esm-d-ts validateOptions error: 'config.checkJs' is not a boolean.`);
+      logError(`validateOptions error: 'config.checkJs' is not a boolean.`);
       return false;
    }
 
