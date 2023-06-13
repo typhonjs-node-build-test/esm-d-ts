@@ -36,82 +36,69 @@ import {
 /**
  * Generates TS declarations from ESM source.
  *
- * @param {GenerateConfig} options - Generation configuration object.
+ * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
  *
  * @returns {Promise<void>}
  */
-async function generateDTS(options)
+async function generateDTS(config)
 {
-   // Initial sanity checks.
-   if (!isObject(options))
+   if (isIterable(config))
    {
-      logError(`generateDTS error: Aborting as 'config' is not an object.`);
-      return;
-   }
+      for (const entry of config)
+      {
+         const processedConfigOrError = await processConfig(entry);
 
-   if (options.compilerOptions !== void 0 && !isObject(options.compilerOptions))
+         if (typeof processedConfigOrError === 'string')
+         {
+            logError(`${processedConfigOrError} Entry point (${entry.input})`);
+            continue;
+         }
+
+         if (typeof entry.output !== 'string')
+         {
+            logError(`generateDTS error: Processing multiple entry points; 'output' attribute missing. Entry point (${
+             entry.input})`);
+            continue;
+         }
+
+         console.log(`[esm-d-ts] Generating DTS bundle for: ${entry.input}`);
+
+         await generateDTSImpl(processedConfigOrError);
+      }
+   }
+   else
    {
-      logError(`generateDTS error: Aborting as 'config.compilerOptions' is not an object.`);
-      return;
+      const processedConfigOrError = await processConfig(config);
+
+      if (typeof processedConfigOrError === 'string')
+      {
+         logError(`${processedConfigOrError} Entry point (${config.input})`);
+         return;
+      }
+
+      console.log(`[esm-d-ts] Generating DTS bundle for: ${config.input}`);
+
+      await generateDTSImpl(processedConfigOrError);
    }
+}
 
-   /**
-    * A shallow copy of configuration options w/ default values for `filterTags` and `removePrivateStatic`.
-    *
-    * @type {GenerateConfig}
-    */
-   const config = Object.assign({ checkJs: false, filterTags: 'internal', removePrivateStatic: true }, options);
-
-   // Set default output extension and output file if not defined.
-   if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
-   if (config.output === void 0) { config.output = `./types/index${config.outputExt}`; }
-
-   if (!validateOptions(config))
-   {
-      logError(`generateDTS error: Aborting as 'config' failed validation.`);
-      return;
-   }
-
-   let compilerOptions = Object.assign({ checkJs: config.checkJs }, s_DEFAULT_TS_OPTIONS, config.compilerOptions);
-
-   // Validate compiler options with Typescript.
-   compilerOptions = validateCompilerOptions(compilerOptions);
-
-   // Return now if compiler options failed to validate.
-   if (!compilerOptions)
-   {
-      logError(`generateDTS error: Aborting as 'config.compilerOptions' failed validation.`);
-      return;
-   }
+/**
+ * `generateDTS` implementation.
+ *
+ * @param {ProcessedConfig}   pConfig - Processed Config.
+ *
+ * @returns {Promise<void>}
+ */
+async function generateDTSImpl(pConfig)
+{
+   const { compilerOptions } = pConfig;
 
    // Empty intermediate declaration output directory.
    if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
 
-   // Parse imports from package.json resolved from input entry point.
-   const importMap = parsePackageImports(config.input);
+   compile(pConfig);
 
-   // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS files
-   // will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
-   const tsFilepaths = await getFileList({
-      dir: upath.dirname(config.input),
-      includeFile: /^(?!.*\.d\.ts$).*\.ts$/
-   });
-
-   // Resolve to full path.
-   config.input = upath.resolve(config.input);
-
-   // Note: TS still doesn't seem to resolve import paths from `package.json`, so add any parsed import paths.
-   const filepaths = [config.input, ...tsFilepaths, ...importMap.values()];
-
-   // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { files, packages } = await parseFiles([config.input], importMap);
-
-   // Common path for all input source files linked to the entry point.
-   const parseFilesCommonPath = commonPath(...files);
-
-   compile(filepaths, tsFilepaths, compilerOptions, config, parseFilesCommonPath);
-
-   await bundleTS({ ...config, outDir: compilerOptions.outDir }, packages, parseFilesCommonPath);
+   await bundleTS(pConfig);
 }
 
 /**
@@ -126,22 +113,20 @@ export { generateDTS };
 // Internal Implementation -------------------------------------------------------------------------------------------
 
 /**
- * @param {GenerateConfig & {outDir: string}} config - The config used to generate TS declarations.
- *
- * @param {Set<string>} packages - All top level imported packages.
- *
- * @param {string}      parseFilesCommonPath - The common path for all files referenced by input entry point.
+ * @param {ProcessedConfig}   pConfig - Processed config.
  *
  * @returns {Promise<void>}
  */
-async function bundleTS(config, packages, parseFilesCommonPath)
+async function bundleTS(pConfig)
 {
+   const { config, compilerOptions, packages, parseFilesCommonPath } = pConfig;
+
    // Find the common base path for all parsed files and find the relative path to the input source file.
    const inputRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.input) :
     upath.basename(config.input);
 
    // Get the input DTS entry point; append inputRelativePath after changing extensions to the compilerOptions outDir.
-   const dtsMain = `${config.outDir}/${upath.changeExt(inputRelativePath, '.d.ts')}`;
+   const dtsMain = `${compilerOptions.outDir}/${upath.changeExt(inputRelativePath, '.d.ts')}`;
 
    const packageAlias = typeof config.bundlePackageExports === 'boolean' && config.bundlePackageExports ?
     resolvePackageExports(packages, config) : [];
@@ -230,30 +215,24 @@ async function bundleTS(config, packages, parseFilesCommonPath)
 /**
  * Compiles TS declaration files from the provided list of ESM & TS files.
  *
- * @param {string[]}             filepaths - A list of all file paths to compile.
- *
- * @param {string[]}             tsFilepaths - A list of all TS files to add synthetic exports.
- *
- * @param {ts.CompilerOptions}   options - TS compiler options.
- *
- * @param {GenerateConfig}       config - Configuration object.
- *
- * @param {string}               parseFilesCommonPath - The common path for all files referenced by input entry point.
+ * @param {ProcessedConfig}   pConfig - Processed config object.
  */
-function compile(filepaths, tsFilepaths, options, config, parseFilesCommonPath)
+function compile(pConfig)
 {
-   delete options.paths;
+   const { config, compilerOptions, filepaths, parseFilesCommonPath, tsFilepaths } = pConfig;
 
-   if (options.rootDir === void 0)
+   delete compilerOptions.paths;
+
+   if (compilerOptions.rootDir === void 0)
    {
-      options.rootDir = parseFilesCommonPath === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
+      compilerOptions.rootDir = parseFilesCommonPath === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
        parseFilesCommonPath;
    }
 
-   const host = ts.createCompilerHost(options, /* setParentNodes */ true);
+   const host = ts.createCompilerHost(compilerOptions, /* setParentNodes */ true);
 
    // Prepare and emit the d.ts files
-   const program = ts.createProgram(filepaths, options, host);
+   const program = ts.createProgram(filepaths, compilerOptions, host);
 
    let emitResult;
 
@@ -578,6 +557,79 @@ function parsePackageImports(filepath)
 }
 
 /**
+ * Processes an original GenerateConfig object returning all processed data required to compile / bundle DTS.
+ *
+ * @param {GenerateConfig} origConfig - An original GenerateConfig.
+ *
+ * @returns {Promise<ProcessedConfig | string>} Processed config or error string.
+ */
+async function processConfig(origConfig)
+{
+   // Initial sanity checks.
+   if (!isObject(origConfig))
+   {
+      return `generateDTS error: Aborting as 'config' is not an object.`;
+   }
+
+   if (origConfig.compilerOptions !== void 0 && !isObject(origConfig.compilerOptions))
+   {
+      return `generateDTS error: Aborting as 'config.compilerOptions' is not an object.`;
+   }
+
+   /**
+    * A shallow copy of the original configuration w/ default values for `checkJS`, `filterTags` and
+    * `removePrivateStatic`.
+    *
+    * @type {GenerateConfig}
+    */
+   const config = Object.assign({ checkJs: false, filterTags: 'internal', removePrivateStatic: true }, origConfig);
+
+   // Set default output extension and output file if not defined.
+   if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
+   if (config.output === void 0) { config.output = `./types/index${config.outputExt}`; }
+
+   if (!validateOptions(config))
+   {
+      return `generateDTS error: Aborting as 'config' failed validation.`;
+   }
+
+   let compilerOptions = Object.assign({ checkJs: config.checkJs }, s_DEFAULT_TS_GEN_OPTIONS, config.compilerOptions);
+
+   // Validate compiler options with Typescript.
+   compilerOptions = validateCompilerOptions(compilerOptions);
+
+   // Return now if compiler options failed to validate.
+   if (!compilerOptions)
+   {
+      return `generateDTS error: Aborting as 'config.compilerOptions' failed validation.`;
+   }
+
+   // Parse imports from package.json resolved from input entry point.
+   const importMap = parsePackageImports(config.input);
+
+   // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS files
+   // will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
+   const tsFilepaths = await getFileList({
+      dir: upath.dirname(config.input),
+      includeFile: /^(?!.*\.d\.ts$).*\.ts$/
+   });
+
+   // Resolve to full path.
+   config.input = upath.resolve(config.input);
+
+   // Note: TS still doesn't seem to resolve import paths from `package.json`, so add any parsed import paths.
+   const filepaths = [config.input, ...tsFilepaths, ...importMap.values()];
+
+   // Parse input source file and gather any top level NPM packages that may be referenced.
+   const { files, packages } = await parseFiles([config.input], importMap);
+
+   // Common path for all input source files linked to the entry point.
+   const parseFilesCommonPath = commonPath(...files);
+
+   return { config, compilerOptions, filepaths, packages, parseFilesCommonPath, tsFilepaths };
+}
+
+/**
  * Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
  * outDir; default: `./.dts`. As of Typescript v5 it is necessary to copy the external NPM package types to the local
  * output directory.
@@ -627,7 +679,7 @@ function resolvePackageExports(packages, config)
  *
  * @param {ts.CompilerOptions} compilerOptions - The TS compiler options.
  *
- * @returns {ts.CompilerOptions|void} The validated compiler options or undefined if failure.
+ * @returns {ts.CompilerOptions|undefined} The validated compiler options or undefined if failure.
  */
 function validateCompilerOptions(compilerOptions)
 {
@@ -688,10 +740,24 @@ function validateOptions(config)
 /**
  * @type {ts.CompilerOptions}
  */
-const s_DEFAULT_TS_OPTIONS = {
+const s_DEFAULT_TS_GEN_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
+   moduleResolution: 'bundler',
+   module: 'es2022',
+   target: 'es2022',
+   outDir: './.dts'
+};
+
+/**
+ * @type {ts.CompilerOptions}
+ */
+const s_DEFAULT_TS_CHECK_OPTIONS = {
+   allowJs: true,
+   checkJS: true,
+   declaration: true,
+   noEmit: true,
    moduleResolution: 'bundler',
    module: 'es2022',
    target: 'es2022',
@@ -749,15 +815,15 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}              [removePrivateStatic=true] When true a custom transformer is added to remove the
  * renaming of private static class members that Typescript currently renames.
  *
- * @property {Record<string, string>} [replace] - Options for naive text replacement operating on the final bundled
+ * @property {Record<string, string>} [replace] Options for naive text replacement operating on the final bundled
  * TS declaration file.
  *
  * // Typescript specific options for compilation --------------------------------------------------------------------
  *
- * @property {ts.CompilerOptions}   [compilerOptions] - Typescript compiler options.
+ * @property {ts.CompilerOptions}   [compilerOptions] Typescript compiler options.
  * {@link https://www.typescriptlang.org/tsconfig}
  *
- * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [filterDiagnostic] - Optional
+ * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [filterDiagnostic] Optional
  * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
  * filter the given diagnostic from posting to `console.error`.
  *
@@ -768,13 +834,29 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * // Rollup specific options that are the same as Rollup configuration options when bundling declaration file -------
  *
  * @property {(string | RegExp)[] | RegExp | string |
- * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [external] - Rollup `external` option.
+ * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [external] Rollup `external` option.
  * {@link https://rollupjs.org/configuration-options/#external}
  *
- * @property {Record<string, string> | ((id: string) => string)} [paths] - Rollup `paths` option.
+ * @property {Record<string, string> | ((id: string) => string)} [paths] Rollup `paths` option.
  * {@link https://rollupjs.org/configuration-options/#output-paths}
  *
  * @property {(warning: import('rollup').RollupWarning,
- * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} [onwarn] - Rollup `onwarn`
+ * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} [onwarn] Rollup `onwarn`
  * option. {@link https://rollupjs.org/configuration-options/#onwarn}
+ */
+
+/**
+ * @typedef {object} ProcessedConfig Contains the processed config and associated data.
+ *
+ * @property {ts.CompilerOptions} compilerOptions TS compiler options.
+ *
+ * @property {GenerateConfig} config Generate config w/ default data.
+ *
+ * @property {string[]}    filepaths A list of all file paths to compile.
+ *
+ * @property {Set<string>} packages Top level packages exported from entry point.
+ *
+ * @property {string}      parseFilesCommonPath The common path for all files referenced by input entry point.
+ *
+ * @property {string[]}    tsFilepaths A list of all TS files to add synthetic exports.
  */
