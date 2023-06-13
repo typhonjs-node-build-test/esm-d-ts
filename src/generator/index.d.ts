@@ -78,19 +78,19 @@ type GeneratePluginConfig = {
      */
     removePrivateStatic?: boolean;
     /**
-     * - Options for naive text replacement operating on the final bundled
+     * Options for naive text replacement operating on the final bundled
      * TS declaration file.
      *
      * // Typescript specific options for compilation --------------------------------------------------------------------
      */
     replace?: Record<string, string>;
     /**
-     * - Typescript compiler options.
+     * Typescript compiler options.
      * {@link https://www.typescriptlang.org/tsconfig}
      */
     compilerOptions?: ts__default.CompilerOptions;
     /**
-     * - Optional
+     * Optional
      * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
      * filter the given diagnostic from posting to `console.error`.
      */
@@ -103,31 +103,68 @@ type GeneratePluginConfig = {
      */
     transformers?: Iterable<ts__default.TransformerFactory<ts__default.Bundle | ts__default.SourceFile> | ts__default.CustomTransformerFactory>;
     /**
-     * - Rollup `external` option.
+     * Rollup `external` option.
      * {@link https://rollupjs.org/configuration-options/#external}
      */
     external?: string | RegExp | (string | RegExp)[] | ((id: string, parentId: string, isResolved: boolean) => boolean);
     /**
-     * - Rollup `paths` option.
+     * Rollup `paths` option.
      * {@link https://rollupjs.org/configuration-options/#output-paths}
      */
     paths?: Record<string, string> | ((id: string) => string);
     /**
-     * - Rollup `onwarn`
+     * Rollup `onwarn`
      * option. {@link https://rollupjs.org/configuration-options/#onwarn}
      */
     onwarn?: (warning: rollup.RollupWarning, defaultHandler: (warning: string | rollup.RollupWarning) => void) => void;
 };
 /**
- * Generates TS declarations from ESM source.
+ * Contains the processed config and associated data.
+ */
+type ProcessedConfig = {
+    /**
+     * TS compiler options.
+     */
+    compilerOptions: ts__default.CompilerOptions;
+    /**
+     * Generate config w/ default data.
+     */
+    config: GenerateConfig;
+    /**
+     * A list of all file paths to compile.
+     */
+    filepaths: string[];
+    /**
+     * Top level packages exported from entry point.
+     */
+    packages: Set<string>;
+    /**
+     * The common path for all files referenced by input entry point.
+     */
+    parseFilesCommonPath: string;
+    /**
+     * A list of all TS files to add synthetic exports.
+     */
+    tsFilepaths: string[];
+};
+/**
+ * Invokes TS compiler in `checkJS` mode without processing DTS.
  *
- * @param {GenerateConfig} options - Generation configuration object.
+ * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
  *
  * @returns {Promise<void>}
  */
-declare function generateDTS(options: GenerateConfig): Promise<void>;
+declare function checkDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<void>;
+/**
+ * Generates TS declarations from ESM source.
+ *
+ * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
+ *
+ * @returns {Promise<void>}
+ */
+declare function generateDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<void>;
 declare namespace generateDTS {
     const plugin: (options?: GeneratePluginConfig) => rollup.Plugin;
 }
 
-export { GenerateConfig, GeneratePluginConfig, generateDTS };
+export { GenerateConfig, GeneratePluginConfig, ProcessedConfig, checkDTS, generateDTS };

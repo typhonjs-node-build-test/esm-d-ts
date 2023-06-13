@@ -34,6 +34,67 @@ import {
    removePrivateStatic }         from '../transformer/internal/index.js';
 
 /**
+ * Invokes TS compiler in `checkJS` mode without processing DTS.
+ *
+ * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
+ *
+ * @returns {Promise<void>}
+ */
+async function checkDTS(config)
+{
+   if (isIterable(config))
+   {
+      for (const entry of config)
+      {
+         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_OPTIONS);
+
+         if (typeof processedConfigOrError === 'string')
+         {
+            logError(`checkDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+            continue;
+         }
+
+         if (typeof entry.output !== 'string')
+         {
+            logError(`checkDTS error: Processing multiple entry points; 'output' attribute missing. Entry point '${
+             entry.input}'`);
+            continue;
+         }
+
+         console.log(`[esm-d-ts] Checking DTS bundle for: ${entry.input}`);
+
+         await checkDTSImpl(processedConfigOrError);
+      }
+   }
+   else
+   {
+      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_OPTIONS);
+
+      if (typeof processedConfigOrError === 'string')
+      {
+         logError(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
+         return;
+      }
+
+      console.log(`[esm-d-ts] Checking DTS bundle for: ${config.input}`);
+
+      await checkDTSImpl(processedConfigOrError);
+   }
+}
+
+/**
+ * `checkDTS` implementation.
+ *
+ * @param {ProcessedConfig}   pConfig - Processed Config.
+ *
+ * @returns {Promise<void>}
+ */
+async function checkDTSImpl(pConfig)
+{
+   compile(pConfig);
+}
+
+/**
  * Generates TS declarations from ESM source.
  *
  * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
@@ -46,18 +107,18 @@ async function generateDTS(config)
    {
       for (const entry of config)
       {
-         const processedConfigOrError = await processConfig(entry);
+         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_GEN_OPTIONS);
 
          if (typeof processedConfigOrError === 'string')
          {
-            logError(`${processedConfigOrError} Entry point (${entry.input})`);
+            logError(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
             continue;
          }
 
          if (typeof entry.output !== 'string')
          {
-            logError(`generateDTS error: Processing multiple entry points; 'output' attribute missing. Entry point (${
-             entry.input})`);
+            logError(`generateDTS error: Processing multiple entry points; 'output' attribute missing. Entry point '${
+             entry.input}'`);
             continue;
          }
 
@@ -68,11 +129,11 @@ async function generateDTS(config)
    }
    else
    {
-      const processedConfigOrError = await processConfig(config);
+      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_GEN_OPTIONS);
 
       if (typeof processedConfigOrError === 'string')
       {
-         logError(`${processedConfigOrError} Entry point (${config.input})`);
+         logError(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
          return;
       }
 
@@ -98,7 +159,7 @@ async function generateDTSImpl(pConfig)
 
    compile(pConfig);
 
-   await bundleTS(pConfig);
+   await bundleDTS(pConfig);
 }
 
 /**
@@ -108,7 +169,7 @@ async function generateDTSImpl(pConfig)
  */
 generateDTS.plugin = internalPlugins.generateDTSPlugin(generateDTS);
 
-export { generateDTS };
+export { checkDTS, generateDTS };
 
 // Internal Implementation -------------------------------------------------------------------------------------------
 
@@ -117,7 +178,7 @@ export { generateDTS };
  *
  * @returns {Promise<void>}
  */
-async function bundleTS(pConfig)
+async function bundleDTS(pConfig)
 {
    const { config, compilerOptions, packages, parseFilesCommonPath } = pConfig;
 
@@ -155,7 +216,7 @@ async function bundleTS(pConfig)
             continue;
          }
 
-         console.warn(`esm-d-ts - warning could not prepend file: '${prependFile}'.`);
+         logWarning(`bundleDTS warning: could not prepend file; '${prependFile}'.`);
       }
    }
 
@@ -296,6 +357,16 @@ function logError(message)
 }
 
 /**
+ * Log a warning message.
+ *
+ * @param {string} message - A message.
+ */
+function logWarning(message)
+{
+   console.warn(`[33m[esm-d-ts] ${message}`);
+}
+
+/**
  * Fully parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
  *
  * @param {Iterable<string>} filepaths - List of file paths to parse.
@@ -328,12 +399,11 @@ async function parseFiles(filepaths, importMap = new Map())
             if (fs.existsSync(`${resolved}/index.js`) || fs.existsSync(`${resolved}/index.mjs`))
             {
                // Could not resolve index reference so skip file.
-               console.warn(
-                `esm-d-ts - parse warning: detected bare directory import without expected '/index.(m)js'`);
+               logWarning(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
             }
             else
             {
-               console.warn(`esm-d-ts - parse warning: could not resolve directory: ${resolved}`);
+               logWarning(`parseFiles warning: could not resolve directory; '${resolved}'`);
             }
 
             continue;
@@ -351,7 +421,7 @@ async function parseFiles(filepaths, importMap = new Map())
             else if (fs.existsSync(`${resolved}.mjs`)) { resolved = `${resolved}.mjs`; }
             else
             {
-               console.warn(`esm-d-ts - parse warning: could not resolve: ${resolved}`);
+               logWarning(`parseFiles warning: could not resolve; '${resolved}'`);
                continue;
             }
          }
@@ -444,7 +514,9 @@ function parsePackage(packageName, config)
 
    if (typeof packageJSON !== 'object')
    {
-      console.warn(`esm-d-ts - warning could not locate package.json; top level exported package: ${packageName}`);
+      logWarning(
+       `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`);
+
       return void 0;
    }
 
@@ -561,19 +633,21 @@ function parsePackageImports(filepath)
  *
  * @param {GenerateConfig} origConfig - An original GenerateConfig.
  *
+ * @param {ts.CompilerOptions} defaultCompilerOptions - Default compiler options.
+ *
  * @returns {Promise<ProcessedConfig | string>} Processed config or error string.
  */
-async function processConfig(origConfig)
+async function processConfig(origConfig, defaultCompilerOptions)
 {
    // Initial sanity checks.
    if (!isObject(origConfig))
    {
-      return `generateDTS error: Aborting as 'config' is not an object.`;
+      return `error: Aborting as 'config' is not an object.`;
    }
 
    if (origConfig.compilerOptions !== void 0 && !isObject(origConfig.compilerOptions))
    {
-      return `generateDTS error: Aborting as 'config.compilerOptions' is not an object.`;
+      return `error: Aborting as 'config.compilerOptions' is not an object.`;
    }
 
    /**
@@ -590,10 +664,10 @@ async function processConfig(origConfig)
 
    if (!validateOptions(config))
    {
-      return `generateDTS error: Aborting as 'config' failed validation.`;
+      return `error: Aborting as 'config' failed validation.`;
    }
 
-   let compilerOptions = Object.assign({ checkJs: config.checkJs }, s_DEFAULT_TS_GEN_OPTIONS, config.compilerOptions);
+   let compilerOptions = Object.assign({ checkJs: config.checkJs }, defaultCompilerOptions, config.compilerOptions);
 
    // Validate compiler options with Typescript.
    compilerOptions = validateCompilerOptions(compilerOptions);
@@ -601,7 +675,7 @@ async function processConfig(origConfig)
    // Return now if compiler options failed to validate.
    if (!compilerOptions)
    {
-      return `generateDTS error: Aborting as 'config.compilerOptions' failed validation.`;
+      return `error: Aborting as 'config.compilerOptions' failed validation.`;
    }
 
    // Parse imports from package.json resolved from input entry point.
@@ -651,8 +725,7 @@ function resolvePackageExports(packages, config)
       const resolveDTS = parsePackage(packageName, config);
       if (!resolveDTS)
       {
-         console.warn(
-          `esm-d-ts - resolvePackageExports warning: Could not locate TS declaration for '${packageName}'.`);
+         logWarning(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`);
          continue;
       }
 
@@ -692,7 +765,7 @@ function validateCompilerOptions(compilerOptions)
 
    if (errors.length > 0)
    {
-      for (const error of errors) { console.error(ts.flattenDiagnosticMessageText(error.messageText, '\n')); }
+      for (const error of errors) { logError(`[TS] ${ts.flattenDiagnosticMessageText(error.messageText, '\n')}`); }
       return void 0;
    }
 
@@ -755,10 +828,10 @@ const s_DEFAULT_TS_GEN_OPTIONS = {
  */
 const s_DEFAULT_TS_CHECK_OPTIONS = {
    allowJs: true,
-   checkJS: true,
+   checkJs: true,
    declaration: true,
    noEmit: true,
-   moduleResolution: 'bundler',
+   moduleResolution: 'node16',
    module: 'es2022',
    target: 'es2022',
    outDir: './.dts'
