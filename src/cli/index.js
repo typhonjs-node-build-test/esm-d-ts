@@ -10,7 +10,7 @@ import {
 const packageObj = getPackage({ filepath: import.meta.url });
 
 const program = sade('esm-d-ts')
-   .version(packageObj.version);
+   .version(packageObj?.version);
 
 program
    .command('check [input]', 'Output `checkJS` information')
