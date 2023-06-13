@@ -6,10 +6,12 @@ import {
    isObject,
    isIterable }            from '@typhonjs-utils/object';
 
-import { generateDTS }     from '../generator/index.js';
+import {
+   checkDTS,
+   generateDTS }           from '../generator/index.js';
 
 /**
- * Invokes checkJS with the given input / config options.
+ * Invokes checkDTS with the given input / config options.
  *
  * @param {string}   input - Source / input file.
  *
@@ -19,7 +21,26 @@ import { generateDTS }     from '../generator/index.js';
  */
 export async function check(input, opts)
 {
-   await processOptions(input, opts);
+   const processedOptions = await processOptions(input, opts);
+
+   if (processedOptions.config)
+   {
+      if (isIterable(processedOptions.config))
+      {
+         for (const entry of processedOptions.config)
+         {
+            await checkDTS(entry);
+         }
+      }
+      else
+      {
+         await checkDTS(processedOptions.config);
+      }
+   }
+   else
+   {
+      await checkDTS({ input: processedOptions.input, output: processedOptions.output });
+   }
 }
 
 /**
