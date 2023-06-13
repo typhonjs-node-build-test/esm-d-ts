@@ -165,7 +165,7 @@ async function generateDTSImpl(pConfig)
 /**
  * Provides a Rollup plugin generating a bundled TS declaration after the bundle has been written.
  *
- * @type {(options?: import('.').GeneratePluginConfig) => import('rollup').Plugin}
+ * @type {(options?: GeneratePluginConfig) => import('rollup').Plugin}
  */
 generateDTS.plugin = internalPlugins.generateDTSPlugin(generateDTS);
 
@@ -190,7 +190,7 @@ async function bundleDTS(pConfig)
    const dtsMain = `${compilerOptions.outDir}/${upath.changeExt(inputRelativePath, '.d.ts')}`;
 
    const packageAlias = typeof config.bundlePackageExports === 'boolean' && config.bundlePackageExports ?
-    resolvePackageExports(packages, config) : [];
+    resolvePackageExports(packages, config, compilerOptions.outDir) : [];
 
    let banner = '';
 
@@ -667,6 +667,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
       return `error: Aborting as 'config' failed validation.`;
    }
 
+   /** @type {ts.CompilerOptions} */
    let compilerOptions = Object.assign({ checkJs: config.checkJs }, defaultCompilerOptions, config.compilerOptions);
 
    // Validate compiler options with Typescript.
@@ -714,9 +715,11 @@ async function processConfig(origConfig, defaultCompilerOptions)
  *
  * @param {GenerateConfig} config - The config object.
  *
+ * @param {string}   outDir - The DTS output directory path.
+ *
  * @returns {{}[]} Resolved local package types.
  */
-function resolvePackageExports(packages, config)
+function resolvePackageExports(packages, config, outDir)
 {
    const packageAlias = [];
 
@@ -732,7 +735,7 @@ function resolvePackageExports(packages, config)
       const dtsBasename = upath.basename(resolveDTS);
 
       const dtsFileData = fs.readFileSync(resolveDTS, 'utf-8');
-      const outputDir = `${config.outDir}${upath.sep}._node_modules${upath.sep}${packageName}`;
+      const outputDir = `${outDir}${upath.sep}._node_modules${upath.sep}${packageName}`;
       const outputFilepath = `${outputDir}${upath.sep}${dtsBasename}`;
 
       fs.ensureDirSync(outputDir);

@@ -1,19 +1,22 @@
-import ts         from 'typescript';
-import { parse }  from 'comment-parser';
+import ts               from 'typescript';
+import { parse }        from 'comment-parser';
+
+import { isIterable }   from '@typhonjs-utils/object';
 
 /**
  * Removes all nodes with the matching JSDoc tags provided. This is useful for handling the `@internal` tag removing
  * all declarations that are not part of the public API.
  *
- * @param {string|Set<string>}  tags - A single tag or set of tags that trigger removing the given AST Node.
+ * @param {string | Iterable<string>}  tags - A single tag or iterable list of tags that trigger removing the given AST
+ * Node.
  *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} A custom transformer to remove nodes by JSDoc tags.
  */
 export function jsdocRemoveNodeByTags(tags)
 {
-   if (typeof tags !== 'string' && !(tags instanceof Set))
+   if (typeof tags !== 'string' && !isIterable(tags))
    {
-      throw new TypeError(`esm-d-ts jsdocRemoveNodeByTags error: 'tags' is not a string or Set.`);
+      throw new TypeError(`[esm-d-ts] jsdocRemoveNodeByTags error: 'tags' is not a string or iterable list.`);
    }
 
    if (typeof tags === 'string')
@@ -29,12 +32,15 @@ export function jsdocRemoveNodeByTags(tags)
    }
    else
    {
+      // Ensure that we convert any iterable to a Set.
+      const tagsSet = tags instanceof Set ? tags : new Set(tags);
+
       return jsdocTransformer(({ lastParsed }) =>
       {
          // Only consider the last parsed comment as that is the active JSDoc comment and return null to remove Node.
          for (const entry of lastParsed.tags)
          {
-            if (tags.has(entry.tag)) { return null; }
+            if (tagsSet.has(entry.tag)) { return null; }
          }
       });
    }
@@ -56,7 +62,10 @@ export function jsdocRemoveNodeByTags(tags)
  */
 export function jsdocTransformer(handler)
 {
-   if (typeof handler !== 'function') { throw new TypeError(`esm-d-ts error: 'handler' is not a function.`); }
+   if (typeof handler !== 'function')
+   {
+      throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'handler' is not a function.`);
+   }
 
    return (context) =>
    {

@@ -36,8 +36,18 @@ function filterPrivateStatic(node)
  */
 export function removePrivateStatic()
 {
+   /**
+    * @param {ts.TransformationContext} context -
+    *
+    * @returns {ts.Transformer<ts.Bundle|ts.SourceFile>} TS transformer
+    */
    return (context) =>
    {
+      /**
+       * @param {ts.Bundle | ts.SourceFile} sourceFileOrBundle -
+       *
+       * @returns {ts.Bundle | ts.SourceFile | undefined} Processed Node.
+       */
       return (sourceFileOrBundle) =>
       {
          /** @ignore */
@@ -54,6 +64,7 @@ export function removePrivateStatic()
          }
          else if (ts.isBundle(sourceFileOrBundle))
          {
+            /** @type {ts.SourceFile[]} */
             const newSourceFiles = sourceFileOrBundle.sourceFiles.map(
              (sourceFile) => ts.visitNode(sourceFile, (node) => visit(node)));
 

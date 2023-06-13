@@ -14,10 +14,25 @@ import upath   from 'upath';
  */
 export function addSyntheticExports(entryFilepath, filepaths)
 {
+   /**
+    * @param {ts.TransformationContext} context -
+    *
+    * @returns {ts.Transformer<ts.Bundle|ts.SourceFile>} TS transformer
+    */
    return (context) =>
    {
+      /**
+       * @param {ts.Bundle | ts.SourceFile} sourceFileOrBundle -
+       *
+       * @returns {ts.Bundle | ts.SourceFile | undefined} Processed Node.
+       */
       return (sourceFileOrBundle) =>
       {
+         /**
+          * @param {ts.SourceFile}  node -
+          *
+          * @returns {ts.SourceFile} Source file
+          */
          const visit = (node) =>
          {
             if (ts.isSourceFile(node) && node.fileName === entryFilepath)
@@ -49,6 +64,7 @@ export function addSyntheticExports(entryFilepath, filepaths)
          }
          else if (ts.isBundle(sourceFileOrBundle))
          {
+            /** @type {ts.SourceFile[]} */
             const newSourceFiles = sourceFileOrBundle.sourceFiles.map(
              (sourceFile) => ts.visitNode(sourceFile, (node) => visit(node)));
 

@@ -5,11 +5,12 @@ import ts from 'typescript';
  * Removes all nodes with the matching JSDoc tags provided. This is useful for handling the `@internal` tag removing
  * all declarations that are not part of the public API.
  *
- * @param {string|Set<string>}  tags - A single tag or set of tags that trigger removing the given AST Node.
+ * @param {string | Iterable<string>}  tags - A single tag or iterable list of tags that trigger removing the given AST
+ * Node.
  *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} A custom transformer to remove nodes by JSDoc tags.
  */
-declare function jsdocRemoveNodeByTags(tags: string | Set<string>): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
+declare function jsdocRemoveNodeByTags(tags: string | Iterable<string>): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
 /**
  * Provides a convenient "meta-transformer" that invokes a handler function for each Node w/ the parsed leading
  * comment data for the Node. Only leading block comments are parsed. The `parsed` array is in the data format provided

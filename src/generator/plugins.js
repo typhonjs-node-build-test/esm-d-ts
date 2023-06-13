@@ -9,9 +9,9 @@ import upath         from 'upath';
 /**
  * Provides a Rollup plugin generating the declaration after the bundle has been written.
  *
- * @param {function(import('.').GenerateConfig): Promise<void>} generateDTS - Generation function.
+ * @param {function(import('./index.js').GenerateConfig): Promise<void>} generateDTS - Generation function.
  *
- * @returns {(options?: import('.').GeneratePluginConfig) => import('rollup').Plugin} The Rollup plugin.
+ * @returns {(options?: import('./index.js').GeneratePluginConfig) => import('rollup').Plugin} The Rollup plugin.
  */
 export function generateDTSPlugin(generateDTS)
 {
@@ -22,8 +22,12 @@ export function generateDTSPlugin(generateDTS)
 
       let validRollupOptions = true;
 
-      // Make a shallow copy as various top level attributes may be automatically set.
-      const config = Object.assign({}, options);
+      /**
+       * Make a shallow copy as various top level attributes may be automatically set.
+       *
+       * @type {import('./index.js').GenerateConfig}
+       */
+      const config = Object.assign({ input: void 0 }, options);
 
       return {
          name: '@typhonjs-build-test/esm-d-ts/generate',
