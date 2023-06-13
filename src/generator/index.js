@@ -353,7 +353,7 @@ function compile(pConfig)
  */
 function logError(message)
 {
-   console.error(`[31m[esm-d-ts] ${message}`);
+   console.error(`[31m[esm-d-ts] ${message}[0m`);
 }
 
 /**
@@ -363,7 +363,7 @@ function logError(message)
  */
 function logWarning(message)
 {
-   console.warn(`[33m[esm-d-ts] ${message}`);
+   console.warn(`[33m[esm-d-ts] ${message}[0m`);
 }
 
 /**
