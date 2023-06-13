@@ -41,19 +41,16 @@ export async function generate(input, opts)
       {
          for (const entry of processedOptions.config)
          {
-            console.log(`[esm-d-ts] Generating DTS bundle for: ${entry.input}`);
             await generateDTS(entry);
          }
       }
       else
       {
-         console.log(`[esm-d-ts] Generating DTS bundle for: ${processedOptions.config.input}`);
          await generateDTS(processedOptions.config);
       }
    }
    else
    {
-      console.log(`[esm-d-ts] Generating DTS bundle for: ${processedOptions.input}`);
       await generateDTS({ input: processedOptions.input, output: processedOptions.output });
    }
 }
@@ -147,7 +144,7 @@ async function processOptions(input, opts)
       {
          // Load default config.
          case 'boolean':
-            if (!fs.existsSync('./esm-d-ts.config.js') && !fs.existsSync('./esm-d-ts.config.js'))
+            if (!fs.existsSync('./esm-d-ts.config.js') && !fs.existsSync('./esm-d-ts.config.mjs'))
             {
                exit(`No default config file 'esm-d-ts.config.[m]js' available in: ${dirname}`);
             }
