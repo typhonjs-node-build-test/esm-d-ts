@@ -1,6 +1,7 @@
 import * as rollup from 'rollup';
 import * as ts from 'typescript';
 import ts__default from 'typescript';
+import * as type_fest from 'type-fest';
 import * as _typhonjs_build_test_rollup_plugin_pkg_imports from '@typhonjs-build-test/rollup-plugin-pkg-imports';
 import * as resolve_exports from 'resolve.exports';
 
@@ -97,13 +98,20 @@ type GeneratePluginConfig = {
      * Typescript compiler options.
      * {@link https://www.typescriptlang.org/tsconfig}
      */
-    compilerOptions?: ts__default.CompilerOptions;
+    compilerOptions?: type_fest.TsConfigJson.CompilerOptions;
     /**
      * Optional
      * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
-     * filter the given diagnostic from posting to `console.error`.
+     * filter the given diagnostic from posting to `console.error` otherwise return false to include.
      */
     filterDiagnostic?: (diagnostic: ts.Diagnostic, message?: string) => boolean;
+    /**
+     * By default, all diagnostic errors that are external to the common
+     * root path from the `input` source file will be filtered from diagnostic logging. Set to `false` to include all
+     * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `filterDiagnostic` this
+     * option is ignored.
+     */
+    filterExternal?: boolean;
     /**
      * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
      * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}

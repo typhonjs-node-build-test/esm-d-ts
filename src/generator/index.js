@@ -46,7 +46,7 @@ async function checkDTS(config)
    {
       for (const entry of config)
       {
-         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_OPTIONS);
+         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
 
          if (typeof processedConfigOrError === 'string')
          {
@@ -68,7 +68,7 @@ async function checkDTS(config)
    }
    else
    {
-      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_OPTIONS);
+      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
 
       if (typeof processedConfigOrError === 'string')
       {
@@ -107,7 +107,7 @@ async function generateDTS(config)
    {
       for (const entry of config)
       {
-         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_GEN_OPTIONS);
+         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
 
          if (typeof processedConfigOrError === 'string')
          {
@@ -129,7 +129,7 @@ async function generateDTS(config)
    }
    else
    {
-      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_GEN_OPTIONS);
+      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
 
       if (typeof processedConfigOrError === 'string')
       {
@@ -678,7 +678,7 @@ function parsePackageImports(filepath)
  *
  * @param {GenerateConfig} origConfig - An original GenerateConfig.
  *
- * @param {ts.CompilerOptions} defaultCompilerOptions - Default compiler options.
+ * @param {import('type-fest').TsConfigJson.CompilerOptions} defaultCompilerOptions - Default compiler options.
  *
  * @returns {Promise<ProcessedConfig | string>} Processed config or error string.
  */
@@ -690,7 +690,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
       return `error: Aborting as 'config' is not an object.`;
    }
 
-   if (origConfig.compilerOptions !== void 0 && !isObject(origConfig.compilerOptions))
+   if (origConfig?.compilerOptions !== void 0 && !isObject(origConfig.compilerOptions))
    {
       return `error: Aborting as 'config.compilerOptions' is not an object.`;
    }
@@ -718,7 +718,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
       return `error: Aborting as 'config' failed validation.`;
    }
 
-   /** @type {ts.CompilerOptions} */
+   /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
    let compilerOptions = Object.assign({ checkJs: config.checkJs }, defaultCompilerOptions, config.compilerOptions);
 
    // Validate compiler options with Typescript.
@@ -806,7 +806,7 @@ function resolvePackageExports(packages, config, outDir)
 /**
  * Validates the TS compiler options.
  *
- * @param {ts.CompilerOptions} compilerOptions - The TS compiler options.
+ * @param {import('type-fest').TsConfigJson.CompilerOptions} compilerOptions - The TS compiler options.
  *
  * @returns {ts.CompilerOptions|undefined} The validated compiler options or undefined if failure.
  */
@@ -880,9 +880,9 @@ function validateConfig(config)
 }
 
 /**
- * @type {ts.CompilerOptions}
+ * @type {import('type-fest').TsConfigJson.CompilerOptions}
  */
-const s_DEFAULT_TS_GEN_OPTIONS = {
+const s_DEFAULT_TS_GEN_COMPILER_OPTIONS = {
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
@@ -893,14 +893,14 @@ const s_DEFAULT_TS_GEN_OPTIONS = {
 };
 
 /**
- * @type {ts.CompilerOptions}
+ * @type {import('type-fest').TsConfigJson.CompilerOptions}
  */
-const s_DEFAULT_TS_CHECK_OPTIONS = {
+const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
    allowJs: true,
    checkJs: true,
    declaration: true,
    noEmit: true,
-   moduleResolution: 'node16',
+   moduleResolution: 'bundler',
    module: 'es2022',
    target: 'es2022',
    outDir: './.dts'
@@ -978,12 +978,17 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * // Typescript specific options for compilation --------------------------------------------------------------------
  *
- * @property {ts.CompilerOptions}   [compilerOptions] Typescript compiler options.
+ * @property {import('type-fest').TsConfigJson.CompilerOptions}   [compilerOptions] Typescript compiler options.
  * {@link https://www.typescriptlang.org/tsconfig}
  *
  * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [filterDiagnostic] Optional
  * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
- * filter the given diagnostic from posting to `console.error`.
+ * filter the given diagnostic from posting to `console.error` otherwise return false to include.
+ *
+ * @property {boolean} [filterExternal=true] By default, all diagnostic errors that are external to the common
+ * root path from the `input` source file will be filtered from diagnostic logging. Set to `false` to include all
+ * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `filterDiagnostic` this
+ * option is ignored.
  *
  * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [transformers]
  * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
