@@ -736,6 +736,9 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    // Parse project files --------------------------------------------------------------------------------------------
 
+   // Resolve to full path.
+   config.input = upath.resolve(config.input);
+
    // Parse imports from package.json resolved from input entry point.
    const importMap = parsePackageImports(config.input);
 
@@ -743,11 +746,9 @@ async function processConfig(origConfig, defaultCompilerOptions)
    // will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
    const tsFilepaths = await getFileList({
       dir: upath.dirname(config.input),
-      includeFile: /^(?!.*\.d\.ts$).*\.ts$/
+      includeFile: /^(?!.*\.d\.ts$).*\.ts$/,
+      resolve: true
    });
-
-   // Resolve to full path.
-   config.input = upath.resolve(config.input);
 
    // Note: TS still doesn't seem to resolve import paths from `package.json`, so add any parsed import paths.
    const filepaths = [config.input, ...tsFilepaths, ...importMap.values()];
