@@ -181,14 +181,7 @@ export { checkDTS, generateDTS };
  */
 async function bundleDTS(pConfig)
 {
-   const { config, compilerOptions, packages, parseFilesCommonPath } = pConfig;
-
-   // Find the common base path for all parsed files and find the relative path to the input source file.
-   const inputRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.input) :
-    upath.basename(config.input);
-
-   // Get the input DTS entry point; append inputRelativePath after changing extensions to the compilerOptions outDir.
-   const dtsMain = `${compilerOptions.outDir}/${upath.changeExt(inputRelativePath, '.d.ts')}`;
+   const { config, compilerOptions, dtsMainPath, packages } = pConfig;
 
    const packageAlias = typeof config.bundlePackageExports === 'boolean' && config.bundlePackageExports ?
     resolvePackageExports(packages, config, compilerOptions.outDir) : [];
@@ -247,7 +240,7 @@ async function bundleDTS(pConfig)
 
    const rollupConfig = {
       input: {
-         input: dtsMain,
+         input: dtsMainPath,
          plugins
       },
       output: {
@@ -283,15 +276,7 @@ async function bundleDTS(pConfig)
  */
 function compile(pConfig, warn = false)
 {
-   const { config, compilerOptions, filepaths, parseFilesCommonPath, tsFilepaths } = pConfig;
-
-   delete compilerOptions.paths;
-
-   if (compilerOptions.rootDir === void 0)
-   {
-      compilerOptions.rootDir = parseFilesCommonPath === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
-       parseFilesCommonPath;
-   }
+   const { config, compilerOptions, filepaths, tsFilepaths } = pConfig;
 
    const host = ts.createCompilerHost(compilerOptions, /* setParentNodes */ true);
 
@@ -719,16 +704,22 @@ async function processConfig(origConfig, defaultCompilerOptions)
    }
 
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
-   let compilerOptions = Object.assign({ checkJs: config.checkJs }, defaultCompilerOptions, config.compilerOptions);
+   const compilerOptionsJson = Object.assign({ checkJs: config.checkJs }, defaultCompilerOptions,
+    config.compilerOptions);
 
    // Validate compiler options with Typescript.
-   compilerOptions = validateCompilerOptions(compilerOptions);
+   const compilerOptions = validateCompilerOptions(compilerOptionsJson);
 
    // Return now if compiler options failed to validate.
    if (!compilerOptions)
    {
       return `error: Aborting as 'config.compilerOptions' failed validation.`;
    }
+
+   // Unused as explicit file paths are passed to the TS compiler.
+   delete compilerOptions.paths;
+
+   // Parse project files --------------------------------------------------------------------------------------------
 
    // Parse imports from package.json resolved from input entry point.
    const importMap = parsePackageImports(config.input);
@@ -752,7 +743,32 @@ async function processConfig(origConfig, defaultCompilerOptions)
    // Common path for all input source files linked to the entry point.
    const parseFilesCommonPath = commonPath(...files);
 
-   return { config, compilerOptions, filepaths, packages, parseFilesCommonPath, tsFilepaths };
+   // Update options / configuration based on common parsed files path -----------------------------------------------
+
+   // Adjust compilerOptions rootDir
+   if (compilerOptions.rootDir === void 0)
+   {
+      compilerOptions.rootDir = parseFilesCommonPath === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
+       parseFilesCommonPath;
+   }
+
+   // ---
+
+   // Find the common base path for all parsed files and find the relative path to the input source file.
+   const localRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.input) :
+    upath.basename(config.input);
+
+   // Get the input DTS entry point; append inputRelativePath after changing extensions to the compilerOptions outDir.
+   const dtsMainPath = `${compilerOptions.outDir}/${upath.changeExt(localRelativePath, '.d.ts')}`;
+
+   // ---
+
+   // Relative path from current working directory to local common path. Used for filtering diagnostic errors.
+   const inputRelativeDir = upath.relative(process.cwd(), parseFilesCommonPath);
+
+   // ----------------------------------------------------------------------------------------------------------------
+
+   return { config, compilerOptions, dtsMainPath, filepaths, inputRelativeDir, packages, tsFilepaths };
 }
 
 /**
@@ -1015,11 +1031,13 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * @property {GenerateConfig} config Generate config w/ default data.
  *
+ * @property {string}      dtsMainPath - The main output path for intermediate TS declarations generated.
+ *
  * @property {string[]}    filepaths A list of all file paths to compile.
  *
  * @property {Set<string>} packages Top level packages exported from entry point.
  *
- * @property {string}      parseFilesCommonPath The common path for all files referenced by input entry point.
+ * @property {string}      inputRelativeDir Relative directory of common project files path.
  *
  * @property {string[]}    tsFilepaths A list of all TS files to add synthetic exports.
  */

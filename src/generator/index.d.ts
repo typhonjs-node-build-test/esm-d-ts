@@ -148,6 +148,10 @@ type ProcessedConfig = {
      */
     config: GenerateConfig;
     /**
+     * - The main output path for intermediate TS declarations generated.
+     */
+    dtsMainPath: string;
+    /**
      * A list of all file paths to compile.
      */
     filepaths: string[];
@@ -156,9 +160,9 @@ type ProcessedConfig = {
      */
     packages: Set<string>;
     /**
-     * The common path for all files referenced by input entry point.
+     * Relative directory of common project files path.
      */
-    parseFilesCommonPath: string;
+    inputRelativeDir: string;
     /**
      * A list of all TS files to add synthetic exports.
      */
