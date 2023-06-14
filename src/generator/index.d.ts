@@ -57,6 +57,15 @@ type GeneratePluginConfig = {
      */
     importsResolveOptions?: _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
     /**
+     * When generating a DTS bundle you may opt to turn off any emitted TS
+     * compiler diagnostic messages.
+     */
+    logDiagnostic?: boolean;
+    /**
+     * Defines the logging level.
+     */
+    logLevel?: 'all' | 'warn' | 'error';
+    /**
      * The bundled output TS declaration file extension. Normally a
      * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
      * change the extension as desired.

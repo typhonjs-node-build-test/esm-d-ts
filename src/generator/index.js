@@ -61,7 +61,7 @@ async function checkDTS(config)
             continue;
          }
 
-         console.log(`[esm-d-ts] Checking DTS bundle for: ${entry.input}`);
+         logInfo(`Checking DTS bundle for: ${entry.input}`, processedConfigOrError.config.logLevel);
 
          await checkDTSImpl(processedConfigOrError);
       }
@@ -76,7 +76,7 @@ async function checkDTS(config)
          return;
       }
 
-      console.log(`[esm-d-ts] Checking DTS bundle for: ${config.input}`);
+      logInfo(`Checking DTS bundle for: ${config.input}`, processedConfigOrError.config.logLevel);
 
       await checkDTSImpl(processedConfigOrError);
    }
@@ -122,7 +122,7 @@ async function generateDTS(config)
             continue;
          }
 
-         console.log(`[esm-d-ts] Generating DTS bundle for: ${entry.input}`);
+         logInfo(`Generating DTS bundle for: ${entry.input}`, processedConfigOrError.config.logLevel);
 
          await generateDTSImpl(processedConfigOrError);
       }
@@ -137,7 +137,7 @@ async function generateDTS(config)
          return;
       }
 
-      console.log(`[esm-d-ts] Generating DTS bundle for: ${config.input}`);
+      logInfo(`Generating DTS bundle for: ${config.input}`, processedConfigOrError.config.logLevel);
 
       await generateDTSImpl(processedConfigOrError);
    }
@@ -157,7 +157,8 @@ async function generateDTSImpl(pConfig)
    // Empty intermediate declaration output directory.
    if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
 
-   compile(pConfig);
+   // Log emit diagnostics as warnings.
+   compile(pConfig, true);
 
    await bundleDTS(pConfig);
 }
@@ -216,7 +217,7 @@ async function bundleDTS(pConfig)
             continue;
          }
 
-         logWarning(`bundleDTS warning: could not prepend file; '${prependFile}'.`);
+         logWarning(`bundleDTS warning: could not prepend file; '${prependFile}'.`, config.logLevel);
       }
    }
 
@@ -277,8 +278,10 @@ async function bundleDTS(pConfig)
  * Compiles TS declaration files from the provided list of ESM & TS files.
  *
  * @param {ProcessedConfig}   pConfig - Processed config object.
+ *
+ * @param {boolean}  [warn=false] - Log the emit diagnostics as warnings for `generateDTS`.
  */
-function compile(pConfig)
+function compile(pConfig, warn = false)
 {
    const { config, compilerOptions, filepaths, parseFilesCommonPath, tsFilepaths } = pConfig;
 
@@ -333,15 +336,35 @@ function compile(pConfig)
 
       if (filterDiagnostic(diagnostic, message)) { continue; }
 
-      if (diagnostic.file)
+      // Special handling for `generateDTS` / log as warnings.
+      if (warn)
       {
-         const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
-         const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
-         console.error(`${fileName} (${line + 1},${character + 1}): ${message}`);
+         // Only log if logLevel is `warn` or `all` and `logDiagnostic` is true.
+         if (!config.logDiagnostic || s_LOG_LEVELS[config.logLevel] > s_LOG_LEVELS.warn) { continue; }
+
+         if (diagnostic.file)
+         {
+            const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
+            const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
+            console.warn(`${fileName} (${line + 1},${character + 1})[33m: [TS] ${message}[0m`);
+         }
+         else
+         {
+            console.warn(`[33m[esm-d-ts] [TS] ${message}[0m`);
+         }
       }
       else
       {
-         console.error(message);
+         if (diagnostic.file)
+         {
+            const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
+            const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
+            console.warn(`${fileName} (${line + 1},${character + 1}): [TS] ${message}`);
+         }
+         else
+         {
+            console.warn(`[esm-d-ts] [TS] ${message}`);
+         }
       }
    }
 }
@@ -357,27 +380,47 @@ function logError(message)
 }
 
 /**
+ * Log an info message.
+ *
+ * @param {string} message - A message.
+ *
+ * @param {string} configLevel - Config log level option.
+ */
+function logInfo(message, configLevel)
+{
+   if (s_LOG_LEVELS[configLevel] > s_LOG_LEVELS.all) { return; }
+
+   console.log(`[esm-d-ts] ${message}`);
+}
+
+/**
  * Log a warning message.
  *
  * @param {string} message - A message.
+ *
+ * @param {string} configLevel - Config log level option.
  */
-function logWarning(message)
+function logWarning(message, configLevel)
 {
+   if (s_LOG_LEVELS[configLevel] > s_LOG_LEVELS.warn) { return; }
+
    console.warn(`[33m[esm-d-ts] ${message}[0m`);
 }
 
 /**
  * Fully parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
  *
- * @param {Iterable<string>} filepaths - List of file paths to parse.
+ * @param {GenerateConfig} config - Generate config.
  *
  * @param {Map<string, string>} [importMap] - An optional map of imports from a given package.json
  *
  * @returns {Promise<{files: Set<string>, packages: Set<string>}>} Parsed files and top level packages exported.
  */
-async function parseFiles(filepaths, importMap = new Map())
+async function parseFiles(config, importMap = new Map())
 {
    await init;
+
+   const filepaths = [config.input];
 
    const parsedFiles = new Set();
 
@@ -399,11 +442,12 @@ async function parseFiles(filepaths, importMap = new Map())
             if (fs.existsSync(`${resolved}/index.js`) || fs.existsSync(`${resolved}/index.mjs`))
             {
                // Could not resolve index reference so skip file.
-               logWarning(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
+               logWarning(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`,
+                config.logLevel);
             }
             else
             {
-               logWarning(`parseFiles warning: could not resolve directory; '${resolved}'`);
+               logWarning(`parseFiles warning: could not resolve directory; '${resolved}'`, config.logLevel);
             }
 
             continue;
@@ -421,7 +465,7 @@ async function parseFiles(filepaths, importMap = new Map())
             else if (fs.existsSync(`${resolved}.mjs`)) { resolved = `${resolved}.mjs`; }
             else
             {
-               logWarning(`parseFiles warning: could not resolve; '${resolved}'`);
+               logWarning(`parseFiles warning: could not resolve; '${resolved}'`, config.logLevel);
                continue;
             }
          }
@@ -515,7 +559,8 @@ function parsePackage(packageName, config)
    if (typeof packageJSON !== 'object')
    {
       logWarning(
-       `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`);
+       `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`,
+        config.logLevel);
 
       return void 0;
    }
@@ -651,18 +696,24 @@ async function processConfig(origConfig, defaultCompilerOptions)
    }
 
    /**
-    * A shallow copy of the original configuration w/ default values for `checkJS`, `filterTags` and
-    * `removePrivateStatic`.
+    * A shallow copy of the original configuration w/ default values for `checkJS`, `filterTags`, `logDiagnostic`,
+    * `logLevel`, and `removePrivateStatic`.
     *
     * @type {GenerateConfig}
     */
-   const config = Object.assign({ checkJs: false, filterTags: 'internal', removePrivateStatic: true }, origConfig);
+   const config = Object.assign({
+      checkJs: false,
+      filterTags: 'internal',
+      logDiagnostic: true,
+      logLevel: 'all',
+      removePrivateStatic: true
+    }, origConfig);
 
    // Set default output extension and output file if not defined.
    if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
    if (config.output === void 0) { config.output = `./types/index${config.outputExt}`; }
 
-   if (!validateOptions(config))
+   if (!validateConfig(config))
    {
       return `error: Aborting as 'config' failed validation.`;
    }
@@ -696,7 +747,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    const filepaths = [config.input, ...tsFilepaths, ...importMap.values()];
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { files, packages } = await parseFiles([config.input], importMap);
+   const { files, packages } = await parseFiles(config, importMap);
 
    // Common path for all input source files linked to the entry point.
    const parseFilesCommonPath = commonPath(...files);
@@ -728,7 +779,9 @@ function resolvePackageExports(packages, config, outDir)
       const resolveDTS = parsePackage(packageName, config);
       if (!resolveDTS)
       {
-         logWarning(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`);
+         logWarning(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`,
+          config.logLevel);
+
          continue;
       }
 
@@ -784,29 +837,42 @@ function validateCompilerOptions(compilerOptions)
  *
  * @returns {boolean} Validation state.
  */
-function validateOptions(config)
+function validateConfig(config)
 {
    if (typeof config.input !== 'string')
    {
-      logError(`validateOptions error: 'config.input' is not a string.`);
+      logError(`validateConfig error: 'config.input' is not a string.`);
       return false;
    }
 
    if (!fs.existsSync(config.input))
    {
-      logError(`validateOptions error: 'config.input' file does not exist.`);
+      logError(`validateConfig error: 'config.input' file does not exist.`);
+      return false;
+   }
+
+   if (typeof config.logDiagnostic !== 'boolean')
+   {
+      logError(`validateConfig error: 'config.logDiagnostic' must be a boolean.`);
+      return false;
+   }
+
+   if (config.logLevel !== 'all' && config.logLevel !== 'error' && config.logLevel !== 'warn')
+   {
+      logError(
+       `validateConfig error: 'config.logLevel' must be one of the following strings: 'all', 'error', or 'warn'.`);
       return false;
    }
 
    if (typeof config.output !== 'string')
    {
-      logError(`validateOptions error: 'config.output' is not a string.`);
+      logError(`validateConfig error: 'config.output' is not a string.`);
       return false;
    }
 
    if (config.checkJs !== void 0 && typeof config.checkJs !== 'boolean')
    {
-      logError(`validateOptions error: 'config.checkJs' is not a boolean.`);
+      logError(`validateConfig error: 'config.checkJs' is not a boolean.`);
       return false;
    }
 
@@ -838,6 +904,17 @@ const s_DEFAULT_TS_CHECK_OPTIONS = {
    module: 'es2022',
    target: 'es2022',
    outDir: './.dts'
+};
+
+/**
+ * Stores the log level name to level value.
+ *
+ * @type {{ error: number, warn: number, all: number }}
+ */
+const s_LOG_LEVELS = {
+   error: 2,
+   warn: 1,
+   all: 0
 };
 
 const s_REGEX_DTS_EXTENSIONS = /\.d\.(c|m)?tsx?$/;
@@ -877,6 +954,11 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * @property {import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsResolveOptions]
  * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsResolve` plugin.
+ *
+ * @property {boolean} [logDiagnostic=true] When generating a DTS bundle you may opt to turn off any emitted TS
+ * compiler diagnostic messages.
+ *
+ * @property {'all' | 'warn' | 'error'} [logLevel='all'] Defines the logging level.
  *
  * @property {string}               [outputExt='.d.ts'] The bundled output TS declaration file extension. Normally a
  * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
