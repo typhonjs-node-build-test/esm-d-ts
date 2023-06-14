@@ -276,7 +276,7 @@ async function bundleDTS(pConfig)
  */
 function compile(pConfig, warn = false)
 {
-   const { config, compilerOptions, filepaths, tsFilepaths } = pConfig;
+   const { config, compilerOptions, filepaths, inputRelativeDir, tsFilepaths } = pConfig;
 
    const host = ts.createCompilerHost(compilerOptions, /* setParentNodes */ true);
 
@@ -312,8 +312,22 @@ function compile(pConfig, warn = false)
 
    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
+   // Default filter to exclude non-project files when option `filterExternal` is true and no explicit
+   // `filterDiagnostic` option is set.
+   const filterExternalDiagnostic = (diagnostic) =>
+   {
+      if (diagnostic.file)
+      {
+         const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
+         if (!fileName.startsWith(inputRelativeDir)) { return true; }
+      }
+
+      return false;
+   };
+
    // Provide a default implementation to allow all diagnostic messages through.
-   const filterDiagnostic = config.filterDiagnostic ?? (() => false);
+   // const filterDiagnostic = config.filterDiagnostic ?? (() => false);
+   const filterDiagnostic = config.filterDiagnostic ?? config.filterExternal ? filterExternalDiagnostic : (() => false);
 
    for (const diagnostic of allDiagnostics)
    {
@@ -681,13 +695,14 @@ async function processConfig(origConfig, defaultCompilerOptions)
    }
 
    /**
-    * A shallow copy of the original configuration w/ default values for `checkJS`, `filterTags`, `logDiagnostic`,
-    * `logLevel`, and `removePrivateStatic`.
+    * A shallow copy of the original configuration w/ default values for `checkJS`, `filterExternal`, `filterTags`,
+    * `logDiagnostic`, `logLevel`, and `removePrivateStatic`.
     *
     * @type {GenerateConfig}
     */
    const config = Object.assign({
       checkJs: false,
+      filterExternal: true,
       filterTags: 'internal',
       logDiagnostic: true,
       logLevel: 'all',
@@ -867,6 +882,24 @@ function validateConfig(config)
       return false;
    }
 
+   if (config.checkJs !== void 0 && typeof config.checkJs !== 'boolean')
+   {
+      logError(`validateConfig error: 'config.checkJs' is not a boolean.`);
+      return false;
+   }
+
+   if (config.filterDiagnostic !== void 0 && typeof config.filterDiagnostic !== 'function')
+   {
+      logError(`validateConfig error: 'config.filterDiagnostic' must be a function.`);
+      return false;
+   }
+
+   if (typeof config.filterExternal !== 'boolean')
+   {
+      logError(`validateConfig error: 'config.filterExternal' must be a boolean.`);
+      return false;
+   }
+
    if (typeof config.logDiagnostic !== 'boolean')
    {
       logError(`validateConfig error: 'config.logDiagnostic' must be a boolean.`);
@@ -883,12 +916,6 @@ function validateConfig(config)
    if (typeof config.output !== 'string')
    {
       logError(`validateConfig error: 'config.output' is not a string.`);
-      return false;
-   }
-
-   if (config.checkJs !== void 0 && typeof config.checkJs !== 'boolean')
-   {
-      logError(`validateConfig error: 'config.checkJs' is not a boolean.`);
       return false;
    }
 
