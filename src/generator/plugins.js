@@ -53,17 +53,17 @@ export function generateDTSPlugin(generateDTS)
                {
                   if (isObject(plugin))
                   {
-                     if (config.importsExternalOptions === void 0 &&
+                     if (config.importsExternal === void 0 &&
                       plugin?.name === '@typhonjs-build-test/rollup-plugin-pkg-imports/importsExternal')
                      {
-                        config.importsExternalOptions = isObject(plugin.importsPluginOptions) ?
+                        config.importsExternal = isObject(plugin.importsPluginOptions) ?
                          plugin.importsPluginOptions : {};
                      }
 
-                     if (config.importsResolveOptions === void 0 &&
+                     if (config.importsResolve === void 0 &&
                       plugin?.name === '@typhonjs-build-test/rollup-plugin-pkg-imports/importsResolve')
                      {
-                        config.importsResolveOptions = isObject(plugin.importsPluginOptions) ?
+                        config.importsResolve = isObject(plugin.importsPluginOptions) ?
                          plugin.importsPluginOptions : {};
                      }
                   }

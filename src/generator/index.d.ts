@@ -49,11 +49,11 @@ type GeneratePluginConfig = {
     /**
      * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsExternal` plugin.
      */
-    importsExternalOptions?: _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
+    importsExternal?: _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
     /**
      * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsResolve` plugin.
      */
-    importsResolveOptions?: _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
+    importsResolve?: _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
     /**
      * Defines the logging level.
      */

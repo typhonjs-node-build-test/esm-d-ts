@@ -88,15 +88,15 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.importsExternalOptions !== void 0 && !isObject(config.importsExternalOptions))
+   if (config.importsExternal !== void 0 && !isObject(config.importsExternal))
    {
-      Logger.error(`validateConfig error: 'config.importsExternalOptions' must be an object.`);
+      Logger.error(`validateConfig error: 'config.importsExternal' must be an object.`);
       result = false;
    }
 
-   if (config.importsResolveOptions !== void 0 && !isObject(config.importsResolveOptions))
+   if (config.importsResolve !== void 0 && !isObject(config.importsResolve))
    {
-      Logger.error(`validateConfig error: 'config.importsResolveOptions' must be an object.`);
+      Logger.error(`validateConfig error: 'config.importsResolve' must be an object.`);
       result = false;
    }
 
