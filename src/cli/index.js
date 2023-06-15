@@ -10,22 +10,29 @@ import {
 const packageObj = getPackage({ filepath: import.meta.url });
 
 const program = sade('esm-d-ts')
-   .version(packageObj?.version);
+   .version(packageObj?.version)
+
+   // Global options
+   .option('-c, --config', 'Provide a path to custom config.')
+   .option('-l, --loglevel', `Specify logging level: 'all', 'verbose', 'info', 'warn', or 'error'`, 'info')
+   .option('-t, --tsconfig', `Provide a path to custom 'tsconfig.json' file.`);
 
 program
-   .command('check [input]', 'Output `checkJS` information')
-   .describe('Runs Typescript with `checkJS` only outputting informational results.')
-   .option('-c, --config', 'Provide a path to custom config.')
+   // .command('check [input]', `Logs 'checkJs' diagnostics`)
+   .command('check [input]')
+   .describe(`Logs 'checkJs' diagnostics. Runs Typescript compiler with 'checkJs' outputting only diagnostic logs. ` +
+    `Expects an entry point source file in ESM format.`)
    .example('check src/index.js')
    .example('check -c (You may omit the source file when using a config file.)')
    .action(check);
 
 program
    .command('generate [input]', 'Generate DTS', { alias: ['g', 'gen'] })
-   .describe('Generate bundled DTS from source file. Expects an `index.js` entry file in ESM format.')
-   .option('-c, --config', 'Provide a path to custom config.')
-   .option('-o, --output', 'Provide a path to generated TS declaration output.', './types/index.d.ts')
+   .describe('Generate bundled DTS from source file. Expects an entry point source file in ESM format.')
+   .option('--check', `Enable 'checkJs' diagnostic logging.`)
+   .option('-o, --output', 'Provide a file path to generated TS declaration output.')
    .example('generate src/index.js')
+   .example('generate src/index.js -o types/index.d.ts')
    .example('generate -c (You may omit the source file when using a config file.)')
    .action(generate);
 

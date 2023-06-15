@@ -10,6 +10,8 @@ import {
    checkDTS,
    generateDTS }           from '../generator/index.js';
 
+import { Logger }          from '#logger';
+
 /**
  * Invokes checkDTS with the given input / config options.
  *
@@ -39,7 +41,7 @@ export async function check(input, opts)
    }
    else
    {
-      await checkDTS({ input: processedOptions.input, output: processedOptions.output });
+      await checkDTS(processedOptions.options);
    }
 }
 
@@ -72,7 +74,7 @@ export async function generate(input, opts)
    }
    else
    {
-      await generateDTS({ input: processedOptions.input, output: processedOptions.output });
+      await generateDTS(processedOptions.options);
    }
 }
 
@@ -157,7 +159,6 @@ async function processOptions(input, opts)
    const dirname = path.dirname(process.cwd());
 
    let config;
-   let inputpath;
 
    if (opts.config)
    {
@@ -172,10 +173,12 @@ async function processOptions(input, opts)
 
             if (fs.existsSync('./esm-d-ts.config.js'))
             {
+               Logger.verbose(`Loading config from path: './esm-d-ts.config.js'`, opts?.loglevel);
                config = await loadConfig(path.resolve('./esm-d-ts.config.js'));
             }
             else if (fs.existsSync('./esm-d-ts.config.mjs'))
             {
+               Logger.verbose(`Loading config from path: './esm-d-ts.config.mjs'`, opts?.loglevel);
                config = await loadConfig(path.resolve('./esm-d-ts.config.mjs'));
             }
             break;
@@ -187,19 +190,47 @@ async function processOptions(input, opts)
 
             if (!fs.existsSync(configPath)) { exit(`No config file available at: ${configPath}`); }
 
+            Logger.verbose(`Loading config from path: '${configPath}'`, opts?.loglevel);
             config = await loadConfig(configPath);
             break;
          }
+      }
+
+      // Apply any global command line options to overriding config file values.
+      if (isIterable(config))
+      {
+         for (const entry of config)
+         {
+            if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { entry.logLevel = opts.loglevel; }
+            if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { entry.tsconfig = opts.tsconfig; }
+         }
+      }
+      else if (isObject(config))
+      {
+         if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { config.logLevel = opts.loglevel; }
+         if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { config.tsconfig = opts.tsconfig; }
       }
    }
    else
    {
       // Verify `input` file.
-      inputpath = path.resolve(input);
+      const inputpath = path.resolve(input);
       if (!fs.existsSync(inputpath)) { exit(`No input / entry point file exists for: ${input}`); }
    }
 
-   return { config, output: opts.output, input, inputpath };
+   /**
+    * Construct command line options configuration; this is used when a config file is not loaded.
+    *
+    * @type {import('../generate').GenerateConfig}
+    */
+   const options = { input };
+
+   if (typeof opts?.check === 'boolean' && opts.check) { options.tsCheckJs = true; }
+   if (typeof opts?.output === 'string' && opts.output !== '') { options.output = opts.output; }
+   if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { options.logLevel = opts.loglevel; }
+   if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { options.tsconfig = opts.tsconfig; }
+
+   return { config, options };
 }
 
 /**
@@ -218,9 +249,5 @@ function exit(message, exit = true)
  *
  * @property {import('../generate').GenerateConfig | import('../generate').GenerateConfig[]} [config] Loaded config(s).
  *
- * @property {string} [input] Original input / entry point.
- *
- * @property {string} [inputpath] Fully qualified input / entry point.
- *
- * @property {string} [output] Original output path.
+ * @property {object} [options] All GenerateConfig command line options defined.
  */
