@@ -7,6 +7,9 @@
   "bin": "./src/cli/index.js",
   "main": "src/generator/index.js",
   "module": "src/generator/index.js",
+  "imports": {
+    "#logger": "./src/util/logger.js"
+  },
   "exports": {
     ".": {
       "types": "./src/generator/index.d.ts",
@@ -34,10 +37,12 @@
     "resolve.exports": "^2",
     "rollup-plugin-dts": "^5",
     "sade": "^1.8.0",
+    "type-fest": "^3",
     "typescript": ">=5.0.4",
     "upath": "^2"
   },
   "devDependencies": {
+    "@types/node": "^20.3.1",
     "@typhonjs-config/eslint-config": "^0.6.0",
     "eslint": "^8"
   },
