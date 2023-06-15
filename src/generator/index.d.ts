@@ -31,6 +31,11 @@ type GeneratePluginConfig = {
      */
     checkDefaultPath?: boolean;
     /**
+     * Options for naive text replacement operating on the final bundled
+     * TS declaration file. The keys are converted into RegExp instances so may be a valid pattern to match.
+     */
+    dtsReplace?: Record<string, string>;
+    /**
      * `resolve.exports` conditional options for
      * `package.json` exports field type.
      */
@@ -76,15 +81,10 @@ type GeneratePluginConfig = {
     /**
      * When true a custom transformer is added to remove the
      * renaming of private static class members that Typescript currently renames.
-     */
-    removePrivateStatic?: boolean;
-    /**
-     * Options for naive text replacement operating on the final bundled
-     * TS declaration file.
      *
      * // Typescript specific options for compilation --------------------------------------------------------------------
      */
-    replace?: Record<string, string>;
+    removePrivateStatic?: boolean;
     /**
      * When true set `checkJs` to default compiler options. This is a
      * convenience parameter to quickly turn `checkJs` on / off.
@@ -124,17 +124,17 @@ type GeneratePluginConfig = {
      * Rollup `external` option.
      * {@link https://rollupjs.org/configuration-options/#external}
      */
-    external?: string | RegExp | (string | RegExp)[] | ((id: string, parentId: string, isResolved: boolean) => boolean);
+    rollupExternal?: string | RegExp | (string | RegExp)[] | ((id: string, parentId: string, isResolved: boolean) => boolean);
     /**
      * Rollup `paths` option.
      * {@link https://rollupjs.org/configuration-options/#output-paths}
      */
-    paths?: Record<string, string> | ((id: string) => string);
+    rollupPaths?: Record<string, string> | ((id: string) => string);
     /**
      * Rollup `onwarn`
      * option. {@link https://rollupjs.org/configuration-options/#onwarn}
      */
-    onwarn?: (warning: rollup.RollupWarning, defaultHandler: (warning: string | rollup.RollupWarning) => void) => void;
+    rollupOnwarn?: (warning: rollup.RollupWarning, defaultHandler: (warning: string | rollup.RollupWarning) => void) => void;
 };
 /**
  * Contains the processed config and associated data.

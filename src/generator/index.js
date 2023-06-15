@@ -258,13 +258,16 @@ async function bundleDTS(pConfig)
 
    // Further config modification through optional GenerateConfig parameters -----------------------------------------
 
-   if (config.external !== void 0) { rollupConfig.input.external = config.external; }
+   if (config.rollupExternal !== void 0) { rollupConfig.input.rollupExternal = config.rollupExternal; }
 
-   if (config.onwarn !== void 0) { rollupConfig.input.onwarn = config.onwarn; }
+   if (config.rollupOnwarn !== void 0) { rollupConfig.input.rollupOnwarn = config.rollupOnwarn; }
 
-   if (config.paths !== void 0) { rollupConfig.output.paths = config.paths; }
+   if (config.rollupPaths !== void 0) { rollupConfig.output.rollupPaths = config.rollupPaths; }
 
-   if (isObject(config.replace)) { rollupConfig.input.plugins.push(internalPlugins.naiveReplace(config.replace)); }
+   if (isObject(config.dtsReplace))
+   {
+      rollupConfig.input.plugins.push(internalPlugins.naiveReplace(config.dtsReplace));
+   }
 
    // ----------------------------------------------------------------------------------------------------------------
 
@@ -345,7 +348,7 @@ function compile(pConfig, warn = false)
       if (warn)
       {
          // Only log if logLevel is `warn` or `all` and `logDiagnostic` is true.
-         if (!config.logDiagnostic || s_LOG_LEVELS[config.logLevel] > s_LOG_LEVELS.warn) { continue; }
+         if (!config.logDiagnostic || Logger.logLevels[config.logLevel] > Logger.logLevels.warn) { continue; }
 
          if (diagnostic.file)
          {
@@ -852,6 +855,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * `bundlePackageExports` check for `index.d.ts` in package root; this is off by default as usually this is indicative
  * of and older package not updated for `exports` in `package.json`.
  *
+ * @property {Record<string, string>} [dtsReplace] Options for naive text replacement operating on the final bundled
+ * TS declaration file. The keys are converted into RegExp instances so may be a valid pattern to match.
+ *
  * @property {import('resolve.exports').Options}   [exportCondition] `resolve.exports` conditional options for
  * `package.json` exports field type.
  *
@@ -882,9 +888,6 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}              [removePrivateStatic=true] When true a custom transformer is added to remove the
  * renaming of private static class members that Typescript currently renames.
  *
- * @property {Record<string, string>} [replace] Options for naive text replacement operating on the final bundled
- * TS declaration file.
- *
  * // Typescript specific options for compilation --------------------------------------------------------------------
  *
  * @property {boolean}              [checkJs=false] When true set `checkJs` to default compiler options. This is a
@@ -912,14 +915,14 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * // Rollup specific options that are the same as Rollup configuration options when bundling declaration file -------
  *
  * @property {(string | RegExp)[] | RegExp | string |
- * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [external] Rollup `external` option.
+ * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [rollupExternal] Rollup `external` option.
  * {@link https://rollupjs.org/configuration-options/#external}
  *
- * @property {Record<string, string> | ((id: string) => string)} [paths] Rollup `paths` option.
+ * @property {Record<string, string> | ((id: string) => string)} [rollupPaths] Rollup `paths` option.
  * {@link https://rollupjs.org/configuration-options/#output-paths}
  *
  * @property {(warning: import('rollup').RollupWarning,
- * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} [onwarn] Rollup `onwarn`
+ * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} [rollupOnwarn] Rollup `onwarn`
  * option. {@link https://rollupjs.org/configuration-options/#onwarn}
  */
 

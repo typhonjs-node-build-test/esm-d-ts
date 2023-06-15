@@ -171,23 +171,25 @@ export function validateConfig(config)
 
    // Rollup related configuration options ---------------------------------------------------------------------------
 
-   if (config.external !== void 0 && typeof config.external !== 'string' && !(config.external instanceof RegExp) &&
-    !Array.isArray(config.external) && typeof config.external !== 'function')
+   if (config.rollupExternal !== void 0 && typeof config.rollupExternal !== 'string' &&
+    !(config.rollupExternal instanceof RegExp) && !Array.isArray(config.rollupExternal) &&
+     typeof config.rollupExternal !== 'function')
    {
-      Logger.error(
-       `validateConfig error: 'config.external' must be a string, RegExp, array of string / RegExp, or function.`);
+      Logger.error(`validateConfig error: 'config.rollupExternal' must be a string, RegExp, array of string / ` +
+       `RegExp, or function.`);
+
       result = false;
    }
 
-   if (config.paths !== void 0 && !isObject(config.paths) && typeof config.paths !== 'function')
+   if (config.rollupPaths !== void 0 && !isObject(config.rollupPaths) && typeof config.rollupPaths !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.paths' must be an object or function.`);
+      Logger.error(`validateConfig error: 'config.rollupPaths' must be an object or function.`);
       result = false;
    }
 
-   if (config.onwarn !== void 0 && typeof config.onwarn !== 'function')
+   if (config.rollupOnwarn !== void 0 && typeof config.rollupOnwarn !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.onwarn' must be a function.`);
+      Logger.error(`validateConfig error: 'config.rollupOnwarn' must be a function.`);
       result = false;
    }
 
