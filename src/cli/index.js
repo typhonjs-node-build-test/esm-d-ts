@@ -14,11 +14,10 @@ const program = sade('esm-d-ts')
 
    // Global options
    .option('-c, --config', 'Provide a path to custom config.')
-   .option('-l, --loglevel', `Specify logging level: 'all', 'verbose', 'info', 'warn', or 'error'`, 'info')
+   .option('-l, --loglevel', `Specify logging level: 'all', 'verbose', 'info', 'warn', or 'error'`)
    .option('-t, --tsconfig', `Provide a path to custom 'tsconfig.json' file.`);
 
 program
-   // .command('check [input]', `Logs 'checkJs' diagnostics`)
    .command('check [input]')
    .describe(`Logs 'checkJs' diagnostics. Runs Typescript compiler with 'checkJs' outputting only diagnostic logs. ` +
     `Expects an entry point source file in ESM format.`)

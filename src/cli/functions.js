@@ -124,12 +124,6 @@ async function loadConfig(filepath)
              entry.input}`);
          }
 
-         if (typeof entry.output !== 'string')
-         {
-            exit(`The config file exports a list, but entry[${i}] does not have the required 'output' attribute: ${
-             filepath}`);
-         }
-
          i++;
       }
    }

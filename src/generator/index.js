@@ -60,13 +60,6 @@ async function checkDTS(config)
             continue;
          }
 
-         if (typeof entry.output !== 'string')
-         {
-            Logger.error(`checkDTS error: Processing multiple entry points; 'output' attribute missing. Entry point '${
-             entry.input}'`);
-            continue;
-         }
-
          Logger.info(`Checking DTS bundle for: ${entry.input}`, processedConfigOrError.config.logLevel);
 
          await checkDTSImpl(processedConfigOrError);
@@ -118,13 +111,6 @@ async function generateDTS(config)
          if (typeof processedConfigOrError === 'string')
          {
             Logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
-            continue;
-         }
-
-         if (typeof entry.output !== 'string')
-         {
-            Logger.error(`generateDTS error: Processing multiple entry points; 'output' attribute missing. Entry point '${
-             entry.input}'`);
             continue;
          }
 
@@ -683,7 +669,9 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    // Set default output extension and output file if not defined.
    if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
-   if (config.output === void 0) { config.output = `./types/index${config.outputExt}`; }
+
+   // If not defined change extension of input to DTS extension and use as output.
+   if (config.output === void 0) { config.output = upath.changeExt(config.input, config.outputExt); }
 
    if (!validateConfig(config))
    {
