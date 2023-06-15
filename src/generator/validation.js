@@ -139,33 +139,34 @@ export function validateConfig(config)
 
    // Typescript related configuration options -----------------------------------------------------------------------
 
-   if (config.checkJs !== void 0 && typeof config.checkJs !== 'boolean')
+   if (config.tsCheckJs !== void 0 && typeof config.tsCheckJs !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.checkJs' must be a boolean.`);
+      Logger.error(`validateConfig error: 'config.tsCheckJs' must be a boolean.`);
       result = false;
    }
 
-   if (config.filterDiagnostic !== void 0 && typeof config.filterDiagnostic !== 'function')
+   if (typeof config.tsDiagnosticExternal !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.filterDiagnostic' must be a function.`);
+      Logger.error(`validateConfig error: 'config.tsDiagnosticExternal' must be a boolean.`);
       result = false;
    }
 
-   if (typeof config.filterExternal !== 'boolean')
+   if (config.tsDiagnosticFilter !== void 0 && typeof config.tsDiagnosticFilter !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.filterExternal' must be a boolean.`);
+      Logger.error(`validateConfig error: 'config.tsDiagnosticFilter' must be a function.`);
       result = false;
    }
 
-   if (typeof config.logDiagnostic !== 'boolean')
+   if (typeof config.tsDiagnosticLog !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.logDiagnostic' must be a boolean.`);
+      Logger.error(`validateConfig error: 'config.tsDiagnosticLog' must be a boolean.`);
       result = false;
    }
 
-   if (config.transformers !== void 0 && !isIterable(config.transformers) && typeof config.transformers !== 'function')
+   if (config.tsTransformers !== void 0 && !isIterable(config.tsTransformers) &&
+    typeof config.tsTransformers !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.transformers' must be a function or iterable list of functions.`);
+      Logger.error(`validateConfig error: 'config.tsTransformers' must be a function or iterable list of functions.`);
       result = false;
    }
 

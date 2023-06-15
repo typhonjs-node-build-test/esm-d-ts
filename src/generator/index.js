@@ -305,7 +305,7 @@ function compile(pConfig, warn = false)
       ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
        [jsdocRemoveNodeByTags(config.filterTags)] : []),
       ...(tsFilepaths.length ? [addSyntheticExports(config.input, tsFilepaths)] : []),
-      ...(isIterable(config.transformers) ? config.transformers : [])
+      ...(isIterable(config.tsTransformers) ? config.tsTransformers : [])
    ];
 
    if (transformers.length)
@@ -321,8 +321,8 @@ function compile(pConfig, warn = false)
 
    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
-   // Default filter to exclude non-project files when option `filterExternal` is true and no explicit
-   // `filterDiagnostic` option is set.
+   // Default filter to exclude non-project files when option `tsDiagnosticExternal` is true and no explicit
+   // `tsDiagnosticFilter` option is set.
    const filterExternalDiagnostic = (diagnostic) =>
    {
       if (diagnostic.file)
@@ -335,8 +335,8 @@ function compile(pConfig, warn = false)
    };
 
    // Provide a default implementation to allow all diagnostic messages through.
-   // const filterDiagnostic = config.filterDiagnostic ?? (() => false);
-   const filterDiagnostic = config.filterDiagnostic ?? config.filterExternal ? filterExternalDiagnostic : (() => false);
+   const filterDiagnostic = config.tsDiagnosticFilter ?? !config.tsDiagnosticExternal ? filterExternalDiagnostic :
+    (() => false);
 
    for (const diagnostic of allDiagnostics)
    {
@@ -347,8 +347,8 @@ function compile(pConfig, warn = false)
       // Special handling for `generateDTS` / log as warnings.
       if (warn)
       {
-         // Only log if logLevel is `warn` or `all` and `logDiagnostic` is true.
-         if (!config.logDiagnostic || Logger.logLevels[config.logLevel] > Logger.logLevels.warn) { continue; }
+         // Only log if logLevel is `warn` or `all` and `tsDiagnosticLog` is true.
+         if (!config.tsDiagnosticLog || Logger.logLevels[config.logLevel] > Logger.logLevels.warn) { continue; }
 
          if (diagnostic.file)
          {
@@ -666,19 +666,19 @@ async function processConfig(origConfig, defaultCompilerOptions)
    }
 
    /**
-    * A shallow copy of the original configuration w/ default values for `checkJS`, `filterExternal`, `filterTags`,
-    * `logDiagnostic`, `logLevel`, and `removePrivateStatic`.
+    * A shallow copy of the original configuration w/ default values for , `filterTags`,`logLevel`,
+    * `removePrivateStatic`, `tsCheckJs`, `tsDiagnosticExternal`, and `tsDiagnosticLog`.
     *
     * @type {GenerateConfig}
     */
    const config = Object.assign({
-      checkJs: false,
-      filterExternal: true,
       filterTags: 'internal',
-      logDiagnostic: true,
       logLevel: 'all',
-      removePrivateStatic: true
-    }, origConfig);
+      removePrivateStatic: true,
+      tsCheckJs: false,
+      tsDiagnosticExternal: false,
+      tsDiagnosticLog: true
+   }, origConfig);
 
    // Set default output extension and output file if not defined.
    if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
@@ -690,8 +690,10 @@ async function processConfig(origConfig, defaultCompilerOptions)
    }
 
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
-   const compilerOptionsJson = Object.assign({ checkJs: config.checkJs }, defaultCompilerOptions,
-    config.compilerOptions);
+   const compilerOptionsJson = Object.assign(defaultCompilerOptions, config.compilerOptions);
+
+   // Apply config override if available.
+   if (typeof config.tsCheckJs === 'boolean') { compilerOptionsJson.checkJs = config.tsCheckJs; }
 
    // Validate compiler options with Typescript.
    const compilerOptions = validateCompilerOptions(compilerOptionsJson);
@@ -888,31 +890,31 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}              [removePrivateStatic=true] When true a custom transformer is added to remove the
  * renaming of private static class members that Typescript currently renames.
  *
- * // Typescript specific options for compilation --------------------------------------------------------------------
  *
- * @property {boolean}              [checkJs=false] When true set `checkJs` to default compiler options. This is a
- * convenience parameter to quickly turn `checkJs` on / off.
  *
  * @property {import('type-fest').TsConfigJson.CompilerOptions}   [compilerOptions] Typescript compiler options.
  * {@link https://www.typescriptlang.org/tsconfig}
  *
- * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [filterDiagnostic] Optional
+ * @property {boolean}              [tsCheckJs=false] When true set `checkJs` to default compiler options. This is a
+ * convenience parameter to quickly turn `checkJs` on / off.
+ *
+ * @property {boolean} [tsDiagnosticExternal=false] By default, all diagnostic errors that are external to the common
+ * root path from the `input` source file will be filtered from diagnostic logging. Set to `true` to include all
+ * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `tsDiagnosticFilter` this
+ * option is ignored.
+ *
+ * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [tsDiagnosticFilter] Optional
  * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
  * filter the given diagnostic from posting to `console.error` otherwise return false to include.
  *
- * @property {boolean} [filterExternal=true] By default, all diagnostic errors that are external to the common
- * root path from the `input` source file will be filtered from diagnostic logging. Set to `false` to include all
- * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `filterDiagnostic` this
- * option is ignored.
- *
- * @property {boolean} [logDiagnostic=true] When generating a DTS bundle you may opt to turn off any emitted TS
+ * @property {boolean} [tsDiagnosticLog=true] When generating a DTS bundle you may opt to turn off any emitted TS
  * compiler diagnostic messages.
  *
- * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [transformers]
+ * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [tsTransformers]
  * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
  * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
  *
- * // Rollup specific options that are the same as Rollup configuration options when bundling declaration file -------
+ *
  *
  * @property {(string | RegExp)[] | RegExp | string |
  * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [rollupExternal] Rollup `external` option.

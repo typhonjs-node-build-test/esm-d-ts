@@ -81,45 +81,41 @@ type GeneratePluginConfig = {
     /**
      * When true a custom transformer is added to remove the
      * renaming of private static class members that Typescript currently renames.
-     *
-     * // Typescript specific options for compilation --------------------------------------------------------------------
      */
     removePrivateStatic?: boolean;
-    /**
-     * When true set `checkJs` to default compiler options. This is a
-     * convenience parameter to quickly turn `checkJs` on / off.
-     */
-    checkJs?: boolean;
     /**
      * Typescript compiler options.
      * {@link https://www.typescriptlang.org/tsconfig}
      */
     compilerOptions?: type_fest.TsConfigJson.CompilerOptions;
     /**
+     * When true set `checkJs` to default compiler options. This is a
+     * convenience parameter to quickly turn `checkJs` on / off.
+     */
+    tsCheckJs?: boolean;
+    /**
+     * By default, all diagnostic errors that are external to the common
+     * root path from the `input` source file will be filtered from diagnostic logging. Set to `true` to include all
+     * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `tsDiagnosticFilter` this
+     * option is ignored.
+     */
+    tsDiagnosticExternal?: boolean;
+    /**
      * Optional
      * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
      * filter the given diagnostic from posting to `console.error` otherwise return false to include.
      */
-    filterDiagnostic?: (diagnostic: ts.Diagnostic, message?: string) => boolean;
-    /**
-     * By default, all diagnostic errors that are external to the common
-     * root path from the `input` source file will be filtered from diagnostic logging. Set to `false` to include all
-     * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `filterDiagnostic` this
-     * option is ignored.
-     */
-    filterExternal?: boolean;
+    tsDiagnosticFilter?: (diagnostic: ts.Diagnostic, message?: string) => boolean;
     /**
      * When generating a DTS bundle you may opt to turn off any emitted TS
      * compiler diagnostic messages.
      */
-    logDiagnostic?: boolean;
+    tsDiagnosticLog?: boolean;
     /**
      * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
      * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
-     *
-     * // Rollup specific options that are the same as Rollup configuration options when bundling declaration file -------
      */
-    transformers?: Iterable<ts__default.TransformerFactory<ts__default.Bundle | ts__default.SourceFile> | ts__default.CustomTransformerFactory>;
+    tsTransformers?: Iterable<ts__default.TransformerFactory<ts__default.Bundle | ts__default.SourceFile> | ts__default.CustomTransformerFactory>;
     /**
      * Rollup `external` option.
      * {@link https://rollupjs.org/configuration-options/#external}
