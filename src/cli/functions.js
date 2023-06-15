@@ -201,12 +201,14 @@ async function processOptions(input, opts)
       {
          for (const entry of config)
          {
+            if (typeof opts?.check === 'boolean' && opts.check) { entry.tsCheckJs = true; }
             if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { entry.logLevel = opts.loglevel; }
             if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { entry.tsconfig = opts.tsconfig; }
          }
       }
       else if (isObject(config))
       {
+         if (typeof opts?.check === 'boolean' && opts.check) { config.tsCheckJs = true; }
          if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { config.logLevel = opts.loglevel; }
          if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { config.tsconfig = opts.tsconfig; }
       }
@@ -226,8 +228,8 @@ async function processOptions(input, opts)
    const options = { input };
 
    if (typeof opts?.check === 'boolean' && opts.check) { options.tsCheckJs = true; }
-   if (typeof opts?.output === 'string' && opts.output !== '') { options.output = opts.output; }
    if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { options.logLevel = opts.loglevel; }
+   if (typeof opts?.output === 'string' && opts.output !== '') { options.output = opts.output; }
    if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { options.tsconfig = opts.tsconfig; }
 
    return { config, options };
