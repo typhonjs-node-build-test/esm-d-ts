@@ -688,8 +688,43 @@ async function processConfig(origConfig, defaultCompilerOptions)
       return `error: Aborting as 'config' failed validation.`;
    }
 
+   // Load default or configured `tsconfig.json` file to configure `compilerOptions`. --------------------------------
+
+   let tsconfigPath;
+
+   // Verify any tsconfig provided path.
+   if (config.tsconfig)
+   {
+      if (fs.existsSync(config.tsconfig)) { tsconfigPath = config.tsconfig; }
+      else { return `error: Aborting as 'tsconfig' path is specified, but file does not exist; '${config.tsconfig}'`; }
+   }
+   else
+   {
+      // Check for default `./tsconfig.json`
+      if (fs.existsSync('./tsconfig.json')) { tsconfigPath = './tsconfig.json'; }
+   }
+
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
-   const compilerOptionsJson = Object.assign(defaultCompilerOptions, config.compilerOptions);
+   let tsconfigCompilerOptions = {};
+
+   if (tsconfigPath)
+   {
+      try
+      {
+         const configJSON = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8').toString());
+         if (isObject(configJSON?.compilerOptions)) { tsconfigCompilerOptions = configJSON.compilerOptions; }
+      }
+      catch (err)
+      {
+         return `error: Aborting as 'tsconfig' path is specified, but failed to load; '${
+          err.message}'\ntsconfig path: ${tsconfigPath};`;
+      }
+   }
+
+   // ----------------------------------------------------------------------------------------------------------------
+
+   /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
+   const compilerOptionsJson = Object.assign(defaultCompilerOptions, config.compilerOptions, tsconfigCompilerOptions);
 
    // Apply config override if available.
    if (typeof config.tsCheckJs === 'boolean') { compilerOptionsJson.checkJs = config.tsCheckJs; }
@@ -894,8 +929,10 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {import('type-fest').TsConfigJson.CompilerOptions}   [compilerOptions] Typescript compiler options.
  * {@link https://www.typescriptlang.org/tsconfig}
  *
- * @property {boolean}              [tsCheckJs=false] When true set `checkJs` to default compiler options. This is a
+ * @property {boolean}  [tsCheckJs=false] When true set `checkJs` to default compiler options. This is a
  * convenience parameter to quickly turn `checkJs` on / off.
+ *
+ * @property {string}   [tsconfig] Provide a path to a `tsconfig.json` for `compilerOptions` configuration.
  *
  * @property {boolean} [tsDiagnosticExternal=false] By default, all diagnostic errors that are external to the common
  * root path from the `input` source file will be filtered from diagnostic logging. Set to `true` to include all

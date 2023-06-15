@@ -94,6 +94,10 @@ type GeneratePluginConfig = {
      */
     tsCheckJs?: boolean;
     /**
+     * Provide a path to a `tsconfig.json` for `compilerOptions` configuration.
+     */
+    tsconfig?: string;
+    /**
      * By default, all diagnostic errors that are external to the common
      * root path from the `input` source file will be filtered from diagnostic logging. Set to `true` to include all
      * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `tsDiagnosticFilter` this

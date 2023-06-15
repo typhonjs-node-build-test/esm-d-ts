@@ -67,6 +67,12 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.dtsReplace !== void 0 && !isObject(config.dtsReplace))
+   {
+      Logger.error(`validateConfig error: 'config.dtsReplace' must be an object.`);
+      result = false;
+   }
+
    if (config.exportCondition !== void 0 && !isObject(config.exportCondition))
    {
       Logger.error(`validateConfig error: 'config.exportCondition' must be an object.`);
@@ -131,17 +137,17 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.replace !== void 0 && !isObject(config.replace))
-   {
-      Logger.error(`validateConfig error: 'config.replace' must be an object.`);
-      result = false;
-   }
-
    // Typescript related configuration options -----------------------------------------------------------------------
 
    if (config.tsCheckJs !== void 0 && typeof config.tsCheckJs !== 'boolean')
    {
       Logger.error(`validateConfig error: 'config.tsCheckJs' must be a boolean.`);
+      result = false;
+   }
+
+   if (config.tsconfig !== void 0 && typeof config.tsconfig !== 'string')
+   {
+      Logger.error(`validateConfig error: 'config.tsconfig' must be a string.`);
       result = false;
    }
 
