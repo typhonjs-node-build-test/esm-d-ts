@@ -667,7 +667,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    /**
     * A shallow copy of the original configuration w/ default values for , `filterTags`,`logLevel`,
-    * `removePrivateStatic`, `tsCheckJs`, `tsDiagnosticExternal`, and `tsDiagnosticLog`.
+    * `removePrivateStatic`, `tsDiagnosticExternal`, and `tsDiagnosticLog`.
     *
     * @type {GenerateConfig}
     */
@@ -675,7 +675,6 @@ async function processConfig(origConfig, defaultCompilerOptions)
       filterTags: 'internal',
       logLevel: 'all',
       removePrivateStatic: true,
-      tsCheckJs: false,
       tsDiagnosticExternal: false,
       tsDiagnosticLog: true
    }, origConfig);
