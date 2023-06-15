@@ -874,7 +874,7 @@ const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
    outDir: './.dts'
 };
 
-const s_REGEX_DTS_EXTENSIONS = /\.d\.(c|m)?tsx?$/;
+const s_REGEX_DTS_EXTENSIONS = /\.d\.m?ts$/;
 const s_REGEX_EXPORT = /^\s*export/;
 const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
