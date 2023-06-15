@@ -20,31 +20,23 @@ type GeneratePluginConfig = {
      */
     input?: string;
     /**
-     * The bundled output TS declaration path.
-     */
-    output?: string;
-    /**
      * When true attempt to bundle types of top level
      * exported packages. This is useful for re-bundling libraries.
      */
     bundlePackageExports?: boolean;
     /**
-     * When true and bundling top level package exports check
-     * for `index.d.ts` in package root.
+     * When true and bundling top level package exports via
+     * `bundlePackageExports` check for `index.d.ts` in package root; this is off by default as usually this is indicative
+     * of and older package not updated for `exports` in `package.json`.
      */
     checkDefaultPath?: boolean;
-    /**
-     * When true set `checkJs` to default compiler options. This is a
-     * convenience parameter to quickly turn `checkJs` on / off.
-     */
-    checkJs?: boolean;
     /**
      * `resolve.exports` conditional options for
      * `package.json` exports field type.
      */
     exportCondition?: resolve_exports.Options;
     /**
-     * By default
+     * By default,
      * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
      * `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
      */
@@ -58,14 +50,13 @@ type GeneratePluginConfig = {
      */
     importsResolveOptions?: _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
     /**
-     * When generating a DTS bundle you may opt to turn off any emitted TS
-     * compiler diagnostic messages.
-     */
-    logDiagnostic?: boolean;
-    /**
      * Defines the logging level.
      */
     logLevel?: 'all' | 'warn' | 'error';
+    /**
+     * The output file path for the bundled TS declarations.
+     */
+    output?: string;
     /**
      * The bundled output TS declaration file extension. Normally a
      * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
@@ -95,6 +86,11 @@ type GeneratePluginConfig = {
      */
     replace?: Record<string, string>;
     /**
+     * When true set `checkJs` to default compiler options. This is a
+     * convenience parameter to quickly turn `checkJs` on / off.
+     */
+    checkJs?: boolean;
+    /**
      * Typescript compiler options.
      * {@link https://www.typescriptlang.org/tsconfig}
      */
@@ -112,6 +108,11 @@ type GeneratePluginConfig = {
      * option is ignored.
      */
     filterExternal?: boolean;
+    /**
+     * When generating a DTS bundle you may opt to turn off any emitted TS
+     * compiler diagnostic messages.
+     */
+    logDiagnostic?: boolean;
     /**
      * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
      * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
