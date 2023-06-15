@@ -1,18 +1,25 @@
 /**
- * Provides a basic color logger supporting three levels of logging.
+ * Provides a basic color logger supporting four levels of logging.
  */
 export class Logger
 {
    /**
     * Stores the log level name to level value.
     *
-    * @type {{ error: number, warn: number, all: number }}
+    * @type {{ [key: string]: number }}
     */
    static logLevels = {
-      error: 2,
-      warn: 1,
-      all: 0
+      all: 0,
+      verbose: 0,
+      info: 2,
+      warn: 3,
+      error: 4
    };
+
+   static #checkLogLevel(level, configLevel)
+   {
+      return (this.logLevels[configLevel] ?? this.logLevels.info) > this.logLevels[level];
+   }
 
    /**
     * Log an error message.
@@ -33,9 +40,23 @@ export class Logger
     */
    static info(message, configLevel)
    {
-      if (this.logLevels[configLevel] > this.logLevels.all) { return; }
+      if (this.#checkLogLevel('info', configLevel)) { return; }
 
       console.log(`[esm-d-ts] ${message}`);
+   }
+
+   /**
+    * Log a verbose message.
+    *
+    * @param {string} message - A message.
+    *
+    * @param {string} configLevel - Config log level option.
+    */
+   static verbose(message, configLevel)
+   {
+      if (this.#checkLogLevel('verbose', configLevel)) { return; }
+
+      console.log(`[35m[esm-d-ts] ${message}[0m`);
    }
 
    /**
@@ -47,7 +68,7 @@ export class Logger
     */
    static warn(message, configLevel)
    {
-      if (this.logLevels[configLevel] > this.logLevels.warn) { return; }
+      if (this.#checkLogLevel('warn', configLevel)) { return; }
 
       console.warn(`[33m[esm-d-ts] ${message}[0m`);
    }

@@ -57,7 +57,7 @@ type GeneratePluginConfig = {
     /**
      * Defines the logging level.
      */
-    logLevel?: 'all' | 'warn' | 'error';
+    logLevel?: 'all' | 'verbose' | 'info' | 'warn' | 'error';
     /**
      * The output file path for the bundled TS declarations.
      */

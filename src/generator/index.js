@@ -27,7 +27,7 @@ import upath                     from 'upath';
 
 import * as internalPlugins      from './plugins.js';
 
-import { Logger }                from "./logger.js";
+import { Logger }                from '#logger';
 
 import {
    validateCompilerOptions,
@@ -274,6 +274,8 @@ async function bundleDTS(pConfig)
    const bundle = await rollup(rollupConfig.input);
    await bundle.write(rollupConfig.output);
    await bundle.close();
+
+   Logger.verbose(`Output bundled DTS file to: '${config.output}'`, config.logLevel);
 }
 
 /**
@@ -673,7 +675,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
     */
    const config = Object.assign({
       filterTags: 'internal',
-      logLevel: 'all',
+      logLevel: 'info',
       removePrivateStatic: true,
       tsDiagnosticExternal: false,
       tsDiagnosticLog: true
@@ -709,6 +711,8 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    if (tsconfigPath)
    {
+      Logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${tsconfigPath}`, config.logLevel);
+
       try
       {
          const configJSON = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8').toString());
@@ -907,7 +911,7 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsResolveOptions]
  * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsResolve` plugin.
  *
- * @property {'all' | 'warn' | 'error'} [logLevel='all'] Defines the logging level.
+ * @property {'all' | 'verbose' | 'info' | 'warn' | 'error'} [logLevel='info'] Defines the logging level.
  *
  * @property {string}               [output] The output file path for the bundled TS declarations.
  *

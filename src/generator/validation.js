@@ -5,7 +5,7 @@ import {
 import fs         from 'fs-extra';
 import ts         from 'typescript';
 
-import { Logger } from './logger.js';
+import { Logger } from '#logger';
 
 /**
  * Validates the TS compiler options.
@@ -100,10 +100,12 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.logLevel !== 'all' && config.logLevel !== 'error' && config.logLevel !== 'warn')
+   if (!(config.logLevel in Logger.logLevels))
    {
       Logger.error(
-       `validateConfig error: 'config.logLevel' must be one of the following strings: 'all', 'error', or 'warn'.`);
+       `validateConfig error: 'config.logLevel' must be 'all', 'verbose', 'info', 'warn', or 'error'; received: '${
+         config.logLevel}'`);
+
       result = false;
    }
 
