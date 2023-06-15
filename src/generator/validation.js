@@ -88,15 +88,17 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.importsExternal !== void 0 && !isObject(config.importsExternal))
+   if (config.importsExternal !== void 0 && !isObject(config.importsExternal) &&
+    typeof config.importsExternal !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.importsExternal' must be an object.`);
+      Logger.error(`validateConfig error: 'config.importsExternal' must be a boolean or an object.`);
       result = false;
    }
 
-   if (config.importsResolve !== void 0 && !isObject(config.importsResolve))
+   if (config.importsResolve !== void 0 && !isObject(config.importsResolve) &&
+    typeof config.importsResolve !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.importsResolve' must be an object.`);
+      Logger.error(`validateConfig error: 'config.importsResolve' must be a boolean or an object.`);
       result = false;
    }
 

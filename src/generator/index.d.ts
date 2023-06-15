@@ -47,13 +47,13 @@ type GeneratePluginConfig = {
      */
     filterTags?: string | Iterable<string> | false | null | undefined;
     /**
-     * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsExternal` plugin.
+     * When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
      */
-    importsExternal?: _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
+    importsExternal?: boolean | _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
     /**
-     * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsResolve` plugin.
+     * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
      */
-    importsResolve?: _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
+    importsResolve?: boolean | _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
     /**
      * Defines the logging level.
      */

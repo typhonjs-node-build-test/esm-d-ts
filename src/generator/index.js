@@ -228,15 +228,15 @@ async function bundleDTS(pConfig)
    const plugins = [];
 
    // Add `importsExternal` plugin if configured.
-   if (isObject(config.importsExternal))
+   if (config.importsExternal)
    {
-      plugins.push(importsExternal(config.importsExternal));
+      plugins.push(importsExternal(isObject(config.importsExternal) ? config.importsExternal : void 0));
    }
 
    // Add `importsResolve` plugin if configured.
-   if (isObject(config.importsResolve))
+   if (config.importsResolve)
    {
-      plugins.push(importsResolve(config.importsResolve));
+      plugins.push(importsResolve(isObject(config.importsResolve) ? config.importsResolve : void 0));
    }
 
    plugins.push(...[
@@ -905,11 +905,11 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
  * `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
  *
- * @property {import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsExternal]
- * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsExternal` plugin.
+ * @property {boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsExternal]
+ * When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
  *
- * @property {import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsResolve]
- * Options to configure `@typhonjs-build-test/rollup-plugin-pkg-imports` `importsResolve` plugin.
+ * @property {boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsResolve]
+ * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
  *
  * @property {'all' | 'verbose' | 'info' | 'warn' | 'error'} [logLevel='info'] Defines the logging level.
  *
