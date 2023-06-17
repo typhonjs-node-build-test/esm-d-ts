@@ -67,15 +67,21 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.dtsReplace !== void 0 && !isObject(config.dtsReplace))
+   if (config.conditionExports !== void 0 && !isObject(config.conditionExports))
    {
-      Logger.error(`validateConfig error: 'config.dtsReplace' must be an object.`);
+      Logger.error(`validateConfig error: 'config.conditionExports' must be an object.`);
       result = false;
    }
 
-   if (config.exportCondition !== void 0 && !isObject(config.exportCondition))
+   if (config.conditionImports !== void 0 && !isObject(config.conditionImports))
    {
-      Logger.error(`validateConfig error: 'config.exportCondition' must be an object.`);
+      Logger.error(`validateConfig error: 'config.conditionImports' must be an object.`);
+      result = false;
+   }
+
+   if (config.dtsReplace !== void 0 && !isObject(config.dtsReplace))
+   {
+      Logger.error(`validateConfig error: 'config.dtsReplace' must be an object.`);
       result = false;
    }
 

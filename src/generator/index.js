@@ -19,7 +19,7 @@ import {
 import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
 import { resolve }               from 'import-meta-resolve';
-import { exports }               from 'resolve.exports';
+import * as resolvePkg           from 'resolve.exports';
 import { rollup }                from 'rollup';
 import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
@@ -370,13 +370,13 @@ function compile(pConfig, warn = false)
  *
  * @param {GenerateConfig} config - Generate config.
  *
- * @param {Map<string, string>} [importMap] - An optional map of imports from a given package.json
- *
  * @returns {Promise<{files: Set<string>, packages: Set<string>}>} Parsed files and top level packages exported.
  */
-async function parseFiles(config, importMap = new Map())
+async function parseFiles(config)
 {
    await init;
+
+   const { packageObj } = getPackageWithPath({ filepath: config.input });
 
    const filepaths = [config.input];
 
@@ -384,6 +384,14 @@ async function parseFiles(config, importMap = new Map())
 
    const files = new Set();
    const packages = new Set();
+
+   /**
+    * Stores any unresolved imports from the closest `package.json` from `config.input`. The key is the import symbol
+    * and value is the reason why it failed to resolve entirely.
+    *
+    * @type {Map<string, string>}
+    */
+   const unresolvedImports = new Map();
 
    const parsePaths = (fileList, topLevel = false) =>
    {
@@ -438,10 +446,59 @@ async function parseFiles(config, importMap = new Map())
          {
             if (data.n === void 0 || data.d === -2) { continue; }
 
-            // Check importMap for paths specified in `package.json` imports.
-            if (data.n.startsWith('#') && importMap.has(data.n))
+            // There is a local `imports` specifier so lookup and attempt to resolve via `resolve.exports` package.
+            if (data.n.startsWith('#'))
             {
-               data.n = importMap.get(data.n);
+               let importpath;
+
+               try
+               {
+                  const result = resolvePkg.imports(packageObj, data.n, config.conditionImports);
+
+                  if (Array.isArray(result) && result.length)
+                  {
+                     // Examine the first result returned and process if it starts with `.` indicating a local file.
+                     // `config.conditionImports` should be provided for a more specific lookup as necessary.
+                     //
+                     // Note: Local imports specifiers that resolve to packages are handled separately via
+                     // `importsExternal` & `importsResolve` config options.
+                     if (result[0]?.startsWith?.('.'))
+                     {
+                        const fullpath = upath.resolve(result[0]);
+                        if (fs.existsSync(fullpath))
+                        {
+                           importpath = fullpath;
+                        }
+                        else
+                        {
+                           if (!unresolvedImports.has(data.n))
+                           {
+                              unresolvedImports.set(data.n,
+                               `Imports specifier '${data.n}' in package imports did not resolve to an existing file: ${
+                                result[0]}.`);
+                           }
+                        }
+                     }
+                  }
+                  else
+                  {
+                     if (!unresolvedImports.has(data.n))
+                     {
+                        unresolvedImports.set(data.n, `Missing '${data.n}' specifier in package imports.`);
+                     }
+                  }
+               }
+               catch (err)
+               {
+                  // Unresolved import error
+                  if (!unresolvedImports.has(data.n))
+                  {
+                     unresolvedImports.set(data.n, `Missing '${data.n}' specifier in package imports.`);
+                  }
+               }
+
+               // Set actual value after `imports` lookup.
+               if (importpath) { data.n = importpath; }
             }
 
             if (upath.isAbsolute(data.n))
@@ -466,6 +523,13 @@ async function parseFiles(config, importMap = new Map())
    };
 
    parsePaths(filepaths, true);
+
+   // Produce any warnings about unresolved imports specifiers.
+   if (unresolvedImports.size > 0)
+   {
+      const keys = [...unresolvedImports.keys()].sort();
+      for (const key of keys) { Logger.warn(unresolvedImports.get(key), config.logLevel); }
+   }
 
    return { files, packages };
 }
@@ -535,7 +599,7 @@ function parsePackage(packageName, config)
       // If exportPathMatch is not defined use '.' instead of the path lookup.
       const exportPath = typeof exportPathMatch === 'string' ? `.${exportPathMatch}` : '.';
 
-      const exportTypesPath = exports(packageJSON, exportPath, { conditions: ['types'] });
+      const exportTypesPath = resolvePkg.exports(packageJSON, exportPath, { conditions: ['types'] });
 
       let resolvePath;
 
@@ -549,7 +613,7 @@ function parsePackage(packageName, config)
          if (resolvePath.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
       }
 
-      const exportConditionPath = exports(packageJSON, exportPath, config.exportCondition);
+      const exportConditionPath = resolvePkg.exports(packageJSON, exportPath, config.conditionExports);
 
       if (exportConditionPath)
       {
@@ -596,39 +660,6 @@ function parsePackage(packageName, config)
    }
 
    return void 0;
-}
-
-/**
- * Parses the closest package.json to `resolvePath` resolving any imports that directly point to a string / file path.
- *
- * @param {string}   filepath - A file path to resolve closest `package.json`.
- *
- * @returns {Map<string, string>} Import map.
- */
-function parsePackageImports(filepath)
-{
-   /** @type {Map<string, string>} */
-   const importMap = new Map();
-
-   // Now attempt to find the nearest `package.json` that isn't the root `package.json`.
-   const { packageObj } = getPackageWithPath({ filepath });
-
-   if (packageObj && typeof packageObj.imports === 'object')
-   {
-      for (const [key, value] of Object.entries(packageObj.imports))
-      {
-         if (typeof value === 'string')
-         {
-            const resolvedPath = upath.resolve(value);
-            if (fs.existsSync(resolvedPath))
-            {
-               importMap.set(key, resolvedPath);
-            }
-         }
-      }
-   }
-
-   return importMap;
 }
 
 /**
@@ -738,9 +769,6 @@ async function processConfig(origConfig, defaultCompilerOptions)
    // Resolve to full path.
    config.input = upath.resolve(config.input);
 
-   // Parse imports from package.json resolved from input entry point.
-   const importMap = parsePackageImports(config.input);
-
    // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS files
    // will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
    const tsFilepaths = await getFileList({
@@ -749,28 +777,28 @@ async function processConfig(origConfig, defaultCompilerOptions)
       resolve: true
    });
 
-   // Note: TS still doesn't seem to resolve import paths from `package.json`, so add any parsed import paths.
-   const filepaths = [config.input, ...tsFilepaths, ...importMap.values()];
-
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { files, packages } = await parseFiles(config, importMap);
+   const { files, packages } = await parseFiles(config);
+
+   // Parsed input source files and any TS files found from input root.
+   const filepaths = [...files, ...tsFilepaths];
 
    // Common path for all input source files linked to the entry point.
-   const parseFilesCommonPath = commonPath(...files);
+   const commonPathFiles = commonPath(...files);
 
    // Update options / configuration based on common parsed files path -----------------------------------------------
 
-   // Adjust compilerOptions rootDir
+   // Adjust compilerOptions rootDir to common path of all source files detected.
    if (compilerOptions.rootDir === void 0)
    {
-      compilerOptions.rootDir = parseFilesCommonPath === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
-       parseFilesCommonPath;
+      compilerOptions.rootDir = commonPathFiles === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
+       commonPathFiles;
    }
 
    // ---
 
    // Find the common base path for all parsed files and find the relative path to the input source file.
-   const localRelativePath = parseFilesCommonPath !== '' ? upath.relative(parseFilesCommonPath, config.input) :
+   const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, config.input) :
     upath.basename(config.input);
 
    // Get the input DTS entry point; append inputRelativePath after changing extensions to the compilerOptions outDir.
@@ -779,7 +807,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    // ---
 
    // Relative path from current working directory to local common path. Used for filtering diagnostic errors.
-   const inputRelativeDir = upath.relative(process.cwd(), parseFilesCommonPath);
+   const inputRelativeDir = upath.relative(process.cwd(), commonPathFiles);
 
    // ----------------------------------------------------------------------------------------------------------------
 
@@ -883,11 +911,14 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * `bundlePackageExports` check for `index.d.ts` in package root; this is off by default as usually this is indicative
  * of and older package not updated for `exports` in `package.json`.
  *
+ * @property {import('resolve.exports').Options}   [conditionExports] `resolve.exports` conditional options for
+ * `package.json` exports field type.
+ *
+ * @property {import('resolve.exports').Options}   [conditionImports] `resolve.exports` conditional options for
+ * `package.json` imports field type.
+ *
  * @property {Record<string, string>} [dtsReplace] Options for naive text replacement operating on the final bundled
  * TS declaration file. The keys are converted into RegExp instances so may be a valid pattern to match.
- *
- * @property {import('resolve.exports').Options}   [exportCondition] `resolve.exports` conditional options for
- * `package.json` exports field type.
  *
  * @property {string|Iterable<string>|false|null|undefined} [filterTags='internal'] By default,
  * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the

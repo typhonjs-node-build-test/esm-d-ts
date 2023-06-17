@@ -31,15 +31,20 @@ type GeneratePluginConfig = {
      */
     checkDefaultPath?: boolean;
     /**
+     * `resolve.exports` conditional options for
+     * `package.json` exports field type.
+     */
+    conditionExports?: resolve_exports.Options;
+    /**
+     * `resolve.exports` conditional options for
+     * `package.json` imports field type.
+     */
+    conditionImports?: resolve_exports.Options;
+    /**
      * Options for naive text replacement operating on the final bundled
      * TS declaration file. The keys are converted into RegExp instances so may be a valid pattern to match.
      */
     dtsReplace?: Record<string, string>;
-    /**
-     * `resolve.exports` conditional options for
-     * `package.json` exports field type.
-     */
-    exportCondition?: resolve_exports.Options;
     /**
      * By default,
      * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
