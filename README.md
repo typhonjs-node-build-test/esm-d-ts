@@ -1,11 +1,14 @@
-# esm-d-ts
+
+![@typhonjs-build-test/esm-d-ts](https://i.imgur.com/a8nCg70.jpg)
+
 [![NPM](https://img.shields.io/npm/v/@typhonjs-build-test/esm-d-ts.svg?label=npm)](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts)
 [![Code Style](https://img.shields.io/badge/code%20style-allman-yellowgreen.svg?style=flat)](https://en.wikipedia.org/wiki/Indent_style#Allman_style)
 [![License](https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat)](https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/LICENSE)
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://discord.gg/mnbgN8f)
 
-Generates a bundled Typescript declaration file from ESM source. Additionally, custom transformers can be enabled to 
-manipulate the output declarations.
+Provides modern battle tested tooling for ESM / ES Module developers to generate bundled Typescript 
+declarations from ESM source code. This tooling can be employed to build types for one or more sub-path exports 
+creating independent module based declarations per export. 
 
 Basic usage is below:
 ```js
@@ -19,8 +22,10 @@ await generateDTS({
 
 You can also invoke the module via Node eval in package.json as an NPM script:
 ```json
-scripts: {
-   "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(module => { module.generateDTS({ input: './src/index.js', output: './types/index.d.ts' }) });\""
+{
+  scripts: {
+    "types": "esm-d-ts gen ./src/index.js"
+  }
 }
 ```
 
