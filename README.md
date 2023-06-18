@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat)](https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/LICENSE)
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://discord.gg/mnbgN8f)
 
-Provides a modern battle tested near zero configuration tool for ESM / ES Module developers to generate bundled Typescript 
+Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate bundled Typescript 
 declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to build types for a primary export and one or more 
 sub-path [exports](https://nodejs.org/api/packages.html#exports) creating independent _ESM oriented / module_ based declarations 
 utilizing import / export semantics. This tooling can be employed by any project, but is particularly useful for 
@@ -176,6 +176,10 @@ export default [
 ]
 ```
 
+`esm-d-ts` will generate respective bundled declarations next to the output `file`:
+- `dist/main/index.d.ts`
+- `dist/sub/index.d.ts`
+
 Presently `esm-d-ts` only handles a single input entry point. A future update may expand this to handle multiple entry 
 points. If you need this functionality please open an issue.
 
@@ -215,6 +219,10 @@ referenced in documentation or source code. Typescript performs "import / export
 source code removing imports only used in documentation. JSDoc when used in IDEs for ESM / JS development handles any 
 project analysis and documentation generation tooling also analyzes a project for local symbols. 
 
+An additional caveat to be aware of is that presently `esm-d-ts` during the generation process creates intermediate TS 
+declaration files and by default they are located in the `./.dts` folder. It is recommended to add an exclusion rule 
+in a `.gitignore` file for `/.dts`. This also is on the roadmap to provide a completely in-memory generation process. 
+
 ------
 
 ## Roadmap
@@ -224,7 +232,8 @@ local symbols to be used without `import types`.
 
 - Provide a way to manage the generation process entirely in memory. Presently the intermediate individual TS 
 declarations created in execution are stored in the `./.dts` folder. Add this folder to your `.gitignore`. This is a 
-limitation of `rollup-plugin-dts` & the TS compiler API utilized that uses the file system for bundling.
+limitation of `rollup-plugin-dts` & the TS compiler API utilized that uses the file system for bundling. I will be 
+looking into submitting a PR to `rollup-plugin-dts` to handle virtual bundling.
 
 
 - Generate source maps for the bundled TS declarations allowing IDEs to not just jump to the declarations, but also 
