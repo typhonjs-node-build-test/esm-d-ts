@@ -774,7 +774,8 @@ async function processConfig(origConfig, defaultCompilerOptions)
    const tsFilepaths = await getFileList({
       dir: upath.dirname(config.input),
       includeFile: /^(?!.*\.d\.ts$).*\.ts$/,
-      resolve: true
+      resolve: true,
+      walk: true
    });
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
