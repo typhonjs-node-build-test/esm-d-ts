@@ -695,7 +695,8 @@ async function processConfig(origConfig, defaultCompilerOptions)
       logLevel: 'info',
       removePrivateStatic: true,
       tsDiagnosticExternal: false,
-      tsDiagnosticLog: true
+      tsDiagnosticLog: true,
+      tsFileWalk: true
    }, origConfig);
 
    // Set default output extension and output file if not defined.
@@ -775,7 +776,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
       dir: upath.dirname(config.input),
       includeFile: /^(?!.*\.d\.ts$).*\.ts$/,
       resolve: true,
-      walk: true
+      walk: config.tsFileWalk
    });
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
@@ -969,6 +970,10 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * @property {boolean} [tsDiagnosticLog=true] When generating a DTS bundle you may opt to turn off any emitted TS
  * compiler diagnostic messages.
+ *
+ * @property {boolean} [tsFileWalk=true] When true all TS files located at the `input` path and all subdirectories
+ * are included as synthetic exports in the generated declarations. Setting to false only includes TS files in the
+ * direct `input` path.
  *
  * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [tsTransformers]
  * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while

@@ -121,6 +121,12 @@ type GeneratePluginConfig = {
      */
     tsDiagnosticLog?: boolean;
     /**
+     * When true all TS files located at the `input` path and all subdirectories
+     * are included as synthetic exports in the generated declarations. Setting to false only includes TS files in the
+     * direct `input` path.
+     */
+    tsFileWalk?: boolean;
+    /**
      * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
      * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
      */
