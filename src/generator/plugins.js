@@ -17,8 +17,11 @@ export function generateDTSPlugin(generateDTS)
 {
    return function(options)
    {
-      let rollupOptionInput;
+      let rollupOptionExternal;
       let rollupOptionFile;
+      let rollupOptionInput;
+      let rollupOptionOnwarn;
+      let rollupOptionPaths;
 
       let validRollupOptions = true;
 
@@ -37,7 +40,9 @@ export function generateDTSPlugin(generateDTS)
           */
          options(options)
          {
+            rollupOptionExternal = options.external;
             rollupOptionInput = options.input;
+            rollupOptionOnwarn = options.onwarn;
 
             if (typeof rollupOptionInput !== 'string')
             {
@@ -74,9 +79,14 @@ export function generateDTSPlugin(generateDTS)
          writeBundle:
          {
             order: 'pre',
-            handler({ file })
+
+            /**
+             * @param {import('rollup').OutputOptions}   options - Rollup output options.
+             */
+            handler(options)
             {
-               rollupOptionFile = file;
+               rollupOptionFile = options.file;
+               rollupOptionPaths = options.paths;
 
                if (typeof rollupOptionFile !== 'string')
                {
@@ -97,8 +107,23 @@ export function generateDTSPlugin(generateDTS)
 
                const outputExt = typeof config.outputExt === 'string' ? config.outputExt : '.d.ts';
 
+               // Set values from Rollup options if not defined in GenerateConfig.
+
                if (typeof config.input !== 'string') { config.input = rollupOptionInput; }
+
                if (typeof config.output !== 'string') { config.output = upath.changeExt(rollupOptionFile, outputExt); }
+
+               if (config.rollupExternal === void 0 && rollupOptionExternal)
+               {
+                  config.rollupExternal = rollupOptionExternal;
+               }
+
+               if (typeof config.rollupOnwarn !== 'function' && rollupOptionOnwarn)
+               {
+                  config.rollupOnwarn = rollupOptionOnwarn;
+               }
+
+               if (config.rollupPaths === void 0 && rollupOptionPaths) { config.rollupPaths = rollupOptionPaths; }
 
                return generateDTS(config);
             }

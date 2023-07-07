@@ -244,11 +244,11 @@ async function bundleDTS(pConfig)
 
    // Further config modification through optional GenerateConfig parameters -----------------------------------------
 
-   if (config.rollupExternal !== void 0) { rollupConfig.input.rollupExternal = config.rollupExternal; }
+   if (config.rollupExternal !== void 0) { rollupConfig.input.external = config.rollupExternal; }
 
-   if (config.rollupOnwarn !== void 0) { rollupConfig.input.rollupOnwarn = config.rollupOnwarn; }
+   if (config.rollupOnwarn !== void 0) { rollupConfig.input.onwarn = config.rollupOnwarn; }
 
-   if (config.rollupPaths !== void 0) { rollupConfig.output.rollupPaths = config.rollupPaths; }
+   if (config.rollupPaths !== void 0) { rollupConfig.output.paths = config.rollupPaths; }
 
    if (isObject(config.dtsReplace))
    {
