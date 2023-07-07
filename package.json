@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/esm-d-ts",
   "description": "Generates bundled Typescript declaration files from ESM source w/ JSDoc.",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "bin": "./src/cli/index.js",
