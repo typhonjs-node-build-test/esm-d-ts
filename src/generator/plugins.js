@@ -162,7 +162,7 @@ export function naiveReplace(replace)
 
             for (const [search, replacement] of Object.entries(replace))
             {
-               const regex = new RegExp(search, 'g');
+               const regex = new RegExp(search, 'gm');
                updatedCode = updatedCode.replace(regex, replacement);
             }
 
