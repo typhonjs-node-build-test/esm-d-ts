@@ -1,4 +1,3 @@
-
 ![@typhonjs-build-test/esm-d-ts](https://i.imgur.com/a8nCg70.jpg)
 
 [![NPM](https://img.shields.io/npm/v/@typhonjs-build-test/esm-d-ts.svg?label=npm)](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts)
@@ -6,14 +5,16 @@
 [![License](https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat)](https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/LICENSE)
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://discord.gg/mnbgN8f)
 
-Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate bundled Typescript 
-declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to build types for a primary export and one or more 
-sub-path [exports](https://nodejs.org/api/packages.html#exports) creating independent _ESM oriented / module_ based declarations 
-utilizing import / export semantics. This tooling can be employed by any project, but is particularly useful for 
-library authors as there are many additional options covering advanced use cases that library authors may encounter. 
-Some of these optional advanced features include support for re-exporting / re-bundling packages w/ TS declarations and 
-thorough support for utilizing [imports](https://nodejs.org/api/packages.html#imports) / import conditions in a variety 
-of flexible ways.  
+Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate 
+bundled Typescript declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to build 
+types for a primary export and one or more sub-path [exports](https://nodejs.org/api/packages.html#exports) creating 
+independent _ESM oriented / module_ based declarations utilizing import / export semantics. This tooling can be 
+employed by any project, but is particularly useful for library authors as there are many additional options covering 
+advanced use cases that library authors may encounter. Some of these optional advanced features include support for 
+re-exporting / re-bundling packages w/ TS declarations and thorough support for utilizing 
+[imports](https://nodejs.org/api/packages.html#imports) / import conditions in a variety of flexible ways.  
+
+Please check out the [package documentation here](https://typhonjs-node-build-test.github.io/esm-d-ts/).
 
 ## Installation:
 
@@ -21,7 +22,7 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 ```json
 {
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": "^0.0.26"
+    "@typhonjs-build-test/esm-d-ts": "^0.1.0"
   }
 }
 ```
@@ -189,11 +190,10 @@ There is no `checkDTS` Rollup plugin.
 
 ## Advanced Configuration
 
-There are several more advanced configuration options and usage scenarios that are not discussed in this `README`. A 
-full description of all configuration options will be provided soon. In a couple of weeks I will have finished some 
-compelling TypeDoc tooling and will generate API docs for `esm-d-ts` and release an official "beta" release. This will 
-make it much easier to discuss options available. This is not a great solution, but you may refer to the [GenerateConfig typedef](https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/src/generator/index.js#L898-L988)
-in the meantime.
+There are several more advanced configuration options and usage scenarios that are not discussed in this `README`. You 
+may view a description of all options available in the documentation for 
+[GenerateConfig](https://typhonjs-node-build-test.github.io/esm-d-ts/types/_typhonjs_build_test_esm_d_ts.GenerateConfig.html) / 
+[GeneratePluginConfig](https://typhonjs-node-build-test.github.io/esm-d-ts/types/_typhonjs_build_test_esm_d_ts.GeneratePluginConfig.html) 
 
 `esm-d-ts` allows some rather advanced usage scenarios for library authors as well from handling `imports` in 
 `package.json` to further modification of the TS declarations generated through processing the intermediate AST / 
