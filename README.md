@@ -205,7 +205,8 @@ Abstract Syntax Tree data.
 
 There is not a well-defined resource that pulls together all the concepts employed or available for using JSDoc to 
 generate Typescript declarations. `esm-d-ts` has been in development since November 2021. It is completely working and 
-used in production for `TyphonJS` packages and releases. 
+used in production for `TyphonJS` packages and releases. A good recent article to review that covers JSDoc + Typescript 
+is [Boost Your JavaScript with JSDoc Typing](https://dev.to/samuel-braun/boost-your-javascript-with-jsdoc-typing-3hb3).
 
 That being said presently `esm-d-ts` does require a very particular way of linking all types in JSDoc across a project 
 requiring explicit use of [import types](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html#import-types)
