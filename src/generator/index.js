@@ -178,6 +178,18 @@ async function bundleDTS(pConfig)
    const packageAlias = typeof config.bundlePackageExports === 'boolean' && config.bundlePackageExports ?
     resolvePackageExports(packages, config, compilerOptions.outDir) : [];
 
+   // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
+   let dtsMainPathActual = upath.changeExt(dtsMainPath, '.d.ts');
+
+   // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
+   if (!fs.existsSync(dtsMainPathActual)) { dtsMainPathActual = upath.changeExt(dtsMainPath, '.d.mts'); }
+
+   if (!fs.existsSync(dtsMainPathActual))
+   {
+      Logger.error(`bundleDTS error: could not locate DTS main file in './dts' output.'`);
+      process.exit(1);
+   }
+
    let banner = '';
 
    if (isIterable(config.prependFiles))
@@ -232,7 +244,7 @@ async function bundleDTS(pConfig)
 
    const rollupConfig = {
       input: {
-         input: dtsMainPath,
+         input: dtsMainPathActual,
          plugins
       },
       output: {
@@ -803,8 +815,8 @@ async function processConfig(origConfig, defaultCompilerOptions)
    const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, config.input) :
     upath.basename(config.input);
 
-   // Get the input DTS entry point; append inputRelativePath after changing extensions to the compilerOptions outDir.
-   const dtsMainPath = `${compilerOptions.outDir}/${upath.changeExt(localRelativePath, '.d.ts')}`;
+   // Get the input DTS entry point; this is without DTS extension change.
+   const dtsMainPath = `${compilerOptions.outDir}/${localRelativePath}`;
 
    // ---
 
