@@ -129,9 +129,9 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.postProcessors !== void 0 && !isIterable(config.postProcessors))
+   if (config.postprocess !== void 0 && !isIterable(config.postprocess))
    {
-      Logger.error(`validateConfig error: 'config.postProcessors' must be an iterable list of functions.`);
+      Logger.error(`validateConfig error: 'config.postprocess' must be an iterable list of functions.`);
       result = false;
    }
 

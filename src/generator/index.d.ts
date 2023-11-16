@@ -78,7 +78,7 @@ type GeneratePluginConfig = {
      * An
      * iterable list of postprocessing functions. Note: This is experimental!
      */
-    postProcessors?: Iterable<_typhonjs_build_test_esm_d_ts_postprocess.ProcessorFunction>;
+    postprocess?: Iterable<_typhonjs_build_test_esm_d_ts_postprocess.ProcessorFunction>;
     /**
      * Directly prepend these files to the bundled output. The files are
      * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied

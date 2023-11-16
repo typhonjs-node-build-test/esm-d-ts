@@ -284,11 +284,11 @@ async function bundleDTS(pConfig)
    await bundle.close();
 
    // Handle any postprocessing of the bundled declarations.
-   if (isIterable(config.postProcessors))
+   if (isIterable(config.postprocess))
    {
       PostProcess.process({
          filepath: config.output,
-         processors: config.postProcessors
+         processors: config.postprocess
       });
    }
 
@@ -968,7 +968,7 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
  * change the extension as desired.
  *
- * @property {Iterable<import('@typhonjs-build-test/esm-d-ts/postprocess').ProcessorFunction>} [postProcessors] An
+ * @property {Iterable<import('@typhonjs-build-test/esm-d-ts/postprocess').ProcessorFunction>} [postprocess] An
  * iterable list of postprocessing functions. Note: This is experimental!
  *
  * @property {Iterable<string>}     [prependFiles] Directly prepend these files to the bundled output. The files are
