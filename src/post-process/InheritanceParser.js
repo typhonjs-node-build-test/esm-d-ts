@@ -37,23 +37,32 @@ export class InheritanceParser
    {
       const nodeName = node.getName();
 
-      if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
-
       if (node instanceof ClassDeclaration)
       {
          const baseClass = node.getBaseClass();
          if (baseClass)
          {
-            data.push({ child: nodeName, parent: baseClass.getName() });
+            const baseClassName = baseClass.getName();
+
+            if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
+            if (!nodes.has(baseClassName)) { nodes.set(baseClassName, baseClass); }
+
+            data.push({ child: nodeName, parent: baseClassName });
          }
       }
       else if (node instanceof InterfaceDeclaration)
       {
+         if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
+
          for (const baseInterface of node.getBaseDeclarations())
          {
             if (baseInterface instanceof InterfaceDeclaration)
             {
-               data.push({ child: nodeName, parent: baseInterface.getName() });
+               const baseInterfaceName = baseInterface.getName();
+
+               if (!nodes.has(baseInterfaceName)) { nodes.set(baseInterfaceName, baseInterface); }
+
+               data.push({ child: nodeName, parent: baseInterfaceName });
             }
          }
       }
