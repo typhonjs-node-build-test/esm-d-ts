@@ -9,14 +9,21 @@ declare class GraphAnalysis {
     /**
      * @returns {import('cytoscape').Core} The cytoscape core instance.
      */
-    get cy(): cytoscape.Core;
+    get cytoscape(): cytoscape.Core;
     get nodes(): any;
     /**
      * Perform a depth first search of the graph.
      *
      * @param {import('cytoscape').SearchVisitFunction}  visit - A cytoscape search visit function.
+     *
+     * @param {object} [options] - Options.
+     *
+     * @param {boolean}  [options.directed] - A boolean indicating whether the algorithm should only go along edges
+     *        from source to target
      */
-    dfs(visit: cytoscape.SearchVisitFunction): void;
+    depthFirstSearch(visit: cytoscape.SearchVisitFunction, { directed }?: {
+        directed?: boolean;
+    }): void;
     #private;
 }
 

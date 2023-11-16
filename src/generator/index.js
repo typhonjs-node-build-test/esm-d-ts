@@ -60,7 +60,9 @@ async function checkDTS(config)
             continue;
          }
 
-         Logger.info(`Checking DTS bundle for: ${entry.input}`, processedConfigOrError.config.logLevel);
+         Logger.logLevel = processedConfigOrError.config.logLevel;
+
+         Logger.info(`Checking DTS bundle for: ${entry.input}`);
 
          await checkDTSImpl(processedConfigOrError);
       }
@@ -75,7 +77,9 @@ async function checkDTS(config)
          return;
       }
 
-      Logger.info(`Checking DTS bundle for: ${config.input}`, processedConfigOrError.config.logLevel);
+      Logger.logLevel = processedConfigOrError.config.logLevel;
+
+      Logger.info(`Checking DTS bundle for: ${config.input}`);
 
       await checkDTSImpl(processedConfigOrError);
    }
@@ -114,7 +118,9 @@ async function generateDTS(config)
             continue;
          }
 
-         Logger.info(`Generating DTS bundle for: ${entry.input}`, processedConfigOrError.config.logLevel);
+         Logger.logLevel = processedConfigOrError.config.logLevel;
+
+         Logger.info(`Generating DTS bundle for: ${entry.input}`);
 
          await generateDTSImpl(processedConfigOrError);
       }
@@ -129,7 +135,9 @@ async function generateDTS(config)
          return;
       }
 
-      Logger.info(`Generating DTS bundle for: ${config.input}`, processedConfigOrError.config.logLevel);
+      Logger.logLevel = processedConfigOrError.config.logLevel;
+
+      Logger.info(`Generating DTS bundle for: ${config.input}`);
 
       await generateDTSImpl(processedConfigOrError);
    }
@@ -214,7 +222,7 @@ async function bundleDTS(pConfig)
             continue;
          }
 
-         Logger.warn(`bundleDTS warning: could not prepend file; '${prependFile}'.`, config.logLevel);
+         Logger.warn(`bundleDTS warning: could not prepend file; '${prependFile}'.`);
       }
    }
 
@@ -273,7 +281,7 @@ async function bundleDTS(pConfig)
    await bundle.write(rollupConfig.output);
    await bundle.close();
 
-   Logger.verbose(`Output bundled DTS file to: '${config.output}'`, config.logLevel);
+   Logger.verbose(`Output bundled DTS file to: '${config.output}'`);
 }
 
 /**
@@ -420,12 +428,11 @@ async function parseFiles(config)
             if (fs.existsSync(`${resolved}/index.js`) || fs.existsSync(`${resolved}/index.mjs`))
             {
                // Could not resolve index reference so skip file.
-               Logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`,
-                config.logLevel);
+               Logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
             }
             else
             {
-               Logger.warn(`parseFiles warning: could not resolve directory; '${resolved}'`, config.logLevel);
+               Logger.warn(`parseFiles warning: could not resolve directory; '${resolved}'`);
             }
 
             continue;
@@ -443,7 +450,7 @@ async function parseFiles(config)
             else if (fs.existsSync(`${resolved}.mjs`)) { resolved = `${resolved}.mjs`; }
             else
             {
-               Logger.warn(`parseFiles warning: could not resolve; '${resolved}'`, config.logLevel);
+               Logger.warn(`parseFiles warning: could not resolve; '${resolved}'`);
                continue;
             }
          }
@@ -540,7 +547,7 @@ async function parseFiles(config)
    if (unresolvedImports.size > 0)
    {
       const keys = [...unresolvedImports.keys()].sort();
-      for (const key of keys) { Logger.warn(unresolvedImports.get(key), config.logLevel); }
+      for (const key of keys) { Logger.warn(unresolvedImports.get(key)); }
    }
 
    return { files, packages };
@@ -593,8 +600,7 @@ function parsePackage(packageName, config)
    if (typeof packageJSON !== 'object')
    {
       Logger.warn(
-       `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`,
-        config.logLevel);
+       `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`);
 
       return void 0;
    }
@@ -743,7 +749,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    if (tsconfigPath)
    {
-      Logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${tsconfigPath}`, config.logLevel);
+      Logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${tsconfigPath}`);
 
       try
       {
@@ -852,8 +858,7 @@ function resolvePackageExports(packages, config, outDir)
       const resolveDTS = parsePackage(packageName, config);
       if (!resolveDTS)
       {
-         Logger.warn(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`,
-          config.logLevel);
+         Logger.warn(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`);
 
          continue;
       }
