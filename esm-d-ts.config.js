@@ -2,7 +2,7 @@
  * Generate DTS for generator / transformer exports.
  *
  * When not explicitly settings `output` `esm-d-ts` will automatically configure `output` by changing the extension
- * of the required input path. With the config below output for the first and second bundles are:
+ * of the required input path. With the config below output for the bundled declarations are:
  * - `./src/generator/index.d.ts`
  * - `./src/post-process/index.d.ts`
  * - `./src/transformer/index.d.ts`
