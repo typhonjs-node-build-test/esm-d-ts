@@ -1,25 +1,158 @@
 /**
- * A base class to test `inheritDoc`.
+ * A base class to test `inheritdoc`.
  */
 declare class Base {
     /**
+     * Required parameters.
+     *
      * @param {number}   one - First parameter
      *
      * @param {string}   two - Second parameter
      *
      * @param {boolean}  three - Third parameter
      */
-    thing(one: number, two: string, three: boolean): void;
+    foo(one: number, two: string, three: boolean): void;
+    /**
+     * Required object parameters.
+     *
+     * @param {object}   options - options
+     *
+     * @param {number}   options.one - First parameter
+     *
+     * @param {string}   options.two - Second parameter
+     *
+     * @param {boolean}  options.three - Third parameter
+     *
+     * @returns {boolean} Boolean result.
+     */
+    bar(options: {
+        one: number;
+        two: string;
+        three: boolean;
+    }): boolean;
+    /**
+     * Required object parameters.
+     *
+     * @param {object}   options - options
+     *
+     * @param {number}   options.one - First parameter
+     *
+     * @param {string}   options.two - Second parameter
+     *
+     * @param {boolean}  options.three - Third parameter
+     *
+     * @returns {boolean} Boolean result.
+     */
+    zap({ one, two, three }: {
+        one: number;
+        two: string;
+        three: boolean;
+    }): boolean;
+    /**
+     * Optional object parameters.
+     *
+     * @param {object}   [options] - options
+     *
+     * @param {number}   [options.one] - First parameter
+     *
+     * @param {string}   [options.two] - Second parameter
+     *
+     * @param {boolean}  [options.three] - Third parameter
+     *
+     * @returns {string} String result.
+     */
+    bang({ one, two, three }?: {
+        one?: number;
+        two?: string;
+        three?: boolean;
+    }): string;
+    /**
+     * Optional object parameters.
+     *
+     * @param {object}   [options] - options
+     *
+     * @param {number}   [options.one] - First parameter
+     *
+     * @param {string}   [options.two] - Second parameter
+     *
+     * @param {boolean}  [options.three] - Third parameter
+     *
+     * @returns {{ foo: boolean, bar: boolean }} Object result
+     */
+    boom({ one, two, three }?: {
+        one?: number;
+        two?: string;
+        three?: boolean;
+    }): {
+        foo: boolean;
+        bar: boolean;
+    };
 }
 
 /**
  * @inheritDoc
  */
-declare class Inherited extends Base {
+declare class Inherited1_A extends Base {
     /**
      * @inheritDoc
      */
-    thing(one: any, two: any, three: any): void;
+    foo(one: any, two: any, three: any): void;
+    /**
+     * @inheritDoc
+     */
+    bar(options: any): boolean;
+    /**
+     * @inheritDoc
+     */
+    zap({ one, two, three }: {
+        one: any;
+        two: any;
+        three: any;
+    }): boolean;
+    /**
+     * @inheritDoc
+     */
+    bang(options: any): string;
+    /**
+     * @inheritDoc
+     */
+    boom(options: any): {
+        foo: boolean;
+        bar: boolean;
+    };
+}
+
+/**
+ * @inheritdoc
+ */
+declare class Inherited1_B extends Base {
+    /**
+     * @inheritdoc
+     */
+    foo(one: any, two: any, three: any): void;
+    /**
+     * @inheritdoc
+     */
+    bar(options: any): boolean;
+    /**
+     * @inheritdoc
+     */
+    zap({ one, two, three }: {
+        one: any;
+        two: any;
+        three: any;
+    }): boolean;
+    /**
+     * @inheritdoc
+     */
+    bang(options: any): string;
+    /**
+     * @inheritdoc
+     */
+    boom(options: any): {
+        foo: boolean;
+        bar: boolean;
+    };
 }
 
 /** @typedef {number} DataFieldOptions */
@@ -41,7 +174,7 @@ declare class A {
     logName(name: string): void;
 }
 
-declare interface MyMixin {
+declare interface BaseMixin {
     /**
      * Add one to the provided number.
      *
@@ -50,6 +183,16 @@ declare interface MyMixin {
      * @returns {number} - The incremented number.
      */
     addOne(n: number): number;
+}
+declare interface MyMixin extends BaseMixin {
+    /**
+     * Add two to the provided number.
+     *
+     * @param {number} n - The number to increment.
+     *
+     * @returns {number} - The incremented number.
+     */
+    addTwo(n: number): number;
 }
 
 declare const B_base: typeof A & (new (...args: any[]) => MyMixin);
@@ -100,4 +243,4 @@ declare class TextureData {
     loadTexture(): Promise<[HTMLDivElement]>;
 }
 
-export { A, B, Base, DataFieldOptions, FilePathFieldOptions, Inherited, MyMixin, SchemaField, TextureData, mixin, x };
+export { A, B, Base, BaseMixin, DataFieldOptions, FilePathFieldOptions, Inherited1_A, Inherited1_B, MyMixin, SchemaField, TextureData, mixin, x };
