@@ -25,13 +25,10 @@ export class InheritanceParser
       // Format graph data -------------------------------------------------------------------------------------------
 
       // Add nodes
-      new Set(data.flatMap((item) => [item.child, item.parent])).forEach((name) =>
-      {
-         graph.push({ data: { id: name } });
-      });
+      new Set(data.flatMap((item) => [item.child, item.parent])).forEach((name) => graph.push({ data: { id: name } }));
 
       // Add edges
-      data.forEach((item) => { graph.push({ data: { source: item.parent, target: item.child } }); });
+      data.forEach((item) => graph.push({ data: { source: item.parent, target: item.child } }));
 
       return { graph, nodes };
    }
@@ -52,13 +49,13 @@ export class InheritanceParser
       }
       else if (node instanceof InterfaceDeclaration)
       {
-         node.getBaseDeclarations().forEach((baseInterface) =>
+         for (const baseInterface of node.getBaseDeclarations())
          {
             if (baseInterface instanceof InterfaceDeclaration)
             {
                data.push({ child: nodeName, parent: baseInterface.getName() });
             }
-         });
+         }
       }
    }
 }
