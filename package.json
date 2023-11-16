@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/esm-d-ts",
   "description": "Generates bundled Typescript declaration files from ESM source w/ JSDoc.",
-  "version": "0.1.1",
+  "version": "0.2.0-next.1",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "bin": "./src/cli/index.js",
@@ -15,9 +15,9 @@
       "types": "./src/generator/index.d.ts",
       "import": "./src/generator/index.js"
     },
-    "./post-process": {
-      "types": "./src/post-process/index.d.ts",
-      "import": "./src/post-process/index.js"
+    "./postprocess": {
+      "types": "./src/postprocess/index.d.ts",
+      "import": "./src/postprocess/index.js"
     },
     "./transformer": {
       "types": "./src/transformer/index.d.ts",
@@ -29,40 +29,38 @@
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "dependencies": {
-    "@rollup/plugin-alias": "^5",
+    "@rollup/plugin-alias": "^5.0.1",
     "@types/cytoscape": "^3.19.15",
-    "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.0.2",
+    "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.0.3",
     "@typhonjs-utils/file-util": "^0.0.10",
     "@typhonjs-utils/object": "^0.0.17",
     "@typhonjs-utils/package-json": "^0.6.0",
     "cytoscape": "^3.27.0",
-    "comment-parser": "^1",
-    "es-module-lexer": "^1",
-    "fs-extra": "^11",
-    "import-meta-resolve": "^3.0.0",
-    "resolve.exports": "^2",
-    "rollup-plugin-dts": "^5",
-    "sade": "^1.8.0",
-    "ts-morph": "^20",
-    "type-fest": "^3",
-    "typescript": ">=5.0.4",
-    "upath": "^2"
+    "comment-parser": "^1.4.1",
+    "es-module-lexer": "^1.4.1",
+    "fs-extra": "^11.1.1",
+    "import-meta-resolve": "^4.0.0",
+    "resolve.exports": "^2.0.2",
+    "rollup-plugin-dts": "^6.1.0",
+    "sade": "^1.8.1",
+    "ts-morph": "^20.0.0",
+    "type-fest": "^4.7.1",
+    "upath": "^2.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.3.1",
+    "@types/node": "^20.9.0",
     "@typhonjs-config/eslint-config": "^0.6.0",
-    "eslint": "^8"
+    "eslint": "^8.53.0"
   },
   "peerDependencies": {
-    "rollup": "^3"
+    "rollup": ">=4.0.0",
+    "typescript": ">=5.1.0"
   },
   "engines": {
-    "node": ">=14.18"
+    "node": ">=18"
   },
   "files": [
-    "/npm-shrinkwrap.json",
-    "/src",
-    "/types"
+    "/src"
   ],
   "homepage": "https://github.com/typhonjs-node-build-test/esm-d-ts#readme",
   "keywords": [
@@ -72,6 +70,8 @@
     "d.ts",
     "dts",
     "declarations",
+    "generator",
+    "jsdoc",
     "typescript"
   ],
   "license": "MPL-2.0",
@@ -81,6 +81,6 @@
     "eslint": "eslint .",
     "prepublishOnly": "npm run types",
     "types": "node ./src/cli/index.js gen -c",
-    "post-test": "node ./test/post-process/test.js"
+    "post-test": "node test/postprocess/test.js"
   }
 }
