@@ -36,12 +36,31 @@ export function processInheritDoc({ Logger, inheritance })
             if (hasInheritdoc(method.getJsDocs())) { classMethods.add(method); }
          }
 
-         if (classMethods.size) { processClassMethods(node, classMethods, Logger); }
+         let classCtor;
+
+         // Find any constructor and test if it has `@inheritDoc`.
+         const maybeCtor = getConstructor(node);
+         if (maybeCtor && hasInheritdoc(maybeCtor.getJsDocs())) { classCtor = maybeCtor; }
+
+         if (classMethods.size || classCtor) { processClass(node, classMethods, classCtor, Logger); }
       }
    }, { directed: true });
 }
 
 // Internal implementation -------------------------------------------------------------------------------------------
+
+/**
+ * Gets the first constructor of a class declaration. Since this is for Javascript there can be only one. ⚔️
+ *
+ * @param {ClassDeclaration}  classDeclaration - ClassDeclaration.
+ *
+ * @returns {import('ts-morph').ConstructorDeclaration} Any class constructor.
+ */
+function getConstructor(classDeclaration)
+{
+   const constructors = classDeclaration.getConstructors();
+   return constructors.length > 0 ? constructors[0] : void 0;
+}
 
 /**
  * Helper to parse JSDoc tags from node for `@inheritDoc`.
@@ -64,15 +83,17 @@ function hasInheritdoc(jsdocs)
 }
 
 /**
- * Processes each class node traversing back through all parents to locate
+ * Processes each class node traversing back through all parents to applying the types for method parameters upwards.
  *
  * @param {ClassDeclaration}     node - Current class being processed.
  *
  * @param {Set<import('ts-morph').MethodSignature>} methods - Methods that have `@inheritdoc`.
  *
+ * @param {import('ts-morph').ConstructorDeclaration} classCtor - Any constructor declaration.
+ *
  * @param {import('../').Logger} Logger - Logger instance.
  */
-function processClassMethods(node, methods, Logger)
+function processClass(node, methods, classCtor, Logger)
 {
    const isVerbose = Logger.isVerbose;
 
@@ -83,6 +104,38 @@ function processClassMethods(node, methods, Logger)
    while ((parentNode = parentNode.getBaseClass()) !== void 0)
    {
       if (isVerbose) { Logger.verbose(`[processInheritDoc] Traversing parent class: ${parentNode.getName()}`); }
+
+      if (classCtor)
+      {
+         const parentClassCtor = getConstructor(parentNode);
+         if (parentClassCtor)
+         {
+            const ctorParameters = classCtor.getParameters();
+            const parentCtorParameters = parentClassCtor.getParameters();
+
+            if (ctorParameters.length !== parentCtorParameters.length)
+            {
+               Logger.warn(`[processInheritDoc] Parent class constructor parameter lengths do not match.`);
+            }
+            else
+            {
+               for (let cntr = 0; cntr < ctorParameters.length; cntr++)
+               {
+                  const ctorParam = ctorParameters[cntr];
+                  const parentCtorParam = parentCtorParameters[cntr];
+
+                  const ctorParamType = ctorParam.getType().getText(ctorParam);
+                  const parentParamType = parentCtorParam.getType().getText(parentCtorParam);
+
+                  if (ctorParamType !== parentParamType)
+                  {
+                     ctorParam.setType(parentParamType);
+                     classCtor = void 0;
+                  }
+               }
+            }
+         }
+      }
 
       for (const method of methods)
       {

@@ -3,6 +3,22 @@
  */
 declare class Base {
     /**
+     * Optional parameters
+     *
+     * @param {object}   [options] - Options.
+     *
+     * @param {boolean}  [options.one] - First parameter
+     *
+     * @param {string}   [options.two] - Second parameter
+     *
+     * @param {number}   [options.three] - Third parameter
+     */
+    constructor({ one, two, three }?: {
+        one?: boolean;
+        two?: string;
+        three?: number;
+    });
+    /**
      * Required parameters.
      *
      * @param {number}   one - First parameter
@@ -96,6 +112,10 @@ declare class Inherited1_A extends Base {
     /**
      * @inheritDoc
      */
+    constructor(options: any);
+    /**
+     * @inheritDoc
+     */
     foo(one: any, two: any, three: any): void;
     /**
      * @inheritDoc
@@ -112,7 +132,11 @@ declare class Inherited1_A extends Base {
     /**
      * @inheritDoc
      */
-    bang(options: any): string;
+    bang({ one, two, three }?: {
+        one: any;
+        two: any;
+        three: any;
+    }): string;
     /**
      * @inheritDoc
      */
@@ -129,6 +153,10 @@ declare class Inherited1_B extends Base {
     /**
      * @inheritdoc
      */
+    constructor(options: any);
+    /**
+     * @inheritdoc
+     */
     foo(one: any, two: any, three: any): void;
     /**
      * @inheritdoc
@@ -148,6 +176,84 @@ declare class Inherited1_B extends Base {
     bang(options: any): string;
     /**
      * @inheritdoc
+     */
+    boom(options: any): {
+        foo: boolean;
+        bar: boolean;
+    };
+}
+
+/**
+ * Changes the method signature slightly again.
+ *
+ * @inheritDoc
+ */
+declare class Inherited2_A extends Inherited1_A {
+    /**
+     * @inheritDoc
+     */
+    constructor({ one, two, three }: {
+        one: any;
+        two: any;
+        three: any;
+    });
+    /**
+     * Change signature
+     *
+     * @inheritDoc
+     */
+    bang(options: any): string;
+    /**
+     * Change signature
+     *
+     * @inheritDoc
+     */
+    boom({ one, two, three }?: {
+        one: any;
+        two: any;
+        three: any;
+    }): {
+        foo: boolean;
+        bar: boolean;
+    };
+}
+
+/**
+ * @inheritDoc
+ */
+declare class PartialInherited1_A extends Base {
+    /**
+     * @inheritDoc
+     */
+    foo(one: any, two: any, three: any): void;
+    /**
+     * @inheritDoc
+     */
+    bar(options: any): boolean;
+}
+
+/**
+ * @inheritDoc
+ */
+declare class PartialInherited2_A extends PartialInherited1_A {
+    /**
+     * @inheritDoc
+     */
+    constructor(options: any);
+    /**
+     * @inheritDoc
+     */
+    zap({ one, two, three }: {
+        one: any;
+        two: any;
+        three: any;
+    }): boolean;
+    /**
+     * @inheritDoc
+     */
+    bang(options: any): string;
+    /**
+     * @inheritDoc
      */
     boom(options: any): {
         foo: boolean;
@@ -243,4 +349,4 @@ declare class TextureData {
     loadTexture(): Promise<[HTMLDivElement]>;
 }
 
-export { A, B, Base, BaseMixin, DataFieldOptions, FilePathFieldOptions, Inherited1_A, Inherited1_B, MyMixin, SchemaField, TextureData, mixin, x };
+export { A, B, Base, type BaseMixin, type DataFieldOptions, type FilePathFieldOptions, Inherited1_A, Inherited1_B, Inherited2_A, type MyMixin, PartialInherited1_A, PartialInherited2_A, SchemaField, TextureData, mixin, x };
