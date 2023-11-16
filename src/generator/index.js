@@ -33,6 +33,8 @@ import {
    validateCompilerOptions,
    validateConfig }              from './validation.js';
 
+import { PostProcess }           from '../postprocess/index.js';
+
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
 import {
@@ -280,6 +282,15 @@ async function bundleDTS(pConfig)
    const bundle = await rollup(rollupConfig.input);
    await bundle.write(rollupConfig.output);
    await bundle.close();
+
+   // Handle any postprocessing of the bundled declarations.
+   if (isIterable(config.postProcessors))
+   {
+      PostProcess.process({
+         filepath: config.output,
+         processors: config.postProcessors
+      });
+   }
 
    Logger.verbose(`Output bundled DTS file to: '${config.output}'`);
 }
@@ -956,6 +967,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {string}               [outputExt='.d.ts'] The bundled output TS declaration file extension. Normally a
  * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
  * change the extension as desired.
+ *
+ * @property {Iterable<import('@typhonjs-build-test/esm-d-ts/postprocess').ProcessorFunction>} [postProcessors] An
+ * iterable list of postprocessing functions. Note: This is experimental!
  *
  * @property {Iterable<string>}     [prependFiles] Directly prepend these files to the bundled output. The files are
  * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied

@@ -2,6 +2,7 @@ import * as rollup from 'rollup';
 import * as ts from 'typescript';
 import ts__default from 'typescript';
 import * as type_fest from 'type-fest';
+import * as _typhonjs_build_test_esm_d_ts_postprocess from '@typhonjs-build-test/esm-d-ts/postprocess';
 import * as _typhonjs_build_test_rollup_plugin_pkg_imports from '@typhonjs-build-test/rollup-plugin-pkg-imports';
 import * as resolve_exports from 'resolve.exports';
 
@@ -73,6 +74,11 @@ type GeneratePluginConfig = {
      * change the extension as desired.
      */
     outputExt?: string;
+    /**
+     * An
+     * iterable list of postprocessing functions. Note: This is experimental!
+     */
+    postProcessors?: Iterable<_typhonjs_build_test_esm_d_ts_postprocess.ProcessorFunction>;
     /**
      * Directly prepend these files to the bundled output. The files are
      * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied
