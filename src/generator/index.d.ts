@@ -145,7 +145,7 @@ type GeneratePluginConfig = {
      * Rollup `onwarn`
      * option. {@link https://rollupjs.org/configuration-options/#onwarn}
      */
-    rollupOnwarn?: (warning: rollup.RollupWarning, defaultHandler: (warning: string | rollup.RollupWarning) => void) => void;
+    rollupOnwarn?: (warning: rollup.RollupLog, defaultHandler: (warning: string | rollup.RollupLog) => void) => void;
 };
 /**
  * Contains the processed config and associated data.
@@ -197,7 +197,7 @@ declare function checkDTS(config: GenerateConfig | Iterable<GenerateConfig>): Pr
  */
 declare function generateDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<void>;
 declare namespace generateDTS {
-    const plugin: (options?: GeneratePluginConfig) => rollup.Plugin;
+    let plugin: (options?: GeneratePluginConfig) => rollup.Plugin<any>;
 }
 
-export { GenerateConfig, GeneratePluginConfig, ProcessedConfig, checkDTS, generateDTS };
+export { type GenerateConfig, type GeneratePluginConfig, type ProcessedConfig, checkDTS, generateDTS };

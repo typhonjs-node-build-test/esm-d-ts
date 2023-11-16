@@ -1005,8 +1005,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {Record<string, string> | ((id: string) => string)} [rollupPaths] Rollup `paths` option.
  * {@link https://rollupjs.org/configuration-options/#output-paths}
  *
- * @property {(warning: import('rollup').RollupWarning,
- * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} [rollupOnwarn] Rollup `onwarn`
+ * @property {(warning: import('rollup').RollupLog,
+ * defaultHandler: (warning: string | import('rollup').RollupLog) => void) => void} [rollupOnwarn] Rollup `onwarn`
  * option. {@link https://rollupjs.org/configuration-options/#onwarn}
  */
 
