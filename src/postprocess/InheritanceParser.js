@@ -4,9 +4,16 @@ import {
 
 /**
  * Parses a ts-morph DTS source file for inheritance hierarchy data.
+ *
+ * TODO: Determine if in the future it is necessary to include InterfaceDeclarations in the inheritance graph.
  */
 export class InheritanceParser
 {
+   /**
+    * @param {import('ts-morph').SourceFile} sourceFile - DTS source file to parse.
+    *
+    * @returns {{ nodes: Map<string, import('ts-morph').ClassDeclaration>, graph: *[] }} Inheritance graph and nodes.
+    */
    static parse(sourceFile)
    {
       const data = [];
@@ -16,7 +23,10 @@ export class InheritanceParser
       // Process each relevant node in the file
       sourceFile.forEachChild((node) =>
       {
-         if (node instanceof ClassDeclaration || node instanceof InterfaceDeclaration)
+         // TODO: The following conditional includes interfaces & classes.
+         // if (node instanceof ClassDeclaration || node instanceof InterfaceDeclaration)
+
+         if (node instanceof ClassDeclaration)
          {
             this.#extractInheritanceData(node, nodes, data);
          }

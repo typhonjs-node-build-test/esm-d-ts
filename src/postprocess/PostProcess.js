@@ -8,6 +8,11 @@ import { InheritanceParser }  from './InheritanceParser.js';
 
 import { Logger }             from '#logger';
 
+/**
+ * Provides management of execution of creating a `ts-morph` project and coordinating postprocessing
+ * {@link ProcessorFunction} functions acting on the `ts-morph` SourceFile. The input `filepath` should be a bundled
+ * Typescript declaration file. Any postprocessing is automatically saved to the same file.
+ */
 export class PostProcess
 {
    /**
@@ -19,7 +24,7 @@ export class PostProcess
     *
     * @param {string}   [options.output] - Alternate output file path for testing.
     *
-    * @param {Iterable<import('./').ProcessorFunction>}   [options.processors] - List of processor functions.
+    * @param {Iterable<import('./').ProcessorFunction>}   options.processors - List of processor functions.
     */
    static process({ filepath, output, processors })
    {
@@ -51,6 +56,9 @@ export class PostProcess
       // Add the declaration file to the project
       const sourceFile = project.addSourceFileAtPath(filepath);
 
+      /**
+       * @type {GraphAnalysis<import('ts-morph').ClassDeclaration>}
+       */
       const inheritance = new GraphAnalysis(InheritanceParser.parse(sourceFile));
 
       let cntr = -1;

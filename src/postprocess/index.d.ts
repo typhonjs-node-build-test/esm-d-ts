@@ -1,16 +1,36 @@
 import * as cytoscape from 'cytoscape';
 import * as ts_morph from 'ts-morph';
+import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-ts/util';
 
-declare class GraphAnalysis {
+/**
+ * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and usually `ts-morph`
+ * nodes of interest.
+ *
+ * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
+ * {@link ProcessorFunction} functions managed by {@link PostProcess}.
+ *
+ * @template T
+ */
+declare class GraphAnalysis<T> {
+    /**
+     * @param {object}         options - Options.
+     *
+     * @param {object[]}         options.graph - The graph data
+     *
+     * @param {Map<string, T>} options.nodes - The Node map.
+     */
     constructor({ graph, nodes }: {
-        graph: any;
-        nodes: any;
+        graph: object[];
+        nodes: Map<string, T>;
     });
     /**
      * @returns {import('cytoscape').Core} The cytoscape core instance.
      */
     get cytoscape(): cytoscape.Core;
-    get nodes(): any;
+    /**
+     * @returns {Map<string, T>} The Node Map.
+     */
+    get nodes(): Map<string, T>;
     /**
      * Perform a depth first search of the graph.
      *
@@ -28,85 +48,33 @@ declare class GraphAnalysis {
 }
 
 /**
- * Provides a basic color logger supporting four levels of logging.
- */
-declare class Logger {
-    /**
-     * @returns {boolean} Whether 'all' logging is enabled.
-     */
-    static get isAll(): boolean;
-    /**
-     * @returns {boolean} Whether 'error' logging is enabled.
-     */
-    static get isError(): boolean;
-    /**
-     * @returns {boolean} Whether 'info' logging is enabled.
-     */
-    static get isInfo(): boolean;
-    /**
-     * @returns {boolean} Whether 'verbose' logging is enabled.
-     */
-    static get isVerbose(): boolean;
-    /**
-     * @returns {boolean} Whether 'warn' logging is enabled.
-     */
-    static get isWarn(): boolean;
-    /**
-     * Checks if the given log level is valid.
-     *
-     * @param {'all' | 'verbose' | 'info' | 'warn' | 'error'}   logLevel - Log level to validate.
-     *
-     * @returns {boolean} Is log level valid.
-     */
-    static isValidLevel(logLevel: 'all' | 'verbose' | 'info' | 'warn' | 'error'): boolean;
-    /**
-     * @param {'all' | 'verbose' | 'info' | 'warn' | 'error'}   logLevel - Log level to set.
-     */
-    static set logLevel(arg: string);
-    /**
-     * @returns {string} Current log level.
-     */
-    static get logLevel(): string;
-    /**
-     * @returns {{[p: string]: number}} Returns all log levels object.
-     */
-    static get logLevels(): {
-        [p: string]: number;
-    };
-    /**
-     * Log an error message.
-     *
-     * @param {string} message - A message.
-     */
-    static error(message: string): void;
-    /**
-     * Log an info message.
-     *
-     * @param {string} message - A message.
-     */
-    static info(message: string): void;
-    /**
-     * Log a verbose message.
-     *
-     * @param {string} message - A message.
-     */
-    static verbose(message: string): void;
-    /**
-     * Log a warning message.
-     *
-     * @param {string} message - A message.
-     */
-    static warn(message: string): void;
-}
-
-/**
- * @type {import('../../src/postprocess').ProcessorFunction}
+ * Implements a postprocessor to support `@inheritDoc`. By making a depth first search across the inheritance graph
+ * at every depth classes are processed for methods and constructor functions that have the `@inheritDoc` param. A
+ * backward traversal is performed from the current class through parent inheritance to promote the types of the
+ * parent class to child. `@inheritDoc` marked methods must have the same number of parameters as the parent
+ * implementation. Warnings and generated and improperly formatted methods are skipped.
+ *
+ * This is necessary as Typescript / `tsc` does not support the `@inheritDoc` JSDoc tag and will mark the types for
+ * all methods using it with `any`.
+ *
+ * You may enable `verbose` logging to see the graph traversal.
+ *
+ * @param {object} options - Options
+ *
+ * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
+ *
+ * @param {import('../GraphAnalysis.js').GraphAnalysis<import('ts-morph').ClassDeclaration>} options.inheritance -
  */
 declare function processInheritDoc({ Logger, inheritance }: {
-    Logger: any;
-    inheritance: any;
+    Logger: _typhonjs_build_test_esm_d_ts_util.Logger;
+    inheritance: GraphAnalysis<ts_morph.ClassDeclaration>;
 }): void;
 
+/**
+ * Provides management of execution of creating a `ts-morph` project and coordinating postprocessing
+ * {@link ProcessorFunction} functions acting on the `ts-morph` SourceFile. The input `filepath` should be a bundled
+ * Typescript declaration file. Any postprocessing is automatically saved to the same file.
+ */
 declare class PostProcess {
     /**
      * Performs postprocessing on a given Typescript declaration file.
@@ -117,12 +85,12 @@ declare class PostProcess {
      *
      * @param {string}   [options.output] - Alternate output file path for testing.
      *
-     * @param {Iterable<import('./').ProcessorFunction>}   [options.processors] - List of processor functions.
+     * @param {Iterable<import('./').ProcessorFunction>}   options.processors - List of processor functions.
      */
     static process({ filepath, output, processors }: {
         filepath: string;
         output?: string;
-        processors?: Iterable<ProcessorFunction>;
+        processors: Iterable<ProcessorFunction>;
     }): void;
 }
 
@@ -131,9 +99,9 @@ declare class PostProcess {
  *                      inheritance graph.
  */
 type ProcessorFunction = (params: {
-    Logger?: Logger;
+    Logger?: _typhonjs_build_test_esm_d_ts_util.Logger;
     sourceFile?: ts_morph.SourceFile;
-    inheritance?: GraphAnalysis;
+    inheritance?: GraphAnalysis<ts_morph.ClassDeclaration>;
 }) => void;
 
-export { GraphAnalysis, Logger, PostProcess, type ProcessorFunction, processInheritDoc };
+export { GraphAnalysis, PostProcess, type ProcessorFunction, processInheritDoc };

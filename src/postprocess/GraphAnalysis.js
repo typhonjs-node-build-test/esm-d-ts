@@ -1,10 +1,33 @@
-import cytoscape  from 'cytoscape';
+import cytoscape  from 'cytoscape/dist/cytoscape.esm.js';
 
+/**
+ * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and usually `ts-morph`
+ * nodes of interest.
+ *
+ * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
+ * {@link ProcessorFunction} functions managed by {@link PostProcess}.
+ *
+ * @template T
+ */
 export class GraphAnalysis
 {
+   /** @type {import('cytoscape').Core} */
    #cy;
+
+   /**
+    * The node map to look up data associated with the given graph node ID.
+    *
+    * @type {Map<string, T>}
+    */
    #nodes;
 
+   /**
+    * @param {object}         options - Options.
+    *
+    * @param {object[]}         options.graph - The graph data
+    *
+    * @param {Map<string, T>} options.nodes - The Node map.
+    */
    constructor({ graph, nodes })
    {
       this.#cy = cytoscape({
@@ -23,6 +46,9 @@ export class GraphAnalysis
       return this.#cy;
    }
 
+   /**
+    * @returns {Map<string, T>} The Node Map.
+    */
    get nodes()
    {
       return this.#nodes;

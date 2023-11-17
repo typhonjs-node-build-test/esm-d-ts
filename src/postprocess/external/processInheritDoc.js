@@ -3,7 +3,22 @@ import { ClassDeclaration }   from 'ts-morph';
 const s_TAG_NAMES = new Set(['inheritdoc', 'inheritDoc']);
 
 /**
- * @type {import('../../src/postprocess').ProcessorFunction}
+ * Implements a postprocessor to support `@inheritDoc`. By making a depth first search across the inheritance graph
+ * at every depth classes are processed for methods and constructor functions that have the `@inheritDoc` param. A
+ * backward traversal is performed from the current class through parent inheritance to promote the types of the
+ * parent class to child. `@inheritDoc` marked methods must have the same number of parameters as the parent
+ * implementation. Warnings and generated and improperly formatted methods are skipped.
+ *
+ * This is necessary as Typescript / `tsc` does not support the `@inheritDoc` JSDoc tag and will mark the types for
+ * all methods using it with `any`.
+ *
+ * You may enable `verbose` logging to see the graph traversal.
+ *
+ * @param {object} options - Options
+ *
+ * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
+ *
+ * @param {import('../GraphAnalysis.js').GraphAnalysis<import('ts-morph').ClassDeclaration>} options.inheritance -
  */
 export function processInheritDoc({ Logger, inheritance })
 {
@@ -91,7 +106,7 @@ function hasInheritdoc(jsdocs)
  *
  * @param {import('ts-morph').ConstructorDeclaration} classCtor - Any constructor declaration.
  *
- * @param {import('../').Logger} Logger - Logger instance.
+ * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} Logger - Logger instance.
  */
 function processClass(node, methods, classCtor, Logger)
 {
