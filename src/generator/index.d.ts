@@ -75,6 +75,12 @@ type GeneratePluginConfig = {
      */
     outputExt?: string;
     /**
+     * When postprocessing is configured this is a helpful debugging
+     * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of
+     * any additional processing. You must specify a valid filepath.
+     */
+    outputPostprocess?: string;
+    /**
      * An
      * iterable list of postprocessing functions. Note: This is experimental!
      */

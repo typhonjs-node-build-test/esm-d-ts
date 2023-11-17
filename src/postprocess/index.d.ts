@@ -77,13 +77,14 @@ declare function processInheritDoc({ Logger, inheritance }: {
  */
 declare class PostProcess {
     /**
-     * Performs postprocessing on a given Typescript declaration file.
+     * Performs postprocessing on a given Typescript declaration file in place. You may provide an alternate output
+     * filepath to not overwrite the source declaration file.
      *
      * @param {object}   options - Options
      *
      * @param {string}   options.filepath - Source DTS file to process.
      *
-     * @param {string}   [options.output] - Alternate output file path for testing.
+     * @param {string}   [options.output] - Alternate output filepath for testing.
      *
      * @param {Iterable<import('./').ProcessorFunction>}   options.processors - List of processor functions.
      */

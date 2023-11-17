@@ -288,6 +288,7 @@ async function bundleDTS(pConfig)
    {
       PostProcess.process({
          filepath: config.output,
+         output: config.outputPostprocess,
          processors: config.postprocess
       });
    }
@@ -967,6 +968,10 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {string}               [outputExt='.d.ts'] The bundled output TS declaration file extension. Normally a
  * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
  * change the extension as desired.
+ *
+ * @property {string}               [outputPostprocess] When postprocessing is configured this is a helpful debugging
+ * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of
+ * any additional processing. You must specify a valid filepath.
  *
  * @property {Iterable<import('@typhonjs-build-test/esm-d-ts/postprocess').ProcessorFunction>} [postprocess] An
  * iterable list of postprocessing functions. Note: This is experimental!

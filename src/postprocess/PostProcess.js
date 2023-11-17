@@ -16,13 +16,14 @@ import { Logger }             from '#logger';
 export class PostProcess
 {
    /**
-    * Performs postprocessing on a given Typescript declaration file.
+    * Performs postprocessing on a given Typescript declaration file in place. You may provide an alternate output
+    * filepath to not overwrite the source declaration file.
     *
     * @param {object}   options - Options
     *
     * @param {string}   options.filepath - Source DTS file to process.
     *
-    * @param {string}   [options.output] - Alternate output file path for testing.
+    * @param {string}   [options.output] - Alternate output filepath for testing.
     *
     * @param {Iterable<import('./').ProcessorFunction>}   options.processors - List of processor functions.
     */
@@ -90,7 +91,15 @@ export class PostProcess
 
       if (output)
       {
-         fs.writeFileSync(output, sourceFile.getFullText());
+         try
+         {
+            fs.writeFileSync(output, sourceFile.getFullText());
+         }
+         catch (err)
+         {
+            Logger.error(`PostProcess.process error: Failed to write postprocessing output to '${
+             output}':\n${err.message}`);
+         }
       }
       else
       {

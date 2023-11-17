@@ -129,6 +129,12 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.outputPostprocess !== void 0 && typeof config.outputPostprocess !== 'string')
+   {
+      Logger.error(`validateConfig error: 'config.outputPostprocess' must be a string.`);
+      result = false;
+   }
+
    if (config.postprocess !== void 0 && !isIterable(config.postprocess))
    {
       Logger.error(`validateConfig error: 'config.postprocess' must be an iterable list of functions.`);
