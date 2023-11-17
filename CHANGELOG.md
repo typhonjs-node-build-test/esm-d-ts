@@ -1,4 +1,8 @@
 # Changelog
+## Release 0.2.0-next.2
+- Added `outputPostprocess` configuration option to separately output postprocessing to an alternate filepath for
+easier debugging / comparison.
+
 ## Release 0.2.0-next.1
 - Introduces optional postprocessing of the generated bundled Typescript declaration.
   - First post processor is for `@inheritDoc` support.
