@@ -8,7 +8,7 @@
   "main": "src/generator/index.js",
   "module": "src/generator/index.js",
   "imports": {
-    "#logger": "./src/util/logger.js"
+    "#logger": "./src/util/Logger.js"
   },
   "exports": {
     ".": {
@@ -23,6 +23,10 @@
       "types": "./src/transformer/index.d.ts",
       "import": "./src/transformer/index.js"
     },
+    "./util": {
+      "types": "./src/util/index.d.ts",
+      "import": "./src/util/index.js"
+    },
     "./package.json": "./package.json"
   },
   "contributors": [
@@ -31,7 +35,7 @@
   "dependencies": {
     "@rollup/plugin-alias": "^5.0.1",
     "@types/cytoscape": "^3.19.15",
-    "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.0.3",
+    "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.0.4",
     "@typhonjs-utils/file-util": "^0.0.10",
     "@typhonjs-utils/object": "^0.0.17",
     "@typhonjs-utils/package-json": "^0.6.0",
@@ -53,7 +57,7 @@
     "eslint": "^8.53.0"
   },
   "peerDependencies": {
-    "rollup": ">=4.0.0",
+    "rollup": "3.3 - 4",
     "typescript": ">=5.1.0"
   },
   "engines": {
