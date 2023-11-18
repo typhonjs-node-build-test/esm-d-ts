@@ -1,3 +1,9 @@
+/**
+ * Provides the main entry points to the package including `checkDTS` and `generateDTS`.
+ *
+ * @module @typhonjs-build-test/esm-d-ts
+ */
+
 import { fileURLToPath }         from 'node:url';
 
 import fs                        from 'fs-extra';
@@ -39,6 +45,7 @@ import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
 import {
    addSyntheticExports,
+   jsdocPreserveModuleTag,
    removePrivateStatic }         from '../transformer/internal/index.js';
 
 /**
@@ -160,9 +167,9 @@ async function generateDTSImpl(pConfig)
    if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
 
    // Log emit diagnostics as warnings.
-   compile(pConfig, true);
+   const jsdocModuleComments = compile(pConfig, true);
 
-   await bundleDTS(pConfig);
+   await bundleDTS(pConfig, jsdocModuleComments);
 }
 
 /**
@@ -179,9 +186,11 @@ export { checkDTS, generateDTS };
 /**
  * @param {ProcessedConfig}   pConfig - Processed config.
  *
+ * @param {{ comment: string, filepath: string}[]} jsdocModuleComments - Any comments with the `@module` tag.
+ *
  * @returns {Promise<void>}
  */
-async function bundleDTS(pConfig)
+async function bundleDTS(pConfig, jsdocModuleComments)
 {
    const { config, compilerOptions, dtsMainPath, packages } = pConfig;
 
@@ -200,7 +209,19 @@ async function bundleDTS(pConfig)
       process.exit(1);
    }
 
-   let banner = '';
+   if (jsdocModuleComments.length > 1)
+   {
+      const filepaths = jsdocModuleComments.map((entry) => entry?.filepath).join('\n');
+
+      Logger.warn(`bundleDTS warning: multiple JSDoc comments detected with the '@module' tag from:\n${filepaths}`);
+      console.warn(`!pConfig.filepaths:\n`, pConfig.filepaths)
+      console.warn(`!pConfig.config.input:\n`, config.input)
+   }
+
+   // Prepend any comment with the `@module` tag preserving it in the bundled DTS file.
+
+   let banner = jsdocModuleComments.length === 1 && typeof jsdocModuleComments[0]?.comment === 'string' ?
+    `${jsdocModuleComments[0].comment}\n` : '';
 
    if (isIterable(config.prependFiles))
    {
@@ -302,6 +323,8 @@ async function bundleDTS(pConfig)
  * @param {ProcessedConfig}   pConfig - Processed config object.
  *
  * @param {boolean}  [warn=false] - Log the emit diagnostics as warnings for `generateDTS`.
+ *
+ * @returns {{ comment: string, filepath: string }[]} Any parsed JSDoc comments with the `@module` tag.
  */
 function compile(pConfig, warn = false)
 {
@@ -314,6 +337,8 @@ function compile(pConfig, warn = false)
 
    let emitResult;
 
+   const jsdocModuleComments = [];
+
    /**
     * Prepend `removePrivateStatic` as the Typescript compiler changes private static members to become public
     * defined with a string pattern that can be detected.
@@ -321,6 +346,7 @@ function compile(pConfig, warn = false)
     * Prepend `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
     */
    const transformers = [
+      jsdocPreserveModuleTag(jsdocModuleComments, config.input),
       ...(typeof config.removePrivateStatic === 'boolean' && config.removePrivateStatic ? [removePrivateStatic()] : []),
       ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
        [jsdocRemoveNodeByTags(config.filterTags)] : []),
@@ -395,6 +421,8 @@ function compile(pConfig, warn = false)
          }
       }
    }
+
+   return jsdocModuleComments;
 }
 
 /**
