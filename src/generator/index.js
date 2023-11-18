@@ -214,8 +214,6 @@ async function bundleDTS(pConfig, jsdocModuleComments)
       const filepaths = jsdocModuleComments.map((entry) => entry?.filepath).join('\n');
 
       Logger.warn(`bundleDTS warning: multiple JSDoc comments detected with the '@module' tag from:\n${filepaths}`);
-      console.warn(`!pConfig.filepaths:\n`, pConfig.filepaths)
-      console.warn(`!pConfig.config.input:\n`, config.input)
    }
 
    // Prepend any comment with the `@module` tag preserving it in the bundled DTS file.
