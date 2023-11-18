@@ -1,3 +1,9 @@
+/**
+ * Provides support for postprocessing bundled type declarations.
+ *
+ * @module @typhonjs-build-test/esm-d-ts/postprocess
+ */
+
 export * from './external/index.js';
 export * from './GraphAnalysis.js';
 export * from './PostProcess.js';

@@ -1,4 +1,10 @@
 /**
+ * Provides shared utilities including logging.
+ *
+ * @module @typhonjs-build-test/esm-d-ts/util
+ */
+
+/**
  * Provides a basic color logger supporting four levels of logging.
  */
 declare class Logger {

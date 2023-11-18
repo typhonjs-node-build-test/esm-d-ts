@@ -1,3 +1,9 @@
+/**
+ * Provides support for postprocessing bundled type declarations.
+ *
+ * @module @typhonjs-build-test/esm-d-ts/postprocess
+ */
+
 import * as cytoscape from 'cytoscape';
 import * as ts_morph from 'ts-morph';
 import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-ts/util';
