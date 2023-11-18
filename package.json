@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/esm-d-ts",
   "description": "Generates bundled Typescript declaration files from ESM source w/ JSDoc.",
-  "version": "0.2.0-next.2",
+  "version": "0.2.0-next.3",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "bin": "./src/cli/index.js",
@@ -54,7 +54,10 @@
   "devDependencies": {
     "@types/node": "^20.9.0",
     "@typhonjs-config/eslint-config": "^0.6.0",
-    "eslint": "^8.53.0"
+    "@typhonjs-typedoc/typedoc-theme-dmt": "0.0.0",
+    "@typhonjs-typedoc/ts-lib-docs": "2023.7.12",
+    "eslint": "^8.53.0",
+    "typedoc": "0.24.8"
   },
   "peerDependencies": {
     "rollup": "3.3 - 4",
@@ -83,6 +86,7 @@
   "bugs": "https://github.com/typhonjs-node-build-test/esm-d-ts/issues",
   "scripts": {
     "eslint": "eslint .",
+    "docs": "typedoc --options ./.doc-gen/typedoc.json",
     "prepublishOnly": "npm run types",
     "types": "node ./src/cli/index.js gen -c",
     "post-test": "node test/postprocess/test.js"
