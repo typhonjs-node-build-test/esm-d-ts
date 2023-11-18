@@ -1,0 +1,195 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charset="utf-8"><meta http-equiv="x-ua-compatible" content="IE=edge"><title>@typhonjs-build-test/esm-d-ts</title><meta name="description" content="Documentation for @typhonjs-build-test/esm-d-ts"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/highlight.css"><link rel="stylesheet" href="assets/dmt/dmt-components.css"><link rel="stylesheet" href="assets/dmt/dmt-theme.css"><script src="assets/dmt/dmt-components.js" type="module"></script><script type="application/javascript">globalThis.dmtOptions = {"basePath":"","search":true,"searchLimit":10,"searchQuick":false,"searchQuickLimit":10}</script></head><body style="opacity: 0"><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base=".">
+<div class="field" id="dmt-search-main"></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<a href="index.html" class="title">@typhonjs-build-test/esm-d-ts</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main" tabindex="-1">
+<div class="col-content">
+<div class="tsd-page-title">
+<h2>@typhonjs-build-test/esm-d-ts</h2></div>
+<div class="tsd-panel tsd-typography"><p><img src="https://i.imgur.com/a8nCg70.jpg" alt="@typhonjs-build-test/esm-d-ts"></p>
+<p><a href="https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts"><img src="https://img.shields.io/npm/v/@typhonjs-build-test/esm-d-ts.svg?label=npm" alt="NPM"></a>
+<a href="https://en.wikipedia.org/wiki/Indent_style#Allman_style"><img src="https://img.shields.io/badge/code%20style-allman-yellowgreen.svg?style=flat" alt="Code Style"></a>
+<a href="https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat" alt="License"></a>
+<a href="https://discord.gg/mnbgN8f"><img src="https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&amp;style=plastic" alt="Discord"></a></p>
+<p>Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate
+bundled Typescript declarations from ESM source code utilizing typed <code>JSDoc</code>. This tooling can be employed to build
+types for a primary export and one or more sub-path <a href="https://nodejs.org/api/packages.html#exports">exports</a> creating
+independent <em>ESM oriented / module</em> based declarations utilizing import / export semantics. This tooling can be
+employed by any project, but is particularly useful for library authors as there are many additional options covering
+advanced use cases that library authors may encounter. Some of these optional advanced features include support for
+re-exporting / re-bundling packages w/ TS declarations and thorough support for utilizing
+<a href="https://nodejs.org/api/packages.html#imports">imports</a> / import conditions in a variety of flexible ways.</p>
+<p>Please check out the <a href="https://typhonjs-node-build-test.github.io/esm-d-ts/">package documentation here</a>.</p>
+<a id="md:installation" class="tsd-anchor"></a><h2><a href="#md:installation">Installation:</a></h2><p>It is recommended to install <code>esm-d-ts</code> as a developer dependency in <code>package.json</code> as follows:</p>
+<pre><code class="language-json"><span class="hl-0">{</span><br><span class="hl-0">  </span><span class="hl-1">"devDependencies"</span><span class="hl-0">: {</span><br><span class="hl-0">    </span><span class="hl-1">"@typhonjs-build-test/esm-d-ts"</span><span class="hl-0">: </span><span class="hl-2">"^0.2.0"</span><br><span class="hl-0">  }</span><br><span class="hl-0">}</span>
+</code><button>Copy</button></pre>
+<p>Presently the CLI and <code>esm-d-ts</code> can not be installed or used globally; this will be addressed in a future update.</p>
+<a id="md:what39s-new-020" class="tsd-anchor"></a><h2><a href="#md:what39s-new-020">What's New (0.2.0):</a></h2><ul>
+<li><p>Optional postprocessing</p>
+<ul>
+<li>The first built-in postprocessing function is support for <code>@inheritDoc</code>. This is an unsupported JSDoc tag for
+Typescript and when types are generated any methods or constructor functions that use <code>@inheritDoc</code> have parameters
+that are typed as <code>any</code>. It is also possible to create custom postprocessing functions. For more details on
+postprocessing and AST transformation <a href="https://github.com/typhonjs-node-build-test/esm-d-ts/wiki/AST-transformation-&amp;-postprocessing#tstranformers">please see the wiki</a>.</li>
+</ul>
+</li>
+<li><p>Support for the JSDoc <code>@module</code> comment pass-through to the generated DTS bundle. This is helpful when generating
+docs from the DTS bundle. This is only supported for the main entry point source file.</p>
+</li>
+<li><p>All dependencies updated along with peer dependency requirements of <code>Rollup 3.3 - 4.x</code> and <code>Typescript 5.1+</code>.</p>
+</li>
+</ul>
+<a id="md:overview" class="tsd-anchor"></a><h2><a href="#md:overview">Overview:</a></h2><p>There is a lot to unpack regarding how to set up a modern ESM Node package for efficient distribution that includes
+TS declarations. At this time I'll point to the Typescript <a href="https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html">JSDoc informational resources</a>
+and the <a href="https://www.typescriptlang.org/docs/handbook/esm-node.html#packagejson-exports-imports-and-self-referencing">handbook description</a>
+on how to set up <code>package.json</code> <code>exports</code> with the <code>types</code> condition. In time, I will expand the documentation and
+resources available about <code>esm-d-ts</code> covering new patterns unlocked from modern use cases combining JSDoc / TS capabilities. If you have questions please open a discussion in the <a href="https://github.com/typhonjs-node-build-test/esm-d-ts/issues">issue tracker</a>.
+You may also stop by the <a href="https://discord.gg/mnbgN8f">TyphonJS Discord server</a> for discussion &amp; support.</p>
+<p>A design goal behind <code>esm-d-ts</code> is to provide flexibility and near-zero configuration, so that you may adapt and use
+<code>esm-d-ts</code> for a variety of build and usage scenarios. There are four main ways to configure <code>esm-d-ts</code>:</p>
+<ul>
+<li>CLI immediate mode.</li>
+<li>CLI w/ configuration file.</li>
+<li>As a rollup plugin (100% zero configuration)</li>
+<li>Programmatically.</li>
+</ul>
+<p>The Rollup plugin can be used w/ 100% zero configuration, but the other ways to set up <code>esm-d-ts</code> require at minimum
+an <code>input</code> source file that should be the entry point for the given main or sub-path export. By default, when only
+providing the <code>input</code> entry point the bundled declaration file will be generated next to the <code>input</code> source file with
+the same name and <code>.d.ts</code> extension. To generate the bundled declaration file at a specific location provide an
+<code>output</code> file path w/ extension. All the ways to configure <code>esm-d-ts</code> accept the same configuration object. Except for
+the Rollup plugin every way to configure <code>esm-d-ts</code> accepts a list of configuration objects allowing you to completely
+build all sub-path exports in one invocation of <code>esm-d-ts</code>.</p>
+<hr>
+<a id="md:example-use-cases" class="tsd-anchor"></a><h2><a href="#md:example-use-cases">Example use cases:</a></h2><p>The following examples demonstrate essential usage patterns. Each example will take into consideration a hypothetical
+package that has a primary export and one sub-path export. The resulting <code>package.json</code> exports field looks like this:</p>
+<pre><code class="language-json"><span class="hl-0">{</span><br><span class="hl-0">  </span><span class="hl-1">"exports"</span><span class="hl-0">: {</span><br><span class="hl-0">    </span><span class="hl-1">"."</span><span class="hl-0">: {</span><br><span class="hl-0">      </span><span class="hl-1">"types"</span><span class="hl-0">: </span><span class="hl-2">"./src/main/index.d.ts"</span><span class="hl-0">,</span><br><span class="hl-0">      </span><span class="hl-1">"import"</span><span class="hl-0">: </span><span class="hl-2">"./src/main/index.js"</span><br><span class="hl-0">    },</span><br><span class="hl-0">    </span><span class="hl-1">"./sub"</span><span class="hl-0">: {</span><br><span class="hl-0">      </span><span class="hl-1">"types"</span><span class="hl-0">: </span><span class="hl-2">"./src/sub/index.d.ts"</span><span class="hl-0">,</span><br><span class="hl-0">      </span><span class="hl-1">"import"</span><span class="hl-0">: </span><span class="hl-2">"./src/sub/index.js"</span><br><span class="hl-0">    }</span><br><span class="hl-0">  }</span><br><span class="hl-0">}</span>
+</code><button>Copy</button></pre>
+<p>Note: Typescript requires the <code>types</code> condition to always be the first entry in a conditional block in <code>exports</code>.</p>
+<hr>
+<a id="md:cli" class="tsd-anchor"></a><h3><a href="#md:cli">CLI</a></h3><p>You may use the CLI via the command line or define a NPM script that invokes it. The CLI has two commands <code>check</code> and
+<code>generate</code>. <code>generate</code> has two aliases <code>gen</code> &amp; <code>g</code>. The <code>generate</code> command creates bundled declaration files. The
+<code>check</code> command is a convenient way to log diagnostics from the Typescript compiler <code>checkJs</code> output that by default is
+filtered to only display messages limited to the scope of the source files referenced from the entry point specified.</p>
+<p>To receive help about the CLI use <code>esm-d-ts --help</code>. Please use it to learn about additional CLI options available.</p>
+<p>All examples will demonstrate NPM script usage.</p>
+<p>There are two ways to use the CLI. The first is "immediate mode" where you directly supply an input / entry point.
+Presently, only one source file may be specified in "immediate mode".</p>
+<pre><code class="language-json"><span class="hl-0">{</span><br><span class="hl-0">  </span><span class="hl-1">"scripts"</span><span class="hl-0">: {</span><br><span class="hl-0">    </span><span class="hl-1">"types"</span><span class="hl-0">: </span><span class="hl-2">"esm-d-ts gen src/main/index.js &amp;&amp; esm-d-ts gen src/sub/index.js"</span><br><span class="hl-0">  }</span><br><span class="hl-0">}</span>
+</code><button>Copy</button></pre>
+<p>A more convenient way to define a project is through defining a configuration file. You may specify the <code>--config</code> or
+alias <code>-c</code> to load a default config defined as <code>./esm-d-ts.config.js</code> or <code>./esm-d-ts.config.mjs</code>. You may also provide
+a specific file path to a config after the <code>--config</code> option.</p>
+<pre><code class="language-json"><span class="hl-0">{</span><br><span class="hl-0">  </span><span class="hl-1">"scripts"</span><span class="hl-0">: {</span><br><span class="hl-0">    </span><span class="hl-1">"types"</span><span class="hl-0">: </span><span class="hl-2">"esm-d-ts gen --config"</span><br><span class="hl-0">  }</span><br><span class="hl-0">}</span>
+</code><button>Copy</button></pre>
+<p>The config file should be in ESM format and have a default export that provides one or a list of <code>GenerateConfig</code>
+objects.</p>
+<pre><code class="language-js"><span class="hl-3">/**</span><br><span class="hl-3"> * </span><span class="hl-4">@type</span><span class="hl-3"> </span><span class="hl-5">{import('@typhonjs-build-test/esm-d-ts').GenerateConfig[]}</span><br><span class="hl-3"> */</span><br><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-6">config</span><span class="hl-0"> = [</span><br><span class="hl-0">   { </span><span class="hl-7">input:</span><span class="hl-0"> </span><span class="hl-2">'./src/main/index.js'</span><span class="hl-0"> },</span><br><span class="hl-0">   { </span><span class="hl-7">input:</span><span class="hl-0"> </span><span class="hl-2">'./src/sub/index.js'</span><span class="hl-0"> },</span><br><span class="hl-0">];</span><br><br><span class="hl-8">export</span><span class="hl-0"> </span><span class="hl-8">default</span><span class="hl-0"> </span><span class="hl-7">config</span><span class="hl-0">;</span>
+</code><button>Copy</button></pre>
+<hr>
+<a id="md:programmatic-usage" class="tsd-anchor"></a><h3><a href="#md:programmatic-usage">Programmatic Usage</a></h3><p>You may directly import <code>checkDTS</code> or <code>generateDTS</code>. These are asynchronous functions that can be invoked with top
+level await.</p>
+<pre><code class="language-js"><span class="hl-8">import</span><span class="hl-0"> { </span><span class="hl-7">checkDTS</span><span class="hl-0">, </span><span class="hl-7">generateDTS</span><span class="hl-0"> } </span><span class="hl-8">from</span><span class="hl-0"> </span><span class="hl-2">'@typhonjs-build-test/esm-d-ts'</span><span class="hl-0">;</span><br><br><span class="hl-3">// Generates TS declaration bundles.</span><br><span class="hl-8">await</span><span class="hl-0"> </span><span class="hl-9">generateDTS</span><span class="hl-0">([</span><br><span class="hl-0">   { </span><span class="hl-7">input:</span><span class="hl-0"> </span><span class="hl-2">'./src/main/index.js'</span><span class="hl-0"> },</span><br><span class="hl-0">   { </span><span class="hl-7">input:</span><span class="hl-0"> </span><span class="hl-2">'./src/sub/index.js'</span><span class="hl-0"> },</span><br><span class="hl-0">]);</span><br><br><span class="hl-3">// Log `checkJs` diagnostics.</span><br><span class="hl-8">await</span><span class="hl-0"> </span><span class="hl-9">checkDTS</span><span class="hl-0">([</span><br><span class="hl-0">   { </span><span class="hl-7">input:</span><span class="hl-0"> </span><span class="hl-2">'./src/main/index.js'</span><span class="hl-0"> },</span><br><span class="hl-0">   { </span><span class="hl-7">input:</span><span class="hl-0"> </span><span class="hl-2">'./src/sub/index.js'</span><span class="hl-0"> },</span><br><span class="hl-0">]);</span>
+</code><button>Copy</button></pre>
+<hr>
+<a id="md:rollup-plugin" class="tsd-anchor"></a><h3><a href="#md:rollup-plugin">Rollup Plugin</a></h3><p>A Rollup plugin is accessible via <code>generateDTS.plugin()</code> and takes the same configuration object as <code>generateDTS</code>. When
+using Rollup you don't have to specify the <code>input</code> or <code>output</code> parameters as it will use the Rollup options for <code>input</code>
+and <code>file</code> option for <code>output</code>. An example use case in a Rollup configuration object follows:</p>
+<pre><code class="language-js"><span class="hl-8">import</span><span class="hl-0"> { </span><span class="hl-7">generateDTS</span><span class="hl-0"> }   </span><span class="hl-8">from</span><span class="hl-0"> </span><span class="hl-2">'@typhonjs-build-test/esm-d-ts'</span><span class="hl-0">;</span><br><br><span class="hl-3">// Rollup configuration object which will generate the `dist/index.d.ts` declaration file.</span><br><span class="hl-8">export</span><span class="hl-0"> </span><span class="hl-8">default</span><span class="hl-0"> [</span><br><span class="hl-0">   {</span><br><span class="hl-0">      </span><span class="hl-7">input:</span><span class="hl-0"> </span><span class="hl-2">'src/main/index.js'</span><span class="hl-0">,</span><br><span class="hl-0">      </span><span class="hl-7">plugins:</span><span class="hl-0"> [</span><span class="hl-7">generateDTS</span><span class="hl-0">.</span><span class="hl-9">plugin</span><span class="hl-0">()],</span><br><span class="hl-0">      </span><span class="hl-7">output:</span><span class="hl-0"> {</span><br><span class="hl-0">         </span><span class="hl-7">format:</span><span class="hl-0"> </span><span class="hl-2">'es'</span><span class="hl-0">,</span><br><span class="hl-0">         </span><span class="hl-7">file:</span><span class="hl-0"> </span><span class="hl-2">'dist/main/index.js'</span><br><span class="hl-0">      }</span><br><span class="hl-0">   },</span><br><span class="hl-0">   {</span><br><span class="hl-0">      </span><span class="hl-7">input:</span><span class="hl-0"> </span><span class="hl-2">'src/sub/index.js'</span><span class="hl-0">,</span><br><span class="hl-0">      </span><span class="hl-7">plugins:</span><span class="hl-0"> [</span><span class="hl-7">generateDTS</span><span class="hl-0">.</span><span class="hl-9">plugin</span><span class="hl-0">()],</span><br><span class="hl-0">      </span><span class="hl-7">output:</span><span class="hl-0"> {</span><br><span class="hl-0">         </span><span class="hl-7">format:</span><span class="hl-0"> </span><span class="hl-2">'es'</span><span class="hl-0">,</span><br><span class="hl-0">         </span><span class="hl-7">file:</span><span class="hl-0"> </span><span class="hl-2">'dist/sub/index.js'</span><br><span class="hl-0">      }</span><br><span class="hl-0">   }</span><br><span class="hl-0">]</span>
+</code><button>Copy</button></pre>
+<p><code>esm-d-ts</code> will generate respective bundled declarations next to the output <code>file</code>:</p>
+<ul>
+<li><code>dist/main/index.d.ts</code></li>
+<li><code>dist/sub/index.d.ts</code></li>
+</ul>
+<p>Presently <code>esm-d-ts</code> only handles a single input entry point. A future update may expand this to handle multiple entry
+points. If you need this functionality please open an issue.</p>
+<p>There is no <code>checkDTS</code> Rollup plugin.</p>
+<hr>
+<a id="md:advanced-configuration" class="tsd-anchor"></a><h2><a href="#md:advanced-configuration">Advanced Configuration</a></h2><p>There are several more advanced configuration options and usage scenarios that are not discussed in this <code>README</code>. You
+may view a description of all options available in the documentation for
+<a href="https://typhonjs-node-build-test.github.io/esm-d-ts/types/_typhonjs_build_test_esm_d_ts.GenerateConfig.html">GenerateConfig</a> /
+<a href="https://typhonjs-node-build-test.github.io/esm-d-ts/types/_typhonjs_build_test_esm_d_ts.GeneratePluginConfig.html">GeneratePluginConfig</a></p>
+<p><code>esm-d-ts</code> allows some rather advanced usage scenarios for library authors as well from handling <code>imports</code> in
+<code>package.json</code> to further modification of the TS declarations generated through processing the intermediate AST /
+Abstract Syntax Tree data.</p>
+<hr>
+<a id="md:caveats" class="tsd-anchor"></a><h2><a href="#md:caveats">Caveats</a></h2><p>There is not a well-defined resource that pulls together all the concepts employed or available for using JSDoc to
+generate Typescript declarations. <code>esm-d-ts</code> has been in development since November 2021. It is completely working and
+used in production for <code>TyphonJS</code> packages and releases. A good recent article to review that covers JSDoc + Typescript
+is <a href="https://dev.to/samuel-braun/boost-your-javascript-with-jsdoc-typing-3hb3">Boost Your JavaScript with JSDoc Typing</a>.</p>
+<p>That being said presently <code>esm-d-ts</code> does require a very particular way of linking all types in JSDoc across a project
+requiring explicit use of <a href="https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html#import-types">import types</a>
+for all symbols linked. <em>Even symbols from the local project</em>. This likely is a foreign concept to most ESM / JS
+developers used to IDE tooling that analyzes a project and allows local symbols to be referenced directly in <code>@param</code>
+JSDoc tags. This will be solved by adding an analysis stage to <code>esm-d-ts</code> in the future allowing local symbols to be
+used without <code>import types</code>.</p>
+<p>The background on the current need for <code>import types</code> is that with Typescript you must explicitly import all symbols
+referenced in documentation or source code. Typescript performs "import / export elision" when transpiling TS to JS
+source code removing imports only used in documentation. JSDoc when used in IDEs for ESM / JS development handles any
+project analysis and documentation generation tooling also analyzes a project for local symbols.</p>
+<p>An additional caveat to be aware of is that presently <code>esm-d-ts</code> during the generation process creates intermediate TS
+declaration files and by default they are located in the <code>./.dts</code> folder. It is recommended to add an exclusion rule
+in a <code>.gitignore</code> file for <code>/.dts</code>. This also is on the roadmap to provide a completely in-memory generation process.</p>
+<hr>
+<a id="md:roadmap" class="tsd-anchor"></a><h2><a href="#md:roadmap">Roadmap</a></h2><ul>
+<li><p>Create an initial processing stage where <code>esm-d-ts</code> analyzes all exported symbols of the local code base allowing
+local symbols to be used without <code>import types</code>.</p>
+</li>
+<li><p>Provide a way to manage the generation process entirely in memory. Presently the intermediate individual TS
+declarations created in execution are stored in the <code>./.dts</code> folder. Add this folder to your <code>.gitignore</code>. This is a
+limitation of <code>rollup-plugin-dts</code> &amp; the TS compiler API utilized that uses the file system for bundling. I will be
+looking into submitting a PR to <code>rollup-plugin-dts</code> to handle virtual bundling.</p>
+</li>
+<li><p>Generate source maps for the bundled TS declarations allowing IDEs to not just jump to the declarations, but also
+open linked source code.</p>
+</li>
+</ul>
+<hr>
+<a id="md:appreciation" class="tsd-anchor"></a><h2><a href="#md:appreciation">Appreciation</a></h2><p>I would like to bring awareness to the awesome underlying packages that make <code>esm-d-ts</code> possible:</p>
+<ul>
+<li><a href="https://www.npmjs.com/package/es-module-lexer">es-module-lexer</a> - <a href="https://github.com/guybedford">Guy Bedford</a></li>
+<li><a href="https://www.npmjs.com/package/rollup-plugin-dts">rollup-plugin-dts</a> - <a href="https://github.com/Swatinem">Arpad Borsos</a></li>
+<li><a href="https://www.npmjs.com/package/resolve.exports">resolve.exports</a> - <a href="https://github.com/lukeed">Luke Edwards</a></li>
+</ul>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)" id="icon-chevronDown"></path></svg>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked=""><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected" checked=""><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open="" class="tsd-index-accordion tsd-page-navigation"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg>On This Page</h3></summary>
+<div class="tsd-accordion-details" tabindex="-1">
+<ul>
+<li>
+<ul>
+<li><a href="#md:installation"><span>Installation:</span></a></li>
+<li>
+<ul>
+<li><a href="#md:what39s-new-020"><span>What's <wbr>New (0.2.0):</span></a></li>
+<li><a href="#md:overview"><span>Overview:</span></a></li>
+<li><a href="#md:example-use-cases"><span>Example use cases:</span></a></li>
+<li>
+<ul>
+<li><a href="#md:cli"><span>CLI</span></a></li>
+<li><a href="#md:programmatic-usage"><span>Programmatic <wbr>Usage</span></a></li>
+<li><a href="#md:rollup-plugin"><span>Rollup <wbr>Plugin</span></a></li></ul></li>
+<li><a href="#md:advanced-configuration"><span>Advanced <wbr>Configuration</span></a></li>
+<li><a href="#md:caveats"><span>Caveats</span></a></li>
+<li><a href="#md:roadmap"><span>Roadmap</span></a></li>
+<li><a href="#md:appreciation"><span>Appreciation</span></a></li></ul></li></ul></li></ul></div></details></div>
+<div class="site-menu" tabindex="-1"><wc-dmt-nav pageurl="\u0022index.html\u0022"></wc-dmt-nav></div></div></div>
+<div class="overlay"></div></body></html>
