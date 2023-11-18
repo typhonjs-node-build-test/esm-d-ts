@@ -22,20 +22,25 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 ```json
 {
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": "0.2.0-next.1"
+    "@typhonjs-build-test/esm-d-ts": "^0.2.0"
   }
 }
 ```
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
-## What's New:
-The initial beta release of `0.2.0` features optional postprocessing. The first built-in postprocessing function
-is support for `@inheritDoc`. This is an unsupported JSDoc tag for Typescript and when types are generated any methods
-or constructor functions that use `@inheritDoc` have parameters that are typed as `any`. You may add `processInheritDoc`
-to a new config parameter `postprocess` to enable support. It is also possible to create custom postprocessing
-functions. There will be more details and documentation when `0.2.0` releases.
+## What's New (0.2.0):
+- Optional postprocessing
+  - The first built-in postprocessing function is support for `@inheritDoc`. This is an unsupported JSDoc tag for
+  Typescript and when types are generated any methods or constructor functions that use `@inheritDoc` have parameters
+  that are typed as `any`. It is also possible to create custom postprocessing functions. For more details on
+  postprocessing and AST transformation [please see the wiki](https://github.com/typhonjs-node-build-test/esm-d-ts/wiki/AST-transformation-&-postprocessing#tstranformers).
 
-All dependencies updated along with peer dependency requirements of `Rollup 3.3 - 4.x` and `Typescript 5.1+`.
+
+- Support for the JSDoc `@module` comment pass-through to the generated DTS bundle. This is helpful when generating
+  docs from the DTS bundle. This is only supported for the main entry point source file.
+
+
+- All dependencies updated along with peer dependency requirements of `Rollup 3.3 - 4.x` and `Typescript 5.1+`.
 
 ## Overview:
 
