@@ -22,7 +22,7 @@ const s_TAG_NAMES = new Set(['inheritdoc', 'inheritDoc']);
  */
 export function processInheritDoc({ Logger, inheritance })
 {
-   inheritance.depthFirstSearch((v, e, u, i, depth) =>
+   inheritance.dfs((v, e, u, i, depth) =>
    {
       if (depth > 0)
       {

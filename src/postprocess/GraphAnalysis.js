@@ -1,8 +1,7 @@
 import cytoscape  from 'cytoscape';
 
 /**
- * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and usually `ts-morph`
- * nodes of interest.
+ * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and node Map.
  *
  * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
  * {@link ProcessorFunction} functions managed by {@link PostProcess}.
@@ -24,7 +23,7 @@ export class GraphAnalysis
    /**
     * @param {object}         options - Options.
     *
-    * @param {object[]}         options.graph - The graph data
+    * @param {object[]}       options.graph - The graph data
     *
     * @param {Map<string, T>} options.nodes - The Node map.
     */
@@ -64,10 +63,10 @@ export class GraphAnalysis
     * @param {boolean}  [options.directed] - A boolean indicating whether the algorithm should only go along edges
     *        from source to target
     */
-   depthFirstSearch(visit, { directed = false } = {})
+   dfs(visit, { directed = false } = {})
    {
-      // Find root nodes (nodes with no parents)
-      const rootNodes = this.#cy.nodes().filter((node) => node.indegree() === 0);
+      // Find root nodes; nodes with no parents.
+      const rootNodes = this.#cy.nodes().filter((node) => node.indegree(false) === 0);
 
       for (const rootNode of rootNodes)
       {
