@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "es2022",
+    "target": "es2022",
+    "noImplicitAny": true,
+    "sourceMap": false,
+    "moduleResolution" : "NodeNext",
+    "lib": ["DOM", "ES2022"]
+  },
+
+  "include" : [
+    "../src/**/*.d.ts"
+  ]
+}

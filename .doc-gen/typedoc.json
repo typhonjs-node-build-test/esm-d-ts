@@ -1,0 +1,30 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+
+  "entryPoints": [
+    "../src"
+  ],
+  "entryPointStrategy" : "expand",
+
+  "out": "../docs",
+
+  "plugin": [
+    "@typhonjs-typedoc/typedoc-theme-dmt",
+    "@typhonjs-typedoc/ts-lib-docs/typedoc/ts-links/dom/2023",
+    "@typhonjs-typedoc/ts-lib-docs/typedoc/ts-links/esm/2023"
+  ],
+
+  "disableSources": true,
+  "excludePrivate": true,
+  "hideGenerator": true,
+  "navigation": { "fullTree": true },
+  "theme": "default-modern",
+  "tsconfig": "tsconfig-docs.json",
+  "visibilityFilters": {
+    "inherited": true,
+    "protected": true
+  },
+
+  "dmtRemoveDefaultModule": true,
+  "dmtRemoveNavTopLevelIcon": true
+}
