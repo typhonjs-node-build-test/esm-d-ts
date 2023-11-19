@@ -77,4 +77,12 @@ export class GraphAnalysis
          });
       }
    }
+
+   /**
+    * @returns {string[]} Returns a JSON array of the graph.
+    */
+   toJSON()
+   {
+      return this.#cy.elements().map((element) => element.json()?.data);
+   }
 }
