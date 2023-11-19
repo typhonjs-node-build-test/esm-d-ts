@@ -5,6 +5,7 @@
  */
 
 export * from './external/index.js';
+export * from './InheritanceParser.js';
 export * from './GraphAnalysis.js';
 export * from './PostProcess.js';
 

@@ -1,36 +1,62 @@
 import {
    ClassDeclaration,
-   InterfaceDeclaration }  from 'ts-morph';
+   InterfaceDeclaration,
+   VariableDeclaration }   from 'ts-morph';
 
 /**
- * Parses a ts-morph DTS source file for inheritance hierarchy data.
- *
- * TODO: Determine if in the future it is necessary to include InterfaceDeclarations in the inheritance graph.
+ * Parses a bundled DTS file via a ts-morph source file for inheritance hierarchy data.
  */
 export class InheritanceParser
 {
    /**
+    * @template [T=import('./types').NameableNodeConstructor>]
+    *
     * @param {import('ts-morph').SourceFile} sourceFile - DTS source file to parse.
     *
-    * @returns {{ nodes: Map<string, import('ts-morph').ClassDeclaration>, graph: *[] }} Inheritance graph and nodes.
+    * @param {Set<T>}   typeSet - The `ts-morph` declaration types to parse.
+    *
+    * @returns {{ graph: object[], nodes: Map<string, T> }} Inheritance graph and nodes.
     */
-   static parse(sourceFile)
+   static parse(sourceFile, typeSet)
    {
       const data = [];
       const graph = [];
+
+      /** @type {Map<string, T>} */
       const nodes = new Map();
 
-      // Process each relevant node in the file
+      // Process each child nodes.
       sourceFile.forEachChild((node) =>
       {
-         // TODO: The following conditional includes interfaces & classes.
-         // if (node instanceof ClassDeclaration || node instanceof InterfaceDeclaration)
+         if (typeof node?.getName !== 'function') { return; }
 
-         if (node instanceof ClassDeclaration)
+         for (const type of typeSet)
          {
-            this.#extractInheritanceData(node, nodes, data);
+            if (!(node instanceof type)) { continue; }
+
+            if (node instanceof ClassDeclaration || node instanceof InterfaceDeclaration)
+            {
+               this.#extractInheritanceData(node, nodes, data);
+            }
+            else
+            {
+               const nodeName = node.getName();
+               if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
+               graph.push({ data: { id: nodeName } });
+            }
          }
       });
+
+      // Process any variable declarations / includes type aliases.
+      if (typeSet.has(VariableDeclaration))
+      {
+         for (const node of sourceFile.getVariableDeclarations())
+         {
+            const nodeName = node.getName();
+            if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
+            graph.push({ data: { id: nodeName } });
+         }
+      }
 
       // Format graph data -------------------------------------------------------------------------------------------
 
@@ -43,6 +69,17 @@ export class InheritanceParser
       return { graph, nodes };
    }
 
+   /**
+    * Extracts inheritance relationships for classes and interfaces.
+    *
+    * @template T
+    *
+    * @param {import('./types').NameableNode}   node - Target node to extract.
+    *
+    * @param {Map<string, T>}                   nodes - All nodes Map.
+    *
+    * @param {object[]}                         data - Parent / child relationships.
+    */
    static #extractInheritanceData(node, nodes, data)
    {
       const nodeName = node.getName();

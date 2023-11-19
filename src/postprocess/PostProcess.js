@@ -1,6 +1,8 @@
 import { isIterable }         from '@typhonjs-utils/object';
 import fs                     from 'fs-extra';
-import { Project }            from 'ts-morph';
+import {
+   ClassDeclaration,
+   Project }                  from 'ts-morph';
 import ts                     from 'typescript';
 
 import { GraphAnalysis }      from './GraphAnalysis.js';
@@ -17,7 +19,7 @@ export class PostProcess
 {
    /**
     * Performs postprocessing on a given Typescript declaration file in place. You may provide an alternate output
-    * filepath to not overwrite the source declaration file.
+    * filepath to not overwrite the source file.
     *
     * @param {object}   options - Options
     *
@@ -50,17 +52,17 @@ export class PostProcess
       }
 
       const project = new Project({
-         target: ts.ScriptTarget.ES2022,
-         module: ts.ModuleKind.ES2022,
+         compilerOptions: {
+            target: ts.ScriptTarget.ES2022,
+            module: ts.ModuleKind.ES2022,
+         }
       });
 
       // Add the declaration file to the project
       const sourceFile = project.addSourceFileAtPath(filepath);
 
-      /**
-       * @type {GraphAnalysis<import('ts-morph').ClassDeclaration>}
-       */
-      const inheritance = new GraphAnalysis(InheritanceParser.parse(sourceFile));
+      /** @type {GraphAnalysis<ClassDeclaration>} */
+      const inheritance = new GraphAnalysis(InheritanceParser.parse(sourceFile, new Set([ClassDeclaration])));
 
       let cntr = -1;
 
