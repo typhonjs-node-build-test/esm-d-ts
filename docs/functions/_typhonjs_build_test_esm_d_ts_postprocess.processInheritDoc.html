@@ -18,7 +18,7 @@
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="processInheritDoc"><span class="tsd-kind-call-signature">process<wbr>Inherit<wbr>Doc</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#processInheritDoc" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Implements a postprocessor to support <code>@inheritDoc</code>. By making a depth first search across the inheritance graph
+<div class="tsd-comment tsd-typography"><p>Implements a postprocessor to support <code>@inheritDoc</code>. By making a depth first search across the dependencies graph
 at every depth classes are processed for methods and constructor functions that have the <code>@inheritDoc</code> param. A
 backward traversal is performed from the current class through parent inheritance to promote the types of the
 parent class to child. <code>@inheritDoc</code> marked methods must have the same number of parameters as the parent
@@ -31,7 +31,7 @@ all methods using it with <code>any</code>.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">Logger</span><span class="tsd-signature-symbol">: </span><a href="../classes/_typhonjs_build_test_esm_d_ts_util.Logger.html" class="tsd-signature-type tsd-kind-class">Logger</a><span class="tsd-signature-symbol">; </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">inheritance</span><span class="tsd-signature-symbol">: </span><a href="../classes/_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html" class="tsd-signature-type tsd-kind-class">GraphAnalysis</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">ClassDeclaration</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br><span class="tsd-signature-symbol">}</span></h5>
+<h5><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">Logger</span><span class="tsd-signature-symbol">: </span><a href="../classes/_typhonjs_build_test_esm_d_ts_util.Logger.html" class="tsd-signature-type tsd-kind-class">Logger</a><span class="tsd-signature-symbol">; </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">dependencies</span><span class="tsd-signature-symbol">: </span><a href="../classes/_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html" class="tsd-signature-type tsd-kind-class">GraphAnalysis</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/_typhonjs_build_test_esm_d_ts_postprocess.DependencyNodes.html" class="tsd-signature-type tsd-kind-type-alias">DependencyNodes</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br><span class="tsd-signature-symbol">}</span></h5>
 <div class="tsd-comment tsd-typography"><p>Options</p>
 </div>
 <div class="tsd-comment tsd-typography"></div>
@@ -42,7 +42,9 @@ all methods using it with <code>any</code>.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-property">inheritance</span><span class="tsd-signature-symbol">: </span><a href="../classes/_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html" class="tsd-signature-type tsd-kind-class">GraphAnalysis</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">ClassDeclaration</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<h5><span class="tsd-kind-property">dependencies</span><span class="tsd-signature-symbol">: </span><a href="../classes/_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html" class="tsd-signature-type tsd-kind-class">GraphAnalysis</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/_typhonjs_build_test_esm_d_ts_postprocess.DependencyNodes.html" class="tsd-signature-type tsd-kind-type-alias">DependencyNodes</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<div class="tsd-comment tsd-typography"><p>Dependency graph</p>
+</div>
 <div class="tsd-comment tsd-typography"></div></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div></li></ul></section></div>

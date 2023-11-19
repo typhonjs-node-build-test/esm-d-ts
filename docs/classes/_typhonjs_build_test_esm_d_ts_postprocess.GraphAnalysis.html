@@ -13,19 +13,21 @@
 
 <li><a href="../modules/_typhonjs_build_test_esm_d_ts_postprocess.html">@typhonjs-build-test/esm-d-ts/postprocess</a></li>
 <li><a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html">GraphAnalysis</a></li></ul>
-<div class="dmt-title-header-flex"><h1>Class GraphAnalysis&lt;T&gt;</h1></div></div>
+<div class="dmt-title-header-flex"><h1>Class GraphAnalysis&lt;Nodes, GraphJSON&gt;</h1></div></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Provides a wrapper around a headless <code>cytoscape</code> instance loaded with the given graph data and usually <code>ts-morph</code>
-nodes of interest.</p>
-<p>A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
-<a href="../types/_typhonjs_build_test_esm_d_ts_postprocess.ProcessorFunction.html" class="tsd-kind-type-alias">ProcessorFunction</a> functions managed by <a href="_typhonjs_build_test_esm_d_ts_postprocess.PostProcess.html" class="tsd-kind-class">PostProcess</a>.</p>
+<div class="tsd-comment tsd-typography"><p>Provides a wrapper around a headless <code>cytoscape</code> instance loaded with the given graph data and node Map.</p>
+<p>A GraphAnalysis instance for the dependencies graph is passed into the postprocessor <a href="../types/_typhonjs_build_test_esm_d_ts_postprocess.ProcessorFunction.html" class="tsd-kind-type-alias">ProcessorFunction</a>
+functions managed by <a href="_typhonjs_build_test_esm_d_ts_postprocess.PostProcess.html" class="tsd-kind-class">PostProcess</a>.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></section> 
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li>
-<h4><span class="tsd-kind-type-parameter">T</span></h4>
+<h4><span class="tsd-kind-type-parameter">Nodes</span></h4>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h4><span class="tsd-kind-type-parameter">GraphJSON</span> = <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography"></div></li></ul></section> 
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
@@ -47,25 +49,29 @@ nodes of interest.</p>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
-<div class="tsd-index-list"><a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html#depthFirstSearch" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-2048"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)"></path></g></svg><span>depth<wbr>First<wbr>Search</span></a>
+<div class="tsd-index-list"><a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html#bfs" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-2048"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)"></path></g></svg><span>bfs</span></a>
+<a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html#dfs" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>dfs</span></a>
+<a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html#toJSON" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>toJSON</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Constructors</h2>
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_GraphAnalysis"><span class="tsd-kind-constructor-signature">new <wbr>Graph<wbr>Analysis</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html" class="tsd-signature-type tsd-kind-class">GraphAnalysis</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><a href="#constructor.new_GraphAnalysis" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_GraphAnalysis"><span class="tsd-kind-constructor-signature">new <wbr>Graph<wbr>Analysis</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Nodes</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">GraphJSON</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html" class="tsd-signature-type tsd-kind-class">GraphAnalysis</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Nodes</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">GraphJSON</span><span class="tsd-signature-symbol">&gt;</span><a href="#constructor.new_GraphAnalysis" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li>
-<h4><span class="tsd-kind-type-parameter">T</span></h4></li></ul></section>
+<h4><span class="tsd-kind-type-parameter">Nodes</span></h4></li>
+<li>
+<h4><span class="tsd-kind-type-parameter">GraphJSON</span> = <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h4></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">graph</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">nodes</span><span class="tsd-signature-symbol">: </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Map.html" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br><span class="tsd-signature-symbol">}</span></h5>
+<h5><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">graph</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">nodes</span><span class="tsd-signature-symbol">: </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Map.html" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">Nodes</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br><span class="tsd-signature-symbol">}</span></h5>
 <div class="tsd-comment tsd-typography"><p>Options.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div>
@@ -76,11 +82,11 @@ nodes of interest.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li class="tsd-parameter">
-<h5><span class="tsd-kind-property">nodes</span><span class="tsd-signature-symbol">: </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Map.html" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<h5><span class="tsd-kind-property">nodes</span><span class="tsd-signature-symbol">: </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Map.html" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">Nodes</span><span class="tsd-signature-symbol">&gt;</span></h5>
 <div class="tsd-comment tsd-typography"><p>The Node map.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html" class="tsd-signature-type tsd-kind-class">GraphAnalysis</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<h4 class="tsd-returns-title">Returns <a href="_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html" class="tsd-signature-type tsd-kind-class">GraphAnalysis</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Nodes</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">GraphJSON</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
@@ -95,17 +101,51 @@ nodes of interest.</p>
 <section class="tsd-panel tsd-member"><a id="nodes" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>nodes</span><a href="#nodes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature" id="nodes.nodes-1"><span class="tsd-signature-symbol">get</span> nodes<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Map.html" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-signature" id="nodes.nodes-1"><span class="tsd-signature-symbol">get</span> nodes<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Map.html" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">Nodes</span><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Map.html" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4><p>The Node Map.</p>
+<h4 class="tsd-returns-title">Returns <a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Map.html" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">Nodes</span><span class="tsd-signature-symbol">&gt;</span></h4><p>The Node Map.</p>
 
 <div class="tsd-comment tsd-typography"></div></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
-<section class="tsd-panel tsd-member"><a id="depthFirstSearch" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>depth<wbr>First<wbr>Search</span><a href="#depthFirstSearch" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<section class="tsd-panel tsd-member"><a id="bfs" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>bfs</span><a href="#bfs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="depthFirstSearch.depthFirstSearch-1"><span class="tsd-kind-call-signature">depth<wbr>First<wbr>Search</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">visit</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#depthFirstSearch.depthFirstSearch-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="bfs.bfs-1"><span class="tsd-kind-call-signature">bfs</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">visit</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#bfs.bfs-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Perform a breadth first search of the graph.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">visit</span>: <span class="tsd-signature-type ">SearchVisitFunction</span></h5>
+<div class="tsd-comment tsd-typography"><p>A cytoscape search visit function.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">directed</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">type</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Set.html" class="tsd-signature-type external" target="_blank">Set</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br><span class="tsd-signature-symbol">}</span></h5>
+<div class="tsd-comment tsd-typography"><p>Options.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">directed</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
+<div class="tsd-comment tsd-typography"><p>A boolean indicating whether the algorithm should only go along edges
+       from source to target.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">type</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Set.html" class="tsd-signature-type external" target="_blank">Set</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<div class="tsd-comment tsd-typography"><p>Specific type to retrieve.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography"></div></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="dfs" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>dfs</span><a href="#dfs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="dfs.dfs-1"><span class="tsd-kind-call-signature">dfs</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">visit</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#dfs.dfs-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Perform a depth first search of the graph.</p>
 </div>
@@ -118,7 +158,7 @@ nodes of interest.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">directed</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br><span class="tsd-signature-symbol">}</span></h5>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">directed</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br><span>&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tsd-kind-property">type</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Set.html" class="tsd-signature-type external" target="_blank">Set</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br><span class="tsd-signature-symbol">}</span></h5>
 <div class="tsd-comment tsd-typography"><p>Options.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div>
@@ -126,10 +166,23 @@ nodes of interest.</p>
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">directed</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
 <div class="tsd-comment tsd-typography"><p>A boolean indicating whether the algorithm should only go along edges
-       from source to target</p>
+       from source to target.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">type</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="https://typhonjs-typedoc.github.io/ts-lib-docs/2023/esm/interfaces/Set.html" class="tsd-signature-type external" target="_blank">Set</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<div class="tsd-comment tsd-typography"><p>Specific type to retrieve.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography"></div></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="toJSON" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>toJSON</span><a href="#toJSON" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="toJSON.toJSON-1"><span class="tsd-kind-call-signature">toJSON</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">GraphJSON</span><a href="#toJSON.toJSON-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type tsd-kind-type-parameter">GraphJSON</span></h4><p>Returns a JSON array of the graph.</p>
+
 <div class="tsd-comment tsd-typography"></div></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
@@ -151,6 +204,8 @@ nodes of interest.</p>
 <li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
 <li><a href="#cytoscape" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-262144"></use></svg><span>cytoscape</span></a></li>
 <li><a href="#nodes" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-262144"></use></svg><span>nodes</span></a></li>
-<li><a href="#depthFirstSearch" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>depth<wbr>First<wbr>Search</span></a></li></ul></div></details></div>
+<li><a href="#bfs" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>bfs</span></a></li>
+<li><a href="#dfs" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>dfs</span></a></li>
+<li><a href="#toJSON" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>toJSON</span></a></li></ul></div></details></div>
 <div class="site-menu" tabindex="-1"><wc-dmt-nav pageurl="\u0022classes/_typhonjs_build_test_esm_d_ts_postprocess.GraphAnalysis.html\u0022"></wc-dmt-nav></div></div></div>
 <div class="overlay"></div></body></html>
