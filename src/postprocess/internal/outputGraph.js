@@ -16,14 +16,14 @@ export function outputGraph(filepath, indentation)
     *
     * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
     *
-    * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').InheritanceNodes>} options.inheritance -
+    * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').DependencyNodes>} options.dependencies -
     *        Inheritance graph
     */
-   function outputDependencyGraph({ Logger, inheritance })
+   function outputDependencyGraph({ Logger, dependencies })
    {
       try
       {
-         fs.writeFileSync(filepath, JSON.stringify(inheritance.toJSON(), null, indentation));
+         fs.writeFileSync(filepath, JSON.stringify(dependencies.toJSON(), null, indentation));
       }
       catch (err)
       {

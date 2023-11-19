@@ -1,6 +1,12 @@
+/**
+ * Provides support for postprocessing bundled type declarations.
+ *
+ * @module @typhonjs-build-test/esm-d-ts/postprocess
+ */
+
 import * as cytoscape from 'cytoscape';
 import * as ts_morph from 'ts-morph';
-import { Node, ClassDeclaration, FunctionDeclaration, InterfaceDeclaration, TypeAliasDeclaration, VariableDeclaration } from 'ts-morph';
+import { ClassDeclaration, FunctionDeclaration, InterfaceDeclaration, TypeAliasDeclaration, VariableDeclaration } from 'ts-morph';
 import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-ts/util';
 
 /**
@@ -9,8 +15,8 @@ import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-
  * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
  * {@link ProcessorFunction} functions managed by {@link PostProcess}.
  *
- * @template N
- * @template [G=object[]]
+ * @template N Nodes
+ * @template [G=object[]] GraphJSON
  */
 declare class GraphAnalysis<N, G = any[]> {
     /**
@@ -87,35 +93,28 @@ declare class GraphAnalysis<N, G = any[]> {
  *
  * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
  *
- * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').InheritanceNodes>} options.inheritance -
- *        Inheritance graph
+ * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').DependencyNodes>} options.dependencies -
+ *        Dependency graph
  */
-declare function processInheritDoc({ Logger, inheritance }: {
+declare function processInheritDoc({ Logger, dependencies }: {
     Logger: _typhonjs_build_test_esm_d_ts_util.Logger;
-    inheritance: GraphAnalysis<InheritanceNodes>;
+    dependencies: GraphAnalysis<DependencyNodes>;
 }): void;
-
-declare interface NameableNode extends Node {
-    getName(): string;
-}
-type NameableNodeConstructor = new (...args: any[]) => NameableNode;
 
 /**
  * Parses a bundled DTS file via a ts-morph source file for inheritance hierarchy data.
  */
-declare class InheritanceParser {
+declare class DependencyParser {
     /**
-     * @template [T=import('./types').NameableNodeConstructor>]
-     *
      * @param {import('ts-morph').SourceFile} sourceFile - DTS source file to parse.
      *
-     * @param {Set<T>}   typeSet - The `ts-morph` declaration types to parse.
+     * @param {Set<import('./').DependencyNodes>} typeSet - The declaration types to parse.
      *
-     * @returns {{ graph: object[], nodes: Map<string, T> }} Inheritance graph and nodes.
+     * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Inheritance graph and nodes.
      */
-    static parse<T = NameableNodeConstructor>(sourceFile: ts_morph.SourceFile, typeSet: Set<T>): {
+    static parse(sourceFile: ts_morph.SourceFile, typeSet: Set<DependencyNodes>): {
         graph: object[];
-        nodes: Map<string, T>;
+        nodes: Map<string, DependencyNodes>;
     };
 }
 
@@ -145,10 +144,14 @@ declare class PostProcess {
 }
 
 /**
- * All declaration types / kinds included in the `inheritance` GraphAnalysis.
+ * All declaration types / kinds included in the `dependencies` GraphAnalysis.
  */
-type InheritanceNodes = (ClassDeclaration | FunctionDeclaration | InterfaceDeclaration | TypeAliasDeclaration | VariableDeclaration);
-type InheritanceGraph = ({
+type DependencyNodes = (ClassDeclaration | FunctionDeclaration | InterfaceDeclaration | TypeAliasDeclaration | VariableDeclaration);
+/**
+ * Defines the JSON output of the dependencies graph. Entries with `id` & `type` are nodes and
+ * those with `source & `target` are edges.
+ */
+type DependencyGraphJSON = ({
     id: string;
     type: 'ClassDeclaration' | 'FunctionDeclaration' | 'InterfaceDeclaration' | 'TypeAliasDeclaration' | 'VariableDeclaration';
 } | {
@@ -163,7 +166,7 @@ type InheritanceGraph = ({
 type ProcessorFunction = (params: {
     Logger?: _typhonjs_build_test_esm_d_ts_util.Logger;
     sourceFile?: ts_morph.SourceFile;
-    inheritance?: GraphAnalysis<InheritanceNodes, InheritanceGraph>;
+    dependencies?: GraphAnalysis<DependencyNodes, DependencyGraphJSON>;
 }) => void;
 
-export { GraphAnalysis, type InheritanceGraph, type InheritanceNodes, InheritanceParser, type NameableNode, type NameableNodeConstructor, PostProcess, type ProcessorFunction, processInheritDoc };
+export { type DependencyGraphJSON, type DependencyNodes, DependencyParser, GraphAnalysis, PostProcess, type ProcessorFunction, processInheritDoc };

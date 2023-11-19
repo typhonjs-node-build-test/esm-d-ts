@@ -18,17 +18,17 @@ const s_TAG_NAMES = new Set(['inheritdoc', 'inheritDoc']);
  *
  * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
  *
- * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').InheritanceNodes>} options.inheritance -
- *        Inheritance graph
+ * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').DependencyNodes>} options.dependencies -
+ *        Dependency graph
  */
-export function processInheritDoc({ Logger, inheritance })
+export function processInheritDoc({ Logger, dependencies })
 {
-   inheritance.dfs((v, e, u, i, depth) =>
+   dependencies.dfs((v, e, u, i, depth) =>
    {
       if (depth > 0)
       {
          const id = v.data('id');
-         const node = inheritance.nodes.get(id);
+         const node = dependencies.nodes.get(id);
 
          if (!node)
          {

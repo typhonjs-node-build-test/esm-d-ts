@@ -6,8 +6,8 @@ import cytoscape  from 'cytoscape';
  * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
  * {@link ProcessorFunction} functions managed by {@link PostProcess}.
  *
- * @template N
- * @template [G=object[]]
+ * @template N Nodes
+ * @template [G=object[]] GraphJSON
  */
 export class GraphAnalysis
 {

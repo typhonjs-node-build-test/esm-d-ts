@@ -7,23 +7,21 @@ import {
 /**
  * Parses a bundled DTS file via a ts-morph source file for inheritance hierarchy data.
  */
-export class InheritanceParser
+export class DependencyParser
 {
    /**
-    * @template [T=import('./types').NameableNodeConstructor>]
-    *
     * @param {import('ts-morph').SourceFile} sourceFile - DTS source file to parse.
     *
-    * @param {Set<T>}   typeSet - The `ts-morph` declaration types to parse.
+    * @param {Set<import('./').DependencyNodes>} typeSet - The declaration types to parse.
     *
-    * @returns {{ graph: object[], nodes: Map<string, T> }} Inheritance graph and nodes.
+    * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Inheritance graph and nodes.
     */
    static parse(sourceFile, typeSet)
    {
       const data = [];
       const graph = [];
 
-      /** @type {Map<string, T>} */
+      /** @type {Map<string, import('./').DependencyNodes>} */
       const nodes = new Map();
 
       // Process each child nodes.
@@ -89,7 +87,8 @@ export class InheritanceParser
     *
     * @template T
     *
-    * @param {import('./types').NameableNode}   node - Target node to extract.
+    * @param {import('ts-morph').Constructor<import('ts-morph').Node> & { getName: () => string}}   node - Target node
+    * to extract.
     *
     * @param {Map<string, T>}                   nodes - All nodes Map.
     *

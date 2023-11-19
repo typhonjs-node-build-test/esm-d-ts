@@ -11,8 +11,8 @@ import {
 
 import ts                     from 'typescript';
 
+import { DependencyParser }   from './DependencyParser.js';
 import { GraphAnalysis }      from './GraphAnalysis.js';
-import { InheritanceParser }  from './InheritanceParser.js';
 
 import { Logger }             from '#logger';
 
@@ -81,7 +81,7 @@ export class PostProcess
       const sourceFile = project.addSourceFileAtPath(filepath);
 
       /** @type {GraphAnalysis<import('./').InheritanceNodes, import('./').InheritanceGraph>} */
-      const inheritance = new GraphAnalysis(InheritanceParser.parse(sourceFile, this.#defaultInheritanceTypes));
+      const dependencies = new GraphAnalysis(DependencyParser.parse(sourceFile, this.#defaultInheritanceTypes));
 
       let cntr = -1;
 
@@ -99,7 +99,7 @@ export class PostProcess
 
          try
          {
-            processor({ Logger, sourceFile, inheritance });
+            processor({ Logger, sourceFile, dependencies });
          }
          catch (err)
          {
