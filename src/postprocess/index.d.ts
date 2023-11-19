@@ -12,8 +12,8 @@ import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-
 /**
  * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and node Map.
  *
- * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
- * {@link ProcessorFunction} functions managed by {@link PostProcess}.
+ * A GraphAnalysis instance for the dependencies graph is passed into the postprocessor {@link ProcessorFunction}
+ * functions managed by {@link PostProcess}.
  *
  * @template N Nodes
  * @template [G=object[]] GraphJSON
@@ -78,7 +78,7 @@ declare class GraphAnalysis<N, G = any[]> {
 }
 
 /**
- * Implements a postprocessor to support `@inheritDoc`. By making a depth first search across the inheritance graph
+ * Implements a postprocessor to support `@inheritDoc`. By making a depth first search across the dependencies graph
  * at every depth classes are processed for methods and constructor functions that have the `@inheritDoc` param. A
  * backward traversal is performed from the current class through parent inheritance to promote the types of the
  * parent class to child. `@inheritDoc` marked methods must have the same number of parameters as the parent
@@ -102,7 +102,7 @@ declare function processInheritDoc({ Logger, dependencies }: {
 }): void;
 
 /**
- * Parses a bundled DTS file via a ts-morph source file for inheritance hierarchy data.
+ * Parses a bundled DTS file via a ts-morph source file for dependencies / inheritance hierarchy data.
  */
 declare class DependencyParser {
     /**
@@ -110,7 +110,7 @@ declare class DependencyParser {
      *
      * @param {Set<import('./').DependencyNodes>} typeSet - The declaration types to parse.
      *
-     * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Inheritance graph and nodes.
+     * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Dependency graph and nodes.
      */
     static parse(sourceFile: ts_morph.SourceFile, typeSet: Set<DependencyNodes>): {
         graph: object[];
@@ -149,7 +149,7 @@ declare class PostProcess {
 type DependencyNodes = (ClassDeclaration | FunctionDeclaration | InterfaceDeclaration | TypeAliasDeclaration | VariableDeclaration);
 /**
  * Defines the JSON output of the dependencies graph. Entries with `id` & `type` are nodes and
- * those with `source & `target` are edges.
+ * those with `source` & `target` are edges.
  */
 type DependencyGraphJSON = ({
     id: string;
@@ -161,7 +161,7 @@ type DependencyGraphJSON = ({
 })[];
 /**
  * A processor function that optionally receives the Logger, sourceFile (ts-morph), and
- *                      inheritance graph.
+ *                      dependencies graph.
  */
 type ProcessorFunction = (params: {
     Logger?: _typhonjs_build_test_esm_d_ts_util.Logger;

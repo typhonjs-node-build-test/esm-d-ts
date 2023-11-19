@@ -28,7 +28,7 @@ export * from './PostProcess.js';
  *    { id: string, type: 'ClassDeclaration' | 'FunctionDeclaration' | 'InterfaceDeclaration' | 'TypeAliasDeclaration' | 'VariableDeclaration' } |
  *    { id: string, source: string, target: string }
  * )[]} DependencyGraphJSON Defines the JSON output of the dependencies graph. Entries with `id` & `type` are nodes and
- * those with `source & `target` are edges.
+ * those with `source` & `target` are edges.
  */
 
 /**
@@ -38,5 +38,5 @@ export * from './PostProcess.js';
  *       dependencies?: import('./GraphAnalysis').GraphAnalysis<DependencyNodes, DependencyGraphJSON>
  *    }) => void
  * )} ProcessorFunction A processor function that optionally receives the Logger, sourceFile (ts-morph), and
- *                      inheritance graph.
+ *                      dependencies graph.
  */

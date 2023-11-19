@@ -3,8 +3,8 @@ import cytoscape  from 'cytoscape';
 /**
  * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and node Map.
  *
- * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
- * {@link ProcessorFunction} functions managed by {@link PostProcess}.
+ * A GraphAnalysis instance for the dependencies graph is passed into the postprocessor {@link ProcessorFunction}
+ * functions managed by {@link PostProcess}.
  *
  * @template N Nodes
  * @template [G=object[]] GraphJSON

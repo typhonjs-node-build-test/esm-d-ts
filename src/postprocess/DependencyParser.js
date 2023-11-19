@@ -5,7 +5,7 @@ import {
    VariableDeclaration }   from 'ts-morph';
 
 /**
- * Parses a bundled DTS file via a ts-morph source file for inheritance hierarchy data.
+ * Parses a bundled DTS file via a ts-morph source file for dependencies / inheritance hierarchy data.
  */
 export class DependencyParser
 {
@@ -14,7 +14,7 @@ export class DependencyParser
     *
     * @param {Set<import('./').DependencyNodes>} typeSet - The declaration types to parse.
     *
-    * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Inheritance graph and nodes.
+    * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Dependency graph and nodes.
     */
    static parse(sourceFile, typeSet)
    {

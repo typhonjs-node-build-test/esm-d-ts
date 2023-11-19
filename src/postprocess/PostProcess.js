@@ -24,11 +24,11 @@ import { Logger }             from '#logger';
 export class PostProcess
 {
    /**
-    * Defines the declaration types that are included in the inheritance GraphAnalysis.
+    * Defines the declaration types that are included in the `dependencies` GraphAnalysis.
     *
-    * @type {Set<import('./').InheritanceNodes>}
+    * @type {Set<import('./').DependencyNodes>}
     */
-   static #defaultInheritanceTypes = new Set([
+   static #defaultDependencyTypes = new Set([
       ClassDeclaration,
       FunctionDeclaration,
       InterfaceDeclaration,
@@ -80,8 +80,8 @@ export class PostProcess
       // Add the declaration file to the project
       const sourceFile = project.addSourceFileAtPath(filepath);
 
-      /** @type {GraphAnalysis<import('./').InheritanceNodes, import('./').InheritanceGraph>} */
-      const dependencies = new GraphAnalysis(DependencyParser.parse(sourceFile, this.#defaultInheritanceTypes));
+      /** @type {GraphAnalysis<import('./').DependencyNodes, import('./').DependencyGraphJSON>} */
+      const dependencies = new GraphAnalysis(DependencyParser.parse(sourceFile, this.#defaultDependencyTypes));
 
       let cntr = -1;
 

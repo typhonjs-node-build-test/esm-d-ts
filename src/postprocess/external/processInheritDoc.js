@@ -3,7 +3,7 @@ import { ClassDeclaration }   from 'ts-morph';
 const s_TAG_NAMES = new Set(['inheritdoc', 'inheritDoc']);
 
 /**
- * Implements a postprocessor to support `@inheritDoc`. By making a depth first search across the inheritance graph
+ * Implements a postprocessor to support `@inheritDoc`. By making a depth first search across the dependencies graph
  * at every depth classes are processed for methods and constructor functions that have the `@inheritDoc` param. A
  * backward traversal is performed from the current class through parent inheritance to promote the types of the
  * parent class to child. `@inheritDoc` marked methods must have the same number of parameters as the parent

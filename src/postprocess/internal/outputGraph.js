@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 
 /**
- * Provides an internal processor that simply serializes the inheritance graph JSON to the given filepath.
+ * Provides an internal processor that simply serializes the dependencies graph JSON to the given filepath.
  *
- * @param {string}            filepath - A file path to output the inheritance graph.
+ * @param {string}            filepath - A file path to output the dependencies graph.
  *
  * @param {string | number}   indentation - Passed to `JSON.stringify` for `space`.
  *
@@ -17,7 +17,7 @@ export function outputGraph(filepath, indentation)
     * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
     *
     * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').DependencyNodes>} options.dependencies -
-    *        Inheritance graph
+    *        dependencies graph.
     */
    function outputDependencyGraph({ Logger, dependencies })
    {
@@ -27,7 +27,7 @@ export function outputGraph(filepath, indentation)
       }
       catch (err)
       {
-         Logger.error(`[outputDependencyGraph] Failed to write file inheritance graph:\n${err.message}`);
+         Logger.error(`[outputDependencyGraph] Failed to write file for dependencies graph:\n${err.message}`);
       }
    }
 
