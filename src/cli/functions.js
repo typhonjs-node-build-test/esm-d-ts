@@ -246,7 +246,7 @@ async function processOptions(input, opts)
  */
 function exit(message, exit = true)
 {
-   console.error(`[31m[esm-d-ts] ${message}`);
+   console.error(`[31m[esm-d-ts] ${message}[0m`);
    if (exit) { process.exit(1); }
 }
 
