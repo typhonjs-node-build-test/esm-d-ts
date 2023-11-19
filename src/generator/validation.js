@@ -129,6 +129,18 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.outputGraph !== void 0 && typeof config.outputGraph !== 'string')
+   {
+      Logger.error(`validateConfig error: 'config.outputGraph' must be a string.`);
+      result = false;
+   }
+
+   if (config.outputGraphIndentation !== void 0 && typeof config.outputGraphIndentation !== 'number')
+   {
+      Logger.error(`validateConfig error: 'config.outputGraphIndentation' must be a number.`);
+      result = false;
+   }
+
    if (config.outputPostprocess !== void 0 && typeof config.outputPostprocess !== 'string')
    {
       Logger.error(`validateConfig error: 'config.outputPostprocess' must be a string.`);

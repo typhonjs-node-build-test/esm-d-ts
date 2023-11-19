@@ -40,6 +40,7 @@ import {
    validateConfig }              from './validation.js';
 
 import { PostProcess }           from '../postprocess/index.js';
+import { outputGraph }           from '../postprocess/internal/outputGraph.js';
 
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
@@ -302,13 +303,20 @@ async function bundleDTS(pConfig, jsdocModuleComments)
    await bundle.write(rollupConfig.output);
    await bundle.close();
 
+   // Collect the postprocessor functions.
+   // Add the internal `outputGraph` post processor if `config.outputGraph` is defined.
+   const processors = typeof config.outputGraph === 'string' ? [
+      ...(isIterable(config.postprocess) ? config.postprocess : []),
+      outputGraph(config.outputGraph, config.outputGraphIndentation)
+   ] : [...(isIterable(config.postprocess) ? config.postprocess : [])];
+
    // Handle any postprocessing of the bundled declarations.
-   if (isIterable(config.postprocess))
+   if (processors.length)
    {
       PostProcess.process({
          filepath: config.output,
          output: config.outputPostprocess,
-         processors: config.postprocess
+         processors
       });
    }
 
@@ -994,6 +1002,12 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {string}               [outputExt='.d.ts'] The bundled output TS declaration file extension. Normally a
  * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
  * change the extension as desired.
+ *
+ * @property {string}               [outputGraph] Outputs the package dependency graph to the given file path. The
+ * graph JSON is suitable for use in various graph libraries like cytoscape / Svelte Flow / amongst others.
+
+ * @property {number}               [outputGraphIndentation] When outputting the dependency graph use this indentation
+ * value for the JSON output.
  *
  * @property {string}               [outputPostprocess] When postprocessing is configured this is a helpful debugging
  * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of

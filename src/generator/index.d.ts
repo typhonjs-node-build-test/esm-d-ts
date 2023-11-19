@@ -81,6 +81,16 @@ type GeneratePluginConfig = {
      */
     outputExt?: string;
     /**
+     * Outputs the package dependency graph to the given file path. The
+     * graph JSON is suitable for use in various graph libraries like cytoscape / Svelte Flow / amongst others.
+     */
+    outputGraph?: string;
+    /**
+     * When outputting the dependency graph use this indentation
+     * value for the JSON output.
+     */
+    outputGraphIndentation?: number;
+    /**
      * When postprocessing is configured this is a helpful debugging
      * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of
      * any additional processing. You must specify a valid filepath.
