@@ -1,8 +1,14 @@
 import { isIterable }         from '@typhonjs-utils/object';
 import fs                     from 'fs-extra';
+
 import {
    ClassDeclaration,
-   Project }                  from 'ts-morph';
+   FunctionDeclaration,
+   InterfaceDeclaration,
+   Project,
+   TypeAliasDeclaration,
+   VariableDeclaration }      from 'ts-morph';
+
 import ts                     from 'typescript';
 
 import { GraphAnalysis }      from './GraphAnalysis.js';
@@ -17,6 +23,19 @@ import { Logger }             from '#logger';
  */
 export class PostProcess
 {
+   /**
+    * Defines the declaration types that are included in the inheritance GraphAnalysis.
+    *
+    * @type {Set<import('./').InheritanceNodes>}
+    */
+   static #defaultInheritanceTypes = new Set([
+      ClassDeclaration,
+      FunctionDeclaration,
+      InterfaceDeclaration,
+      TypeAliasDeclaration,
+      VariableDeclaration
+   ]);
+
    /**
     * Performs postprocessing on a given Typescript declaration file in place. You may provide an alternate output
     * filepath to not overwrite the source file.
@@ -61,8 +80,8 @@ export class PostProcess
       // Add the declaration file to the project
       const sourceFile = project.addSourceFileAtPath(filepath);
 
-      /** @type {GraphAnalysis<ClassDeclaration>} */
-      const inheritance = new GraphAnalysis(InheritanceParser.parse(sourceFile, new Set([ClassDeclaration])));
+      /** @type {GraphAnalysis<import('./').InheritanceNodes, import('./').InheritanceGraph>} */
+      const inheritance = new GraphAnalysis(InheritanceParser.parse(sourceFile, this.#defaultInheritanceTypes));
 
       let cntr = -1;
 

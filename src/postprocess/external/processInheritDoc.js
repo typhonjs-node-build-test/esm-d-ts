@@ -18,7 +18,8 @@ const s_TAG_NAMES = new Set(['inheritdoc', 'inheritDoc']);
  *
  * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
  *
- * @param {import('../GraphAnalysis.js').GraphAnalysis<import('ts-morph').ClassDeclaration>} options.inheritance -
+ * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').InheritanceNodes>} options.inheritance -
+ *        Inheritance graph
  */
 export function processInheritDoc({ Logger, inheritance })
 {
@@ -34,9 +35,6 @@ export function processInheritDoc({ Logger, inheritance })
             Logger.warn(`[processInheritDoc] ts-morph node for graph id '${id}' could not be retrieved.`);
             return;
          }
-
-         // For now only classes are considered.
-         if (!(node instanceof ClassDeclaration)) { return; }
 
          if (Logger.isVerbose)
          {
@@ -59,7 +57,7 @@ export function processInheritDoc({ Logger, inheritance })
 
          if (classMethods.size || classCtor) { processClass(node, classMethods, classCtor, Logger); }
       }
-   }, { directed: true });
+   }, { directed: true, type: new Set(['ClassDeclaration']) });
 }
 
 // Internal implementation -------------------------------------------------------------------------------------------
@@ -156,12 +154,7 @@ function processClass(node, methods, classCtor, Logger)
       {
          const parentMethod = parentNode.getMethod(method.getName());
 
-         if (!parentMethod)
-         {
-            // TODO remove debug log
-            // console.log(`! \tcould not find parent method: `, method.getName());
-            continue;
-         }
+         if (!parentMethod) { continue; }
 
          const methodParameters = method.getParameters();
          const parentMethodParameters = parentMethod.getParameters();

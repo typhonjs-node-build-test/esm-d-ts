@@ -6,7 +6,8 @@ import cytoscape  from 'cytoscape';
  * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
  * {@link ProcessorFunction} functions managed by {@link PostProcess}.
  *
- * @template T
+ * @template N
+ * @template [G=object[]]
  */
 export class GraphAnalysis
 {
@@ -16,7 +17,7 @@ export class GraphAnalysis
    /**
     * The node map to look up data associated with the given graph node ID.
     *
-    * @type {Map<string, T>}
+    * @type {Map<string, N>}
     */
    #nodes;
 
@@ -25,7 +26,7 @@ export class GraphAnalysis
     *
     * @param {object[]}       options.graph - The graph data
     *
-    * @param {Map<string, T>} options.nodes - The Node map.
+    * @param {Map<string, N>} options.nodes - The Node map.
     */
    constructor({ graph, nodes })
    {
@@ -46,7 +47,7 @@ export class GraphAnalysis
    }
 
    /**
-    * @returns {Map<string, T>} The Node Map.
+    * @returns {Map<string, N>} The Node Map.
     */
    get nodes()
    {
@@ -58,13 +59,42 @@ export class GraphAnalysis
     *
     * @param {import('cytoscape').SearchVisitFunction}  visit - A cytoscape search visit function.
     *
-    * @param {object} [options] - Options.
+    * @param {object}   [options] - Options.
     *
-    * @param {boolean}  [options.directed] - A boolean indicating whether the algorithm should only go along edges
+    * @param {boolean}  [options.directed=false] - A boolean indicating whether the algorithm should only go along edges
     *        from source to target.
+    *
+    * @param {string | Set<string>}   [options.type] - Specific type to retrieve.
     */
-   bfs(visit, { directed = false } = {})
+   bfs(visit, { directed = false, type } = {})
    {
+      if (typeof visit !== 'function') { throw new TypeError(`'GraphAnalysis.bfs error: 'visit' is not a function.`); }
+
+      if (directed !== void 0 && typeof directed !== 'boolean')
+      {
+         throw new TypeError(`'GraphAnalysis.bfs error: 'directed' is not a boolean.`);
+      }
+
+      const hasTypeString = typeof type === 'string';
+      const hasTypeSet = type instanceof Set;
+
+      if (type !== void 0 && !hasTypeString && !hasTypeSet)
+      {
+         throw new TypeError(`'GraphAnalysis.bfs error: 'type' is not a string or set of strings.`);
+      }
+
+      let visitImpl = visit;
+
+      // Wrap visit function in `type` check.
+      if (hasTypeString)
+      {
+         visitImpl = (v, e, u, i, depth) => { if (v.data('type') === type) { visit(v, e, u, i, depth); } };
+      }
+      else if (hasTypeSet)
+      {
+         visitImpl = (v, e, u, i, depth) => { if (type.has(v.data('type'))) { visit(v, e, u, i, depth); } };
+      }
+
       // Find root nodes; nodes with no parents.
       const rootNodes = this.#cy.nodes().filter((node) => node.indegree(false) === 0);
 
@@ -72,7 +102,7 @@ export class GraphAnalysis
       {
          rootNode.successors().bfs({
             root: rootNode,
-            visit,
+            visit: visitImpl,
             directed
          });
       }
@@ -83,13 +113,42 @@ export class GraphAnalysis
     *
     * @param {import('cytoscape').SearchVisitFunction}  visit - A cytoscape search visit function.
     *
-    * @param {object} [options] - Options.
+    * @param {object}   [options] - Options.
     *
-    * @param {boolean}  [options.directed] - A boolean indicating whether the algorithm should only go along edges
+    * @param {boolean}  [options.directed=false] - A boolean indicating whether the algorithm should only go along edges
     *        from source to target.
+    *
+    * @param {string | Set<string>}   [options.type] - Specific type to retrieve.
     */
-   dfs(visit, { directed = false } = {})
+   dfs(visit, { directed = false, type } = {})
    {
+      if (typeof visit !== 'function') { throw new TypeError(`'GraphAnalysis.dfs error: 'visit' is not a function.`); }
+
+      if (directed !== void 0 && typeof directed !== 'boolean')
+      {
+         throw new TypeError(`'GraphAnalysis.dfs error: 'directed' is not a boolean.`);
+      }
+
+      const hasTypeString = typeof type === 'string';
+      const hasTypeSet = type instanceof Set;
+
+      if (type !== void 0 && !hasTypeString && !hasTypeSet)
+      {
+         throw new TypeError(`'GraphAnalysis.dfs error: 'type' is not a string or set of strings.`);
+      }
+
+      let visitImpl = visit;
+
+      // Wrap visit function in `type` check.
+      if (hasTypeString)
+      {
+         visitImpl = (v, e, u, i, depth) => { if (v.data('type') === type) { visit(v, e, u, i, depth); } };
+      }
+      else if (hasTypeSet)
+      {
+         visitImpl = (v, e, u, i, depth) => { if (type.has(v.data('type'))) { visit(v, e, u, i, depth); } };
+      }
+
       // Find root nodes; nodes with no parents.
       const rootNodes = this.#cy.nodes().filter((node) => node.indegree(false) === 0);
 
@@ -97,14 +156,14 @@ export class GraphAnalysis
       {
          rootNode.successors().dfs({
             root: rootNode,
-            visit,
+            visit: visitImpl,
             directed
          });
       }
    }
 
    /**
-    * @returns {string[]} Returns a JSON array of the graph.
+    * @returns {G} Returns a JSON array of the graph.
     */
    toJSON()
    {

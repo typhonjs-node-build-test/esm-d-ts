@@ -1,6 +1,7 @@
 import {
    ClassDeclaration,
    InterfaceDeclaration,
+   TypeAliasDeclaration,
    VariableDeclaration }   from 'ts-morph';
 
 /**
@@ -42,26 +43,40 @@ export class InheritanceParser
             {
                const nodeName = node.getName();
                if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
-               graph.push({ data: { id: nodeName } });
+               graph.push({ data: { id: nodeName, type: node.getKindName() } });
             }
          }
       });
 
-      // Process any variable declarations / includes type aliases.
+      // Process any variable declarations.
       if (typeSet.has(VariableDeclaration))
       {
          for (const node of sourceFile.getVariableDeclarations())
          {
             const nodeName = node.getName();
             if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
-            graph.push({ data: { id: nodeName } });
+            graph.push({ data: { id: nodeName, type: node.getKindName() } });
+         }
+      }
+
+      // Process any type aliases.
+      if (typeSet.has(TypeAliasDeclaration))
+      {
+         for (const node of sourceFile.getTypeAliases())
+         {
+            const nodeName = node.getName();
+            if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
+            graph.push({ data: { id: nodeName, type: node.getKindName() } });
          }
       }
 
       // Format graph data -------------------------------------------------------------------------------------------
 
       // Add nodes
-      new Set(data.flatMap((item) => [item.child, item.parent])).forEach((name) => graph.push({ data: { id: name } }));
+      new Set(data.flatMap((item) => [
+         { id: item.child, type: item.type },
+         { id: item.parent, type: item.type }
+      ])).forEach((node) => graph.push({ data: node }));
 
       // Add edges
       data.forEach((item) => graph.push({ data: { source: item.parent, target: item.child } }));
@@ -94,7 +109,7 @@ export class InheritanceParser
             if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
             if (!nodes.has(baseClassName)) { nodes.set(baseClassName, baseClass); }
 
-            data.push({ child: nodeName, parent: baseClassName });
+            data.push({ child: nodeName, parent: baseClassName, type: node.getKindName() });
          }
       }
       else if (node instanceof InterfaceDeclaration)
@@ -109,7 +124,7 @@ export class InheritanceParser
 
                if (!nodes.has(baseInterfaceName)) { nodes.set(baseInterfaceName, baseInterface); }
 
-               data.push({ child: nodeName, parent: baseInterfaceName });
+               data.push({ child: nodeName, parent: baseInterfaceName, type: node.getKindName() });
             }
          }
       }

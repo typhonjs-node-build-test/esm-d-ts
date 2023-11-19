@@ -1,12 +1,6 @@
-/**
- * Provides support for postprocessing bundled type declarations.
- *
- * @module @typhonjs-build-test/esm-d-ts/postprocess
- */
-
 import * as cytoscape from 'cytoscape';
 import * as ts_morph from 'ts-morph';
-import { Node } from 'ts-morph';
+import { Node, ClassDeclaration, FunctionDeclaration, InterfaceDeclaration, TypeAliasDeclaration, VariableDeclaration } from 'ts-morph';
 import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-ts/util';
 
 /**
@@ -15,41 +9,65 @@ import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-
  * A GraphAnalysis instance for the inheritance class structure is passed into the postprocessor
  * {@link ProcessorFunction} functions managed by {@link PostProcess}.
  *
- * @template T
+ * @template N
+ * @template [G=object[]]
  */
-declare class GraphAnalysis<T> {
+declare class GraphAnalysis<N, G = any[]> {
     /**
      * @param {object}         options - Options.
      *
      * @param {object[]}       options.graph - The graph data
      *
-     * @param {Map<string, T>} options.nodes - The Node map.
+     * @param {Map<string, N>} options.nodes - The Node map.
      */
     constructor({ graph, nodes }: {
         graph: object[];
-        nodes: Map<string, T>;
+        nodes: Map<string, N>;
     });
     /**
      * @returns {import('cytoscape').Core} The cytoscape core instance.
      */
     get cytoscape(): cytoscape.Core;
     /**
-     * @returns {Map<string, T>} The Node Map.
+     * @returns {Map<string, N>} The Node Map.
      */
-    get nodes(): Map<string, T>;
+    get nodes(): Map<string, N>;
+    /**
+     * Perform a breadth first search of the graph.
+     *
+     * @param {import('cytoscape').SearchVisitFunction}  visit - A cytoscape search visit function.
+     *
+     * @param {object}   [options] - Options.
+     *
+     * @param {boolean}  [options.directed=false] - A boolean indicating whether the algorithm should only go along edges
+     *        from source to target.
+     *
+     * @param {string | Set<string>}   [options.type] - Specific type to retrieve.
+     */
+    bfs(visit: cytoscape.SearchVisitFunction, { directed, type }?: {
+        directed?: boolean;
+        type?: string | Set<string>;
+    }): void;
     /**
      * Perform a depth first search of the graph.
      *
      * @param {import('cytoscape').SearchVisitFunction}  visit - A cytoscape search visit function.
      *
-     * @param {object} [options] - Options.
+     * @param {object}   [options] - Options.
      *
-     * @param {boolean}  [options.directed] - A boolean indicating whether the algorithm should only go along edges
-     *        from source to target
+     * @param {boolean}  [options.directed=false] - A boolean indicating whether the algorithm should only go along edges
+     *        from source to target.
+     *
+     * @param {string | Set<string>}   [options.type] - Specific type to retrieve.
      */
-    dfs(visit: cytoscape.SearchVisitFunction, { directed }?: {
+    dfs(visit: cytoscape.SearchVisitFunction, { directed, type }?: {
         directed?: boolean;
+        type?: string | Set<string>;
     }): void;
+    /**
+     * @returns {G} Returns a JSON array of the graph.
+     */
+    toJSON(): G;
     #private;
 }
 
@@ -69,11 +87,12 @@ declare class GraphAnalysis<T> {
  *
  * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
  *
- * @param {import('../GraphAnalysis.js').GraphAnalysis<import('ts-morph').ClassDeclaration>} options.inheritance -
+ * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').InheritanceNodes>} options.inheritance -
+ *        Inheritance graph
  */
 declare function processInheritDoc({ Logger, inheritance }: {
     Logger: _typhonjs_build_test_esm_d_ts_util.Logger;
-    inheritance: GraphAnalysis<ts_morph.ClassDeclaration>;
+    inheritance: GraphAnalysis<InheritanceNodes>;
 }): void;
 
 declare interface NameableNode extends Node {
@@ -126,13 +145,25 @@ declare class PostProcess {
 }
 
 /**
+ * All declaration types / kinds included in the `inheritance` GraphAnalysis.
+ */
+type InheritanceNodes = (ClassDeclaration | FunctionDeclaration | InterfaceDeclaration | TypeAliasDeclaration | VariableDeclaration);
+type InheritanceGraph = ({
+    id: string;
+    type: 'ClassDeclaration' | 'FunctionDeclaration' | 'InterfaceDeclaration' | 'TypeAliasDeclaration' | 'VariableDeclaration';
+} | {
+    id: string;
+    source: string;
+    target: string;
+})[];
+/**
  * A processor function that optionally receives the Logger, sourceFile (ts-morph), and
  *                      inheritance graph.
  */
 type ProcessorFunction = (params: {
     Logger?: _typhonjs_build_test_esm_d_ts_util.Logger;
     sourceFile?: ts_morph.SourceFile;
-    inheritance?: GraphAnalysis<ts_morph.ClassDeclaration>;
+    inheritance?: GraphAnalysis<InheritanceNodes, InheritanceGraph>;
 }) => void;
 
-export { GraphAnalysis, InheritanceParser, type NameableNode, type NameableNodeConstructor, PostProcess, type ProcessorFunction, processInheritDoc };
+export { GraphAnalysis, type InheritanceGraph, type InheritanceNodes, InheritanceParser, type NameableNode, type NameableNodeConstructor, PostProcess, type ProcessorFunction, processInheritDoc };
