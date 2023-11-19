@@ -7,6 +7,8 @@ import ts         from 'typescript';
 
 import { Logger } from '#logger';
 
+const s_LOG_LEVELS = new Set(['all', 'verbose', 'info', 'warn', 'error']);
+
 /**
  * Validates the TS compiler options.
  *
@@ -108,7 +110,7 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (!(config.logLevel in Logger.logLevels))
+   if (!s_LOG_LEVELS.has(config.logLevel))
    {
       Logger.error(
        `validateConfig error: 'config.logLevel' must be 'all', 'verbose', 'info', 'warn', or 'error'; received: '${

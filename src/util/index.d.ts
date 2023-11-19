@@ -45,12 +45,6 @@ declare class Logger {
      */
     static get logLevel(): string;
     /**
-     * @returns {{[p: string]: number}} Returns all log levels object.
-     */
-    static get logLevels(): {
-        [p: string]: number;
-    };
-    /**
      * Log an error message.
      *
      * @param {string} message - A message.

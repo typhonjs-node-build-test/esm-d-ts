@@ -28,7 +28,7 @@ export class Logger
     */
    static get isAll()
    {
-      return this.#checkLogLevel(this.logLevels.all);
+      return this.#checkLogLevel(this.#logLevels.all);
    }
 
    /**
@@ -36,7 +36,7 @@ export class Logger
     */
    static get isError()
    {
-      return this.#checkLogLevel(this.logLevels.error);
+      return this.#checkLogLevel(this.#logLevels.error);
    }
 
    /**
@@ -44,7 +44,7 @@ export class Logger
     */
    static get isInfo()
    {
-      return this.#checkLogLevel(this.logLevels.info);
+      return this.#checkLogLevel(this.#logLevels.info);
    }
 
    /**
@@ -52,7 +52,7 @@ export class Logger
     */
    static get isVerbose()
    {
-      return this.#checkLogLevel(this.logLevels.verbose);
+      return this.#checkLogLevel(this.#logLevels.verbose);
    }
 
    /**
@@ -60,7 +60,7 @@ export class Logger
     */
    static get isWarn()
    {
-      return this.#checkLogLevel(this.logLevels.warn);
+      return this.#checkLogLevel(this.#logLevels.warn);
    }
 
    /**
@@ -72,7 +72,7 @@ export class Logger
     */
    static isValidLevel(logLevel)
    {
-      return typeof this.logLevels[logLevel] === 'number';
+      return typeof this.#logLevels[logLevel] === 'number';
    }
 
    /**
@@ -81,14 +81,6 @@ export class Logger
    static get logLevel()
    {
       return this.#logLevel;
-   }
-
-   /**
-    * @returns {{[p: string]: number}} Returns all log levels object.
-    */
-   static get logLevels()
-   {
-      return this.#logLevels;
    }
 
    /**
@@ -111,7 +103,7 @@ export class Logger
     */
    static #checkLogLevel(level)
    {
-      return (this.logLevels[this.#logLevel] ?? this.logLevels.info) <= level;
+      return (this.#logLevels[this.#logLevel] ?? this.#logLevels.info) <= level;
    }
 
    /**
@@ -131,7 +123,7 @@ export class Logger
     */
    static info(message)
    {
-      if (!this.#checkLogLevel(this.logLevels.info)) { return; }
+      if (!this.#checkLogLevel(this.#logLevels.info)) { return; }
 
       console.log(`[esm-d-ts] ${message}`);
    }
@@ -143,7 +135,7 @@ export class Logger
     */
    static verbose(message)
    {
-      if (!this.#checkLogLevel(this.logLevels.verbose)) { return; }
+      if (!this.#checkLogLevel(this.#logLevels.verbose)) { return; }
 
       console.log(`[35m[esm-d-ts] ${message}[0m`);
    }
@@ -155,7 +147,7 @@ export class Logger
     */
    static warn(message)
    {
-      if (!this.#checkLogLevel(this.logLevels.warn)) { return; }
+      if (!this.#checkLogLevel(this.#logLevels.warn)) { return; }
 
       console.warn(`[33m[esm-d-ts] ${message}[0m`);
    }
