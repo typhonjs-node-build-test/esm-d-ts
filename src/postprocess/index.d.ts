@@ -15,29 +15,29 @@ import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-
  * A GraphAnalysis instance for the dependencies graph is passed into the postprocessor {@link ProcessorFunction}
  * functions managed by {@link PostProcess}.
  *
- * @template N Nodes
- * @template [G=object[]] GraphJSON
+ * @template Nodes
+ * @template [GraphJSON=object[]]
  */
-declare class GraphAnalysis<N, G = any[]> {
+declare class GraphAnalysis<Nodes, GraphJSON = any[]> {
     /**
      * @param {object}         options - Options.
      *
      * @param {object[]}       options.graph - The graph data
      *
-     * @param {Map<string, N>} options.nodes - The Node map.
+     * @param {Map<string, Nodes>} options.nodes - The Node map.
      */
     constructor({ graph, nodes }: {
         graph: object[];
-        nodes: Map<string, N>;
+        nodes: Map<string, Nodes>;
     });
     /**
      * @returns {import('cytoscape').Core} The cytoscape core instance.
      */
     get cytoscape(): cytoscape.Core;
     /**
-     * @returns {Map<string, N>} The Node Map.
+     * @returns {Map<string, Nodes>} The Node Map.
      */
-    get nodes(): Map<string, N>;
+    get nodes(): Map<string, Nodes>;
     /**
      * Perform a breadth first search of the graph.
      *
@@ -71,9 +71,9 @@ declare class GraphAnalysis<N, G = any[]> {
         type?: string | Set<string>;
     }): void;
     /**
-     * @returns {G} Returns a JSON array of the graph.
+     * @returns {GraphJSON} Returns a JSON array of the graph.
      */
-    toJSON(): G;
+    toJSON(): GraphJSON;
     #private;
 }
 

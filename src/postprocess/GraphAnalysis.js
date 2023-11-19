@@ -6,8 +6,8 @@ import cytoscape  from 'cytoscape';
  * A GraphAnalysis instance for the dependencies graph is passed into the postprocessor {@link ProcessorFunction}
  * functions managed by {@link PostProcess}.
  *
- * @template N Nodes
- * @template [G=object[]] GraphJSON
+ * @template Nodes
+ * @template [GraphJSON=object[]]
  */
 export class GraphAnalysis
 {
@@ -17,7 +17,7 @@ export class GraphAnalysis
    /**
     * The node map to look up data associated with the given graph node ID.
     *
-    * @type {Map<string, N>}
+    * @type {Map<string, Nodes>}
     */
    #nodes;
 
@@ -26,7 +26,7 @@ export class GraphAnalysis
     *
     * @param {object[]}       options.graph - The graph data
     *
-    * @param {Map<string, N>} options.nodes - The Node map.
+    * @param {Map<string, Nodes>} options.nodes - The Node map.
     */
    constructor({ graph, nodes })
    {
@@ -47,7 +47,7 @@ export class GraphAnalysis
    }
 
    /**
-    * @returns {Map<string, N>} The Node Map.
+    * @returns {Map<string, Nodes>} The Node Map.
     */
    get nodes()
    {
@@ -163,7 +163,7 @@ export class GraphAnalysis
    }
 
    /**
-    * @returns {G} Returns a JSON array of the graph.
+    * @returns {GraphJSON} Returns a JSON array of the graph.
     */
    toJSON()
    {
