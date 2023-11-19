@@ -54,6 +54,31 @@ export class GraphAnalysis
    }
 
    /**
+    * Perform a breadth first search of the graph.
+    *
+    * @param {import('cytoscape').SearchVisitFunction}  visit - A cytoscape search visit function.
+    *
+    * @param {object} [options] - Options.
+    *
+    * @param {boolean}  [options.directed] - A boolean indicating whether the algorithm should only go along edges
+    *        from source to target.
+    */
+   bfs(visit, { directed = false } = {})
+   {
+      // Find root nodes; nodes with no parents.
+      const rootNodes = this.#cy.nodes().filter((node) => node.indegree(false) === 0);
+
+      for (const rootNode of rootNodes)
+      {
+         rootNode.successors().bfs({
+            root: rootNode,
+            visit,
+            directed
+         });
+      }
+   }
+
+   /**
     * Perform a depth first search of the graph.
     *
     * @param {import('cytoscape').SearchVisitFunction}  visit - A cytoscape search visit function.
@@ -61,7 +86,7 @@ export class GraphAnalysis
     * @param {object} [options] - Options.
     *
     * @param {boolean}  [options.directed] - A boolean indicating whether the algorithm should only go along edges
-    *        from source to target
+    *        from source to target.
     */
    dfs(visit, { directed = false } = {})
    {
