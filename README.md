@@ -48,8 +48,10 @@ There is a lot to unpack regarding how to set up a modern ESM Node package for e
 TS declarations. At this time I'll point to the Typescript [JSDoc informational resources](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html)
 and the [handbook description](https://www.typescriptlang.org/docs/handbook/esm-node.html#packagejson-exports-imports-and-self-referencing)
 on how to set up `package.json` `exports` with the `types` condition. In time, I will expand the documentation and
-resources available about `esm-d-ts` covering new patterns unlocked from modern use cases combining JSDoc / TS capabilities. If you have questions please open a discussion in the [issue tracker](https://github.com/typhonjs-node-build-test/esm-d-ts/issues).
-You may also stop by the [TyphonJS Discord server](https://discord.gg/mnbgN8f) for discussion & support.
+resources available about `esm-d-ts` covering new patterns unlocked from modern use cases combining JSDoc / TS
+capabilities. If you have questions please open a discussion in the [issue tracker](https://github.com/typhonjs-node-build-test/esm-d-ts/issues). You may also stop by
+[the wiki](https://github.com/typhonjs-node-build-test/esm-d-ts/wiki) and the [TyphonJS Discord server](https://discord.gg/mnbgN8f) for
+discussion & support.
 
 A design goal behind `esm-d-ts` is to provide flexibility and near-zero configuration, so that you may adapt and use
 `esm-d-ts` for a variety of build and usage scenarios. There are four main ways to configure `esm-d-ts`:
