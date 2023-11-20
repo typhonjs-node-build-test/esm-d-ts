@@ -52,13 +52,10 @@
     "upath": "^2.0.1"
   },
   "devDependencies": {
+    "@typhonjs-typedoc/typedoc-d-ts": "github:@typhonjs-typedoc/typedoc-d-ts",
     "@types/node": "^20.9.0",
-    "@typhonjs-config/eslint-config": "^0.6.0",
-    "@typhonjs-typedoc/typedoc-theme-dmt": "0.0.0",
-    "@typhonjs-typedoc/ts-lib-docs": "2023.7.12",
-    "eslint": "^8.53.0",
-    "typedoc": "0.24.8"
-  },
+    "eslint": "^8.53.0"
+ },
   "peerDependencies": {
     "rollup": "3.3 - 4",
     "typescript": ">=5.1.0"
@@ -86,7 +83,7 @@
   "bugs": "https://github.com/typhonjs-node-build-test/esm-d-ts/issues",
   "scripts": {
     "eslint": "eslint .",
-    "docs": "typedoc --options ./.doc-gen/typedoc.json",
+    "docs": "typedoc-d-ts -l esm",
     "prepublishOnly": "npm run types",
     "types": "node ./src/cli/index.js gen -c",
     "post-test": "node test/postprocess/test.js"
