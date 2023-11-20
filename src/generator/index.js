@@ -399,8 +399,8 @@ function compile(pConfig, warn = false)
       // Special handling for `generateDTS` / log as warnings.
       if (warn)
       {
-         // Only log if logLevel is `warn` or `all` and `tsDiagnosticLog` is true.
-         if (!config.tsDiagnosticLog || Logger.logLevels[config.logLevel] > Logger.logLevels.warn) { continue; }
+         // Only log if logLevel is not `error` or `tsDiagnosticLog` is true.
+         if (!config.tsDiagnosticLog || Logger.logLevel === 'error') { continue; }
 
          if (diagnostic.file)
          {
