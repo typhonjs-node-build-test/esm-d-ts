@@ -400,7 +400,7 @@ function compile(pConfig, warn = false)
       if (warn)
       {
          // Only log if logLevel is not `error` or `tsDiagnosticLog` is true.
-         if (!config.tsDiagnosticLog || Logger.logLevel === 'error') { continue; }
+         if (!config.tsDiagnosticLog || !Logger.isWarn) { continue; }
 
          if (diagnostic.file)
          {
