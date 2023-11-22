@@ -1,5 +1,6 @@
 import {
    ClassDeclaration,
+   FunctionDeclaration,
    InterfaceDeclaration,
    TypeAliasDeclaration,
    VariableDeclaration }   from 'ts-morph';
@@ -10,13 +11,26 @@ import {
 export class DependencyParser
 {
    /**
+    * Defines the declaration types that are included in the `dependencies` GraphAnalysis.
+    *
+    * @type {Set<import('./').DependencyNodes>}
+    */
+   static #defaultDependencyTypes = new Set([
+      ClassDeclaration,
+      FunctionDeclaration,
+      InterfaceDeclaration,
+      TypeAliasDeclaration,
+      VariableDeclaration
+   ]);
+
+   /**
     * @param {import('ts-morph').SourceFile} sourceFile - DTS source file to parse.
     *
-    * @param {Set<import('./').DependencyNodes>} typeSet - The declaration types to parse.
+    * @param {Set<import('./').DependencyNodes>} [typeSet] - The declaration types to parse.
     *
     * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Dependency graph and nodes.
     */
-   static parse(sourceFile, typeSet)
+   static parse(sourceFile, typeSet = this.#defaultDependencyTypes)
    {
       const data = [];
       const graph = [];
