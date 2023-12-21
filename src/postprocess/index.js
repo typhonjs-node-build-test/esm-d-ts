@@ -1,7 +1,7 @@
 /**
  * Provides support for postprocessing bundled type declarations.
  *
- * @module @typhonjs-build-test/esm-d-ts/postprocess
+ * @module
  */
 
 import {

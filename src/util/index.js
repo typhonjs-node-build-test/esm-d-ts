@@ -1,7 +1,7 @@
 /**
  * Provides shared utilities including logging.
  *
- * @module @typhonjs-build-test/esm-d-ts/util
+ * @module
  */
 
 export * from './Logger.js';
