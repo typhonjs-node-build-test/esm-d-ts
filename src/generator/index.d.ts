@@ -1,7 +1,7 @@
 /**
  * Provides the main entry points to the package including `checkDTS` and `generateDTS`.
  *
- * @module @typhonjs-build-test/esm-d-ts
+ * @module
  */
 
 import * as rollup from 'rollup';

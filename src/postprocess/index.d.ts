@@ -1,7 +1,7 @@
 /**
  * Provides support for postprocessing bundled type declarations.
  *
- * @module @typhonjs-build-test/esm-d-ts/postprocess
+ * @module
  */
 
 import * as cytoscape from 'cytoscape';
@@ -108,11 +108,11 @@ declare class DependencyParser {
     /**
      * @param {import('ts-morph').SourceFile} sourceFile - DTS source file to parse.
      *
-     * @param {Set<import('./').DependencyNodes>} typeSet - The declaration types to parse.
+     * @param {Set<import('./').DependencyNodes>} [typeSet] - The declaration types to parse.
      *
      * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Dependency graph and nodes.
      */
-    static parse(sourceFile: ts_morph.SourceFile, typeSet: Set<DependencyNodes>): {
+    static parse(sourceFile: ts_morph.SourceFile, typeSet?: Set<DependencyNodes>): {
         graph: object[];
         nodes: Map<string, DependencyNodes>;
     };

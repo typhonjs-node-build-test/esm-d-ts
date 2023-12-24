@@ -1,7 +1,7 @@
 /**
  * Provides shared utilities including logging.
  *
- * @module @typhonjs-build-test/esm-d-ts/util
+ * @module
  */
 
 /**
@@ -39,7 +39,7 @@ declare class Logger {
     /**
      * @param {'all' | 'verbose' | 'info' | 'warn' | 'error'}   logLevel - Log level to set.
      */
-    static set logLevel(arg: string);
+    static set logLevel(logLevel: string);
     /**
      * @returns {string} Current log level.
      */
