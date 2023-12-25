@@ -1,5 +1,5 @@
 /**
- * Generate DTS for generator / transformer exports.
+ * Generate DTS for all sub-path exports: generator / postprocess / transformer / util.
  *
  * When not explicitly settings `output` `esm-d-ts` will automatically configure `output` by changing the extension
  * of the required input path. With the config below output for the bundled declarations are:
