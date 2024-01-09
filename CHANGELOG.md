@@ -1,4 +1,8 @@
 # Changelog
+## Release 0.2.0-next.4
+- Added `@packageDocumentation` comment pass-through to generated DTS when this comment type appears in the main entry
+point source file.
+
 ## Release 0.2.0-next.3
 - Added `@module` comment pass-through to generated DTS when this comment type appears in the main entry point source
 file. This is helpful when generating docs from the DTS file.
