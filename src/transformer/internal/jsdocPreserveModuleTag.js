@@ -18,7 +18,7 @@ export function jsdocPreserveModuleTag(moduleComments, fileName)
    {
       for (const entry of lastParsed.tags)
       {
-         if (entry.tag === 'module' && fileName === sourceFile.fileName)
+         if ((entry.tag === 'module' || entry.tag === 'packageDocumentation') && fileName === sourceFile.fileName)
          {
             moduleComments.push({
                filepath: sourceFile.fileName,
