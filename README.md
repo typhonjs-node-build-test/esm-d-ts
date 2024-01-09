@@ -3,7 +3,9 @@
 [![NPM](https://img.shields.io/npm/v/@typhonjs-build-test/esm-d-ts.svg?label=npm)](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts)
 [![Code Style](https://img.shields.io/badge/code%20style-allman-yellowgreen.svg?style=flat)](https://en.wikipedia.org/wiki/Indent_style#Allman_style)
 [![License](https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat)](https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/LICENSE)
-[![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://discord.gg/mnbgN8f)
+[![API Docs](https://img.shields.io/badge/API%20Documentation-476ff0)](https://typhonjs-node-build-test.github.io/esm-d-ts/)
+[![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://typhonjs.io/discord/)
+[![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
 Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate
 bundled Typescript declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to build
@@ -14,7 +16,7 @@ advanced use cases that library authors may encounter. Some of these optional ad
 re-exporting / re-bundling packages w/ TS declarations and thorough support for utilizing
 [imports](https://nodejs.org/api/packages.html#imports) / import conditions in a variety of flexible ways.
 
-Please check out the [package documentation here](https://typhonjs-node-build-test.github.io/esm-d-ts/).
+[API documentation](https://typhonjs-node-build-test.github.io/esm-d-ts/)
 
 ## Installation:
 
