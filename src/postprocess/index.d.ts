@@ -7,7 +7,7 @@
 import * as cytoscape from 'cytoscape';
 import * as ts_morph from 'ts-morph';
 import { ClassDeclaration, FunctionDeclaration, InterfaceDeclaration, TypeAliasDeclaration, VariableDeclaration } from 'ts-morph';
-import * as _typhonjs_build_test_esm_d_ts_util from '@typhonjs-build-test/esm-d-ts/util';
+import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
 
 /**
  * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and node Map.
@@ -91,13 +91,13 @@ declare class GraphAnalysis<Nodes, GraphJSON = any[]> {
  *
  * @param {object} options - Options
  *
- * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
+ * @param {import('@typhonjs-utils/logger-color').ColorLogger} options.logger - Logger instance.
  *
  * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').DependencyNodes>} options.dependencies -
  *        Dependency graph
  */
-declare function processInheritDoc({ Logger, dependencies }: {
-    Logger: _typhonjs_build_test_esm_d_ts_util.Logger;
+declare function processInheritDoc({ logger, dependencies }: {
+    logger: _typhonjs_utils_logger_color.ColorLogger;
     dependencies: GraphAnalysis<DependencyNodes>;
 }): void;
 
@@ -164,7 +164,7 @@ type DependencyGraphJSON = ({
  *                      dependencies graph.
  */
 type ProcessorFunction = (params: {
-    Logger?: _typhonjs_build_test_esm_d_ts_util.Logger;
+    logger?: _typhonjs_utils_logger_color.ColorLogger;
     sourceFile?: ts_morph.SourceFile;
     dependencies?: GraphAnalysis<DependencyNodes, DependencyGraphJSON>;
 }) => void;
