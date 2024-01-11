@@ -4,10 +4,10 @@
  * @module
  */
 
-import * as cytoscape from 'cytoscape';
 import * as ts_morph from 'ts-morph';
 import { ClassDeclaration, FunctionDeclaration, InterfaceDeclaration, TypeAliasDeclaration, VariableDeclaration } from 'ts-morph';
 import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
+import * as cytoscape from 'cytoscape';
 
 /**
  * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and node Map.
@@ -20,15 +20,15 @@ import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
  */
 declare class GraphAnalysis<Nodes, GraphJSON = any[]> {
     /**
-     * @param {object}         options - Options.
+     * @param {object}                                    options - Options.
      *
-     * @param {object[]}       options.graph - The graph data
+     * @param {import('cytoscape').ElementDefinition[]}   options.graph - The graph data.
      *
-     * @param {Map<string, Nodes>} options.nodes - The Node map.
+     * @param {Map<string, import('./').DependencyNodes>} options.nodes - The Node map.
      */
     constructor({ graph, nodes }: {
-        graph: object[];
-        nodes: Map<string, Nodes>;
+        graph: cytoscape.ElementDefinition[];
+        nodes: Map<string, DependencyNodes>;
     });
     /**
      * @returns {import('cytoscape').Core} The cytoscape core instance.
@@ -110,10 +110,13 @@ declare class DependencyParser {
      *
      * @param {Set<import('./').DependencyNodes>} [typeSet] - The declaration types to parse.
      *
-     * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Dependency graph and nodes.
+     * @returns {({
+     *    graph: import('cytoscape').ElementDefinition[],
+     *    nodes: Map<string, import('./').DependencyNodes>
+     * })} Dependency graph and nodes.
      */
     static parse(sourceFile: ts_morph.SourceFile, typeSet?: Set<DependencyNodes>): {
-        graph: object[];
+        graph: cytoscape.ElementDefinition[];
         nodes: Map<string, DependencyNodes>;
     };
 }

@@ -28,11 +28,16 @@ export class DependencyParser
     *
     * @param {Set<import('./').DependencyNodes>} [typeSet] - The declaration types to parse.
     *
-    * @returns {{ graph: object[], nodes: Map<string, import('./').DependencyNodes> }} Dependency graph and nodes.
+    * @returns {({
+    *    graph: import('cytoscape').ElementDefinition[],
+    *    nodes: Map<string, import('./').DependencyNodes>
+    * })} Dependency graph and nodes.
     */
    static parse(sourceFile, typeSet = this.#defaultDependencyTypes)
    {
       const data = [];
+
+      /** @type {import('cytoscape').ElementDefinition[]} */
       const graph = [];
 
       /** @type {Map<string, import('./').DependencyNodes>} */

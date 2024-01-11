@@ -1,4 +1,4 @@
-import cytoscape  from 'cytoscape';
+import cytoscape  from 'cytoscape/dist/cytoscape.esm.js';
 
 /**
  * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and node Map.
@@ -22,11 +22,11 @@ export class GraphAnalysis
    #nodes;
 
    /**
-    * @param {object}         options - Options.
+    * @param {object}                                    options - Options.
     *
-    * @param {object[]}       options.graph - The graph data
+    * @param {import('cytoscape').ElementDefinition[]}   options.graph - The graph data.
     *
-    * @param {Map<string, Nodes>} options.nodes - The Node map.
+    * @param {Map<string, import('./').DependencyNodes>} options.nodes - The Node map.
     */
    constructor({ graph, nodes })
    {
