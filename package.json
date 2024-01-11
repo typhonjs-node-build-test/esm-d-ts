@@ -5,10 +5,8 @@
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "bin": "./src/cli/index.js",
-  "main": "src/generator/index.js",
-  "module": "src/generator/index.js",
   "imports": {
-    "#logger": "./src/util/Logger.js"
+    "#util": "./src/util/index.js"
   },
   "exports": {
     ".": {
@@ -37,6 +35,7 @@
     "@types/cytoscape": "^3.19.15",
     "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.1.0",
     "@typhonjs-utils/file-util": "^0.1.0",
+    "@typhonjs-utils/logger-color": "^0.1.0",
     "@typhonjs-utils/object": "^0.1.0",
     "@typhonjs-utils/package-json": "^0.7.0",
     "cytoscape": "^3.27.0",
@@ -84,6 +83,16 @@
       "Discord": "https://typhonjs.io/discord/",
       "GitHub": "https://github.com/typhonjs-node-build-test/esm-d-ts",
       "NPM": "https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts"
+    },
+    "externalSymbolLinkMappings": {
+      "@typhonjs-utils/logger-color": {
+        "ColorLogger": "https://typhonjs-node-utils.github.io/logger-color/classes/_typhonjs_utils_logger_color.ColorLogger.html"
+      },
+      "@types/cytoscape": {
+        "cytoscape.Core": "https://js.cytoscape.org/#core",
+        "cytoscape.ElementDefinition": "https://js.cytoscape.org/#notation/elements-json",
+        "cytoscape.SearchVisitFunction": "https://js.cytoscape.org/#eles.depthFirstSearch"
+      }
     }
   },
   "license": "MPL-2.0",
