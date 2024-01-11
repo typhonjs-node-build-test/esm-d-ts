@@ -8,7 +8,7 @@ import ts                     from 'typescript';
 import { DependencyParser }   from './DependencyParser.js';
 import { GraphAnalysis }      from './GraphAnalysis.js';
 
-import { Logger }             from '#logger';
+import { logger }             from '#util';
 
 /**
  * Provides management of execution of creating a `ts-morph` project and coordinating postprocessing
@@ -72,19 +72,19 @@ export class PostProcess
 
          if (typeof processor !== 'function')
          {
-            Logger.warn(`PostProcess.process warning: skipping processor[${cntr}] as it is not a function.`);
+            logger.warn(`PostProcess.process warning: skipping processor[${cntr}] as it is not a function.`);
             continue;
          }
 
-         if (Logger.isVerbose) { Logger.verbose(`PostProcess.process: Starting processor '${processor.name}'.`); }
+         if (logger.is.verbose) { logger.verbose(`PostProcess.process: Starting processor '${processor.name}'.`); }
 
          try
          {
-            processor({ Logger, sourceFile, dependencies });
+            processor({ logger, sourceFile, dependencies });
          }
          catch (err)
          {
-            Logger.error(
+            logger.error(
              `PostProcess.process error: processor[${cntr}] raised an error (aborting processing):\n${err.message}`);
 
             return;
@@ -99,7 +99,7 @@ export class PostProcess
          }
          catch (err)
          {
-            Logger.error(`PostProcess.process error: Failed to write postprocessing output to '${
+            logger.error(`PostProcess.process error: Failed to write postprocessing output to '${
              output}':\n${err.message}`);
          }
       }

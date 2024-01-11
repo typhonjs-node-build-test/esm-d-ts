@@ -10,7 +10,7 @@ import {
    checkDTS,
    generateDTS }           from '../generator/index.js';
 
-import { Logger }          from '#logger';
+import { logger }          from '#util';
 
 /**
  * Invokes checkDTS with the given input / config options.
@@ -152,12 +152,12 @@ async function processOptions(input, opts)
 
    if (typeof opts?.loglevel === 'string')
    {
-      if (!Logger.isValidLevel(opts.loglevel))
+      if (!logger.isValidLevel(opts.loglevel))
       {
          exit(`Invalid options: log level '${opts.loglevel}' must be 'all', 'verbose', 'info', 'warn', or 'error'.`);
       }
 
-      Logger.logLevel = opts.loglevel;
+      logger.setLogLevel(opts.loglevel);
    }
 
    const dirname = path.dirname(process.cwd());
@@ -177,12 +177,12 @@ async function processOptions(input, opts)
 
             if (fs.existsSync('./esm-d-ts.config.js'))
             {
-               Logger.verbose(`Loading config from path: './esm-d-ts.config.js'`);
+               logger.verbose(`Loading config from path: './esm-d-ts.config.js'`);
                config = await loadConfig(path.resolve('./esm-d-ts.config.js'));
             }
             else if (fs.existsSync('./esm-d-ts.config.mjs'))
             {
-               Logger.verbose(`Loading config from path: './esm-d-ts.config.mjs'`);
+               logger.verbose(`Loading config from path: './esm-d-ts.config.mjs'`);
                config = await loadConfig(path.resolve('./esm-d-ts.config.mjs'));
             }
             break;
@@ -194,7 +194,7 @@ async function processOptions(input, opts)
 
             if (!fs.existsSync(configPath)) { exit(`No config file available at: ${configPath}`); }
 
-            Logger.verbose(`Loading config from path: '${configPath}'`);
+            logger.verbose(`Loading config from path: '${configPath}'`);
             config = await loadConfig(configPath);
             break;
          }

@@ -1,7 +1,8 @@
-/**
- * Provides shared utilities including logging.
- *
- * @module
- */
+import { ColorLogger } from '@typhonjs-utils/logger-color';
 
-export * from './Logger.js';
+/**
+ * @type {import('@typhonjs-utils/logger-color').ColorLogger}
+ */
+const logger = new ColorLogger({ tag: 'esm-d-ts' });
+
+export { logger };

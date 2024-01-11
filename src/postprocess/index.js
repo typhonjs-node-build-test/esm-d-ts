@@ -33,7 +33,7 @@ export * from './PostProcess.js';
 
 /**
  * @typedef {((params: {
- *       Logger?: import('@typhonjs-build-test/esm-d-ts/util').Logger,
+ *       logger?: import('@typhonjs-utils/logger-color').ColorLogger,
  *       sourceFile?: import('ts-morph').SourceFile,
  *       dependencies?: import('./GraphAnalysis').GraphAnalysis<DependencyNodes, DependencyGraphJSON>
  *    }) => void

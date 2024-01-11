@@ -5,7 +5,7 @@ import {
 import fs         from 'fs-extra';
 import ts         from 'typescript';
 
-import { Logger } from '#logger';
+import { logger } from '#util';
 
 const s_LOG_LEVELS = new Set(['all', 'verbose', 'info', 'warn', 'error']);
 
@@ -27,7 +27,7 @@ export function validateCompilerOptions(compilerOptions)
 
    if (errors.length > 0)
    {
-      for (const error of errors) { Logger.error(`[TS] ${ts.flattenDiagnosticMessageText(error.messageText, '\n')}`); }
+      for (const error of errors) { logger.error(`[TS] ${ts.flattenDiagnosticMessageText(error.messageText, '\n')}`); }
       return void 0;
    }
 
@@ -47,50 +47,50 @@ export function validateConfig(config)
 
    if (typeof config.input !== 'string')
    {
-      Logger.error(`validateConfig error: 'config.input' must be a string.`);
+      logger.error(`validateConfig error: 'config.input' must be a string.`);
       result = false;
    }
 
    if (!fs.existsSync(config.input))
    {
-      Logger.error(`validateConfig error: 'config.input' file does not exist.`);
+      logger.error(`validateConfig error: 'config.input' file does not exist.`);
       result = false;
    }
 
    if (config.bundlePackageExports !== void 0 && typeof config.bundlePackageExports !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.bundlePackageExports' must be a boolean.`);
+      logger.error(`validateConfig error: 'config.bundlePackageExports' must be a boolean.`);
       result = false;
    }
 
    if (config.checkDefaultPath !== void 0 && typeof config.checkDefaultPath !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.checkDefaultPath' must be a boolean.`);
+      logger.error(`validateConfig error: 'config.checkDefaultPath' must be a boolean.`);
       result = false;
    }
 
    if (config.conditionExports !== void 0 && !isObject(config.conditionExports))
    {
-      Logger.error(`validateConfig error: 'config.conditionExports' must be an object.`);
+      logger.error(`validateConfig error: 'config.conditionExports' must be an object.`);
       result = false;
    }
 
    if (config.conditionImports !== void 0 && !isObject(config.conditionImports))
    {
-      Logger.error(`validateConfig error: 'config.conditionImports' must be an object.`);
+      logger.error(`validateConfig error: 'config.conditionImports' must be an object.`);
       result = false;
    }
 
    if (config.dtsReplace !== void 0 && !isObject(config.dtsReplace))
    {
-      Logger.error(`validateConfig error: 'config.dtsReplace' must be an object.`);
+      logger.error(`validateConfig error: 'config.dtsReplace' must be an object.`);
       result = false;
    }
 
    if (typeof config.filterTags !== 'string' && !isIterable(config.filterTags) && config.filterTags !== false &&
     config.filterTags !== null && config.filterTags !== void 0)
    {
-      Logger.error(
+      logger.error(
        `validateConfig error: 'config.filterTags' must be a string, iterable list of strings, or falsy value.`);
 
       result = false;
@@ -99,20 +99,20 @@ export function validateConfig(config)
    if (config.importsExternal !== void 0 && !isObject(config.importsExternal) &&
     typeof config.importsExternal !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.importsExternal' must be a boolean or an object.`);
+      logger.error(`validateConfig error: 'config.importsExternal' must be a boolean or an object.`);
       result = false;
    }
 
    if (config.importsResolve !== void 0 && !isObject(config.importsResolve) &&
     typeof config.importsResolve !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.importsResolve' must be a boolean or an object.`);
+      logger.error(`validateConfig error: 'config.importsResolve' must be a boolean or an object.`);
       result = false;
    }
 
    if (!s_LOG_LEVELS.has(config.logLevel))
    {
-      Logger.error(
+      logger.error(
        `validateConfig error: 'config.logLevel' must be 'all', 'verbose', 'info', 'warn', or 'error'; received: '${
          config.logLevel}'`);
 
@@ -121,55 +121,55 @@ export function validateConfig(config)
 
    if (typeof config.output !== 'string')
    {
-      Logger.error(`validateConfig error: 'config.output' must be a string.`);
+      logger.error(`validateConfig error: 'config.output' must be a string.`);
       result = false;
    }
 
    if (config.outputExt !== void 0 && typeof config.outputExt !== 'string')
    {
-      Logger.error(`validateConfig error: 'config.outputExt' must be a string.`);
+      logger.error(`validateConfig error: 'config.outputExt' must be a string.`);
       result = false;
    }
 
    if (config.outputGraph !== void 0 && typeof config.outputGraph !== 'string')
    {
-      Logger.error(`validateConfig error: 'config.outputGraph' must be a string.`);
+      logger.error(`validateConfig error: 'config.outputGraph' must be a string.`);
       result = false;
    }
 
    if (config.outputGraphIndentation !== void 0 && typeof config.outputGraphIndentation !== 'number')
    {
-      Logger.error(`validateConfig error: 'config.outputGraphIndentation' must be a number.`);
+      logger.error(`validateConfig error: 'config.outputGraphIndentation' must be a number.`);
       result = false;
    }
 
    if (config.outputPostprocess !== void 0 && typeof config.outputPostprocess !== 'string')
    {
-      Logger.error(`validateConfig error: 'config.outputPostprocess' must be a string.`);
+      logger.error(`validateConfig error: 'config.outputPostprocess' must be a string.`);
       result = false;
    }
 
    if (config.postprocess !== void 0 && !isIterable(config.postprocess))
    {
-      Logger.error(`validateConfig error: 'config.postprocess' must be an iterable list of functions.`);
+      logger.error(`validateConfig error: 'config.postprocess' must be an iterable list of functions.`);
       result = false;
    }
 
    if (config.prependFiles !== void 0 && !isIterable(config.prependFiles))
    {
-      Logger.error(`validateConfig error: 'config.prependFiles' must be an iterable list of strings.`);
+      logger.error(`validateConfig error: 'config.prependFiles' must be an iterable list of strings.`);
       result = false;
    }
 
    if (config.prependString !== void 0 && !isIterable(config.prependString))
    {
-      Logger.error(`validateConfig error: 'config.prependString' must be an iterable list of strings.`);
+      logger.error(`validateConfig error: 'config.prependString' must be an iterable list of strings.`);
       result = false;
    }
 
    if (typeof config.removePrivateStatic !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.removePrivateStatic' must be a boolean.`);
+      logger.error(`validateConfig error: 'config.removePrivateStatic' must be a boolean.`);
       result = false;
    }
 
@@ -177,44 +177,44 @@ export function validateConfig(config)
 
    if (config.tsCheckJs !== void 0 && typeof config.tsCheckJs !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.tsCheckJs' must be a boolean.`);
+      logger.error(`validateConfig error: 'config.tsCheckJs' must be a boolean.`);
       result = false;
    }
 
    if (config.tsconfig !== void 0 && typeof config.tsconfig !== 'string')
    {
-      Logger.error(`validateConfig error: 'config.tsconfig' must be a string.`);
+      logger.error(`validateConfig error: 'config.tsconfig' must be a string.`);
       result = false;
    }
 
    if (typeof config.tsDiagnosticExternal !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.tsDiagnosticExternal' must be a boolean.`);
+      logger.error(`validateConfig error: 'config.tsDiagnosticExternal' must be a boolean.`);
       result = false;
    }
 
    if (config.tsDiagnosticFilter !== void 0 && typeof config.tsDiagnosticFilter !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.tsDiagnosticFilter' must be a function.`);
+      logger.error(`validateConfig error: 'config.tsDiagnosticFilter' must be a function.`);
       result = false;
    }
 
    if (typeof config.tsDiagnosticLog !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.tsDiagnosticLog' must be a boolean.`);
+      logger.error(`validateConfig error: 'config.tsDiagnosticLog' must be a boolean.`);
       result = false;
    }
 
    if (typeof config.tsFileWalk !== 'boolean')
    {
-      Logger.error(`validateConfig error: 'config.tsFileWalk' must be a boolean.`);
+      logger.error(`validateConfig error: 'config.tsFileWalk' must be a boolean.`);
       result = false;
    }
 
    if (config.tsTransformers !== void 0 && !isIterable(config.tsTransformers) &&
     typeof config.tsTransformers !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.tsTransformers' must be a function or iterable list of functions.`);
+      logger.error(`validateConfig error: 'config.tsTransformers' must be a function or iterable list of functions.`);
       result = false;
    }
 
@@ -224,7 +224,7 @@ export function validateConfig(config)
     !(config.rollupExternal instanceof RegExp) && !Array.isArray(config.rollupExternal) &&
      typeof config.rollupExternal !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.rollupExternal' must be a string, RegExp, array of string / ` +
+      logger.error(`validateConfig error: 'config.rollupExternal' must be a string, RegExp, array of string / ` +
        `RegExp, or function.`);
 
       result = false;
@@ -232,13 +232,13 @@ export function validateConfig(config)
 
    if (config.rollupPaths !== void 0 && !isObject(config.rollupPaths) && typeof config.rollupPaths !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.rollupPaths' must be an object or function.`);
+      logger.error(`validateConfig error: 'config.rollupPaths' must be an object or function.`);
       result = false;
    }
 
    if (config.rollupOnwarn !== void 0 && typeof config.rollupOnwarn !== 'function')
    {
-      Logger.error(`validateConfig error: 'config.rollupOnwarn' must be a function.`);
+      logger.error(`validateConfig error: 'config.rollupOnwarn' must be a function.`);
       result = false;
    }
 

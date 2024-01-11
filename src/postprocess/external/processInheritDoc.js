@@ -16,12 +16,12 @@ const s_TAG_NAMES = new Set(['inheritdoc', 'inheritDoc']);
  *
  * @param {object} options - Options
  *
- * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
+ * @param {import('@typhonjs-utils/logger-color').ColorLogger} options.logger - Logger instance.
  *
  * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').DependencyNodes>} options.dependencies -
  *        Dependency graph
  */
-export function processInheritDoc({ Logger, dependencies })
+export function processInheritDoc({ logger, dependencies })
 {
    dependencies.dfs((v, e, u, i, depth) =>
    {
@@ -32,13 +32,13 @@ export function processInheritDoc({ Logger, dependencies })
 
          if (!node)
          {
-            Logger.warn(`[processInheritDoc] ts-morph node for graph id '${id}' could not be retrieved.`);
+            logger.warn(`[processInheritDoc] ts-morph node for graph id '${id}' could not be retrieved.`);
             return;
          }
 
-         if (Logger.isVerbose)
+         if (logger.is.verbose)
          {
-            Logger.verbose(
+            logger.verbose(
              `[processInheritDoc] Visited node: ${v.data('id')} at depth: ${depth} from parent: ${u.data('id')}`);
          }
 
@@ -55,7 +55,7 @@ export function processInheritDoc({ Logger, dependencies })
          const maybeCtor = getConstructor(node);
          if (maybeCtor && hasInheritdoc(maybeCtor.getJsDocs())) { classCtor = maybeCtor; }
 
-         if (classMethods.size || classCtor) { processClass(node, classMethods, classCtor, Logger); }
+         if (classMethods.size || classCtor) { processClass(node, classMethods, classCtor, logger); }
       }
    }, { directed: true, type: new Set(['ClassDeclaration']) });
 }
@@ -104,19 +104,19 @@ function hasInheritdoc(jsdocs)
  *
  * @param {import('ts-morph').ConstructorDeclaration} classCtor - Any constructor declaration.
  *
- * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} Logger - Logger instance.
+ * @param {import('@typhonjs-utils/logger-color').ColorLogger} logger - Logger instance.
  */
-function processClass(node, methods, classCtor, Logger)
+function processClass(node, methods, classCtor, logger)
 {
-   const isVerbose = Logger.isVerbose;
+   const isVerbose = logger.is.verbose;
 
-   if (isVerbose) { Logger.verbose(`[processInheritDoc] Processing class: ${node.getName()}`); }
+   if (isVerbose) { logger.verbose(`[processInheritDoc] Processing class: ${node.getName()}`); }
 
    let parentNode = node;
 
    while ((parentNode = parentNode.getBaseClass()) !== void 0)
    {
-      if (isVerbose) { Logger.verbose(`[processInheritDoc] Traversing parent class: ${parentNode.getName()}`); }
+      if (isVerbose) { logger.verbose(`[processInheritDoc] Traversing parent class: ${parentNode.getName()}`); }
 
       if (classCtor)
       {
@@ -128,7 +128,7 @@ function processClass(node, methods, classCtor, Logger)
 
             if (ctorParameters.length !== parentCtorParameters.length)
             {
-               Logger.warn(`[processInheritDoc] Parent class constructor parameter lengths do not match.`);
+               logger.warn(`[processInheritDoc] Parent class constructor parameter lengths do not match.`);
             }
             else
             {
@@ -161,7 +161,7 @@ function processClass(node, methods, classCtor, Logger)
 
          if (methodParameters.length !== parentMethodParameters.length)
          {
-            Logger.warn(`[processInheritDoc] Parent class method parameter lengths do not match.`);
+            logger.warn(`[processInheritDoc] Parent class method parameter lengths do not match.`);
             continue;
          }
 
@@ -186,6 +186,6 @@ function processClass(node, methods, classCtor, Logger)
    {
       const methodNames = Array.from(methods).map((method) => method.getName()).join(', ');
 
-      Logger.warn(`[processInheritDoc] Failed to find parent implementations for methods: ${methodNames}`);
+      logger.warn(`[processInheritDoc] Failed to find parent implementations for methods: ${methodNames}`);
    }
 }

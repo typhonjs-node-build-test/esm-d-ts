@@ -14,12 +14,12 @@ export function outputGraph(filepath, indentation)
    /**
     * @param {object} options - Options
     *
-    * @param {import('@typhonjs-build-test/esm-d-ts/util').Logger} options.Logger - Logger class.
+    * @param {import('@typhonjs-utils/logger-color').ColorLogger} options.logger - Logger instance.
     *
     * @param {import('../GraphAnalysis.js').GraphAnalysis<import('../').DependencyNodes>} options.dependencies -
     *        dependencies graph.
     */
-   function outputDependencyGraph({ Logger, dependencies })
+   function outputDependencyGraph({ logger, dependencies })
    {
       try
       {
@@ -27,7 +27,7 @@ export function outputGraph(filepath, indentation)
       }
       catch (err)
       {
-         Logger.error(`[outputDependencyGraph] Failed to write file for dependencies graph:\n${err.message}`);
+         logger.error(`[outputDependencyGraph] Failed to write file for dependencies graph:\n${err.message}`);
       }
    }
 
