@@ -1,4 +1,4 @@
-import cytoscape  from 'cytoscape/dist/cytoscape.esm.js';
+import cytoscape  from 'cytoscape';
 
 /**
  * Provides a wrapper around a headless `cytoscape` instance loaded with the given graph data and node Map.
