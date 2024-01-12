@@ -70,7 +70,7 @@ the same name and `.d.ts` extension. To generate the bundled declaration file at
 the Rollup plugin every way to configure `esm-d-ts` accepts a list of configuration objects allowing you to completely
 build all sub-path exports in one invocation of `esm-d-ts`.
 
-------
+
 ## Example use cases:
 
 The following examples demonstrate essential usage patterns. Each example will take into consideration a hypothetical
@@ -92,7 +92,7 @@ package that has a primary export and one sub-path export. The resulting `packag
 
 Note: Typescript requires the `types` condition to always be the first entry in a conditional block in `exports`.
 
-------
+
 ### CLI
 
 You may use the CLI via the command line or define a NPM script that invokes it. The CLI has two commands `check` and
@@ -204,8 +204,6 @@ points. If you need this functionality please open an issue.
 
 There is no `checkDTS` Rollup plugin.
 
-------
-
 ## Advanced Configuration
 
 There are several more advanced configuration options and usage scenarios that are not discussed in this `README`. You
@@ -216,8 +214,6 @@ may view a description of all options available in the documentation for
 `esm-d-ts` allows some rather advanced usage scenarios for library authors as well from handling `imports` in
 `package.json` to further modification of the TS declarations generated through processing the intermediate AST /
 Abstract Syntax Tree data.
-
-------
 
 ## Caveats
 
@@ -242,7 +238,13 @@ An additional caveat to be aware of is that presently `esm-d-ts` during the gene
 declaration files and by default they are located in the `./.dts` folder. It is recommended to add an exclusion rule
 in a `.gitignore` file for `/.dts`. This also is on the roadmap to provide a completely in-memory generation process.
 
-------
+## Synergies
+
+Providing type declarations for your package is a great way to make your package easier to use and consume with modern
+tooling. What about automatically generating API documentation from the generated types?
+[@typhonjs-typedoc/typedoc-pkg](https://www.npmjs.com/package/@typhonjs-typedoc/typedoc-pkg) provides a zero
+configuration CLI frontend to generate API documentation with TypeDoc from a well configured `package.json` with
+Typescript declarations.
 
 ## Roadmap
 - Create an initial processing stage where `esm-d-ts` analyzes all exported symbols of the local code base allowing
@@ -257,8 +259,6 @@ looking into submitting a PR to `rollup-plugin-dts` to handle virtual bundling.
 
 - Generate source maps for the bundled TS declarations allowing IDEs to not just jump to the declarations, but also
 open linked source code.
-
-------
 
 ## Appreciation
 
