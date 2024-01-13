@@ -65,7 +65,7 @@ type GeneratePluginConfig = {
     /**
      * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
      */
-    importsResolve?: boolean | _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
+    importsResolve?: boolean | _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsResolvePluginOptions;
     /**
      * Defines the logging level.
      */
