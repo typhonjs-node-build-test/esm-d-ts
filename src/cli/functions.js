@@ -10,7 +10,7 @@ import {
    checkDTS,
    generateDTS }           from '../generator/index.js';
 
-import { Logger }          from '#logger';
+import { logger }          from '#util';
 
 /**
  * Invokes checkDTS with the given input / config options.
@@ -150,6 +150,16 @@ async function processOptions(input, opts)
       exit('Invalid options: missing `[input]` and no config file option provided.');
    }
 
+   if (typeof opts?.loglevel === 'string')
+   {
+      if (!logger.isValidLevel(opts.loglevel))
+      {
+         exit(`Invalid options: log level '${opts.loglevel}' must be 'all', 'verbose', 'info', 'warn', or 'error'.`);
+      }
+
+      logger.setLogLevel(opts.loglevel);
+   }
+
    const dirname = path.dirname(process.cwd());
 
    let config;
@@ -167,12 +177,12 @@ async function processOptions(input, opts)
 
             if (fs.existsSync('./esm-d-ts.config.js'))
             {
-               Logger.verbose(`Loading config from path: './esm-d-ts.config.js'`, opts?.loglevel);
+               logger.verbose(`Loading config from path: './esm-d-ts.config.js'`);
                config = await loadConfig(path.resolve('./esm-d-ts.config.js'));
             }
             else if (fs.existsSync('./esm-d-ts.config.mjs'))
             {
-               Logger.verbose(`Loading config from path: './esm-d-ts.config.mjs'`, opts?.loglevel);
+               logger.verbose(`Loading config from path: './esm-d-ts.config.mjs'`);
                config = await loadConfig(path.resolve('./esm-d-ts.config.mjs'));
             }
             break;
@@ -184,7 +194,7 @@ async function processOptions(input, opts)
 
             if (!fs.existsSync(configPath)) { exit(`No config file available at: ${configPath}`); }
 
-            Logger.verbose(`Loading config from path: '${configPath}'`, opts?.loglevel);
+            logger.verbose(`Loading config from path: '${configPath}'`);
             config = await loadConfig(configPath);
             break;
          }
@@ -196,14 +206,14 @@ async function processOptions(input, opts)
          for (const entry of config)
          {
             if (typeof opts?.check === 'boolean' && opts.check) { entry.tsCheckJs = true; }
-            if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { entry.logLevel = opts.loglevel; }
+            if (typeof opts?.loglevel === 'string') { entry.logLevel = opts.loglevel; }
             if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { entry.tsconfig = opts.tsconfig; }
          }
       }
       else if (isObject(config))
       {
          if (typeof opts?.check === 'boolean' && opts.check) { config.tsCheckJs = true; }
-         if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { config.logLevel = opts.loglevel; }
+         if (typeof opts?.loglevel === 'string') { config.logLevel = opts.loglevel; }
          if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { config.tsconfig = opts.tsconfig; }
       }
    }
@@ -222,7 +232,7 @@ async function processOptions(input, opts)
    const options = { input };
 
    if (typeof opts?.check === 'boolean' && opts.check) { options.tsCheckJs = true; }
-   if (typeof opts?.loglevel === 'string' && opts.loglevel !== '') { options.logLevel = opts.loglevel; }
+   if (typeof opts?.loglevel === 'string') { options.logLevel = opts.loglevel; }
    if (typeof opts?.output === 'string' && opts.output !== '') { options.output = opts.output; }
    if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { options.tsconfig = opts.tsconfig; }
 
@@ -236,7 +246,7 @@ async function processOptions(input, opts)
  */
 function exit(message, exit = true)
 {
-   console.error(`[31m[esm-d-ts] ${message}`);
+   console.error(`[31m[esm-d-ts] ${message}[0m`);
    if (exit) { process.exit(1); }
 }
 

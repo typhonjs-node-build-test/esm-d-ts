@@ -1,5 +1,7 @@
 /.dts
 /dist
+/docs
 /test/fixture
-/test/public
+/test/output
 *.d.ts
+*.ts

@@ -1,3 +1,9 @@
+/**
+ * Provides the main entry points to the package including `checkDTS` and `generateDTS`.
+ *
+ * @module
+ */
+
 import { fileURLToPath }         from 'node:url';
 
 import fs                        from 'fs-extra';
@@ -27,16 +33,20 @@ import upath                     from 'upath';
 
 import * as internalPlugins      from './plugins.js';
 
-import { Logger }                from '#logger';
+import { logger }                from '#util';
 
 import {
    validateCompilerOptions,
    validateConfig }              from './validation.js';
 
+import { PostProcess }           from '../postprocess/index.js';
+import { outputGraph }           from '../postprocess/internal/outputGraph.js';
+
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
 import {
    addSyntheticExports,
+   jsdocPreserveModuleTag,
    removePrivateStatic }         from '../transformer/internal/index.js';
 
 /**
@@ -56,11 +66,13 @@ async function checkDTS(config)
 
          if (typeof processedConfigOrError === 'string')
          {
-            Logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+            logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry.input}'`);
             continue;
          }
 
-         Logger.info(`Checking DTS bundle for: ${entry.input}`, processedConfigOrError.config.logLevel);
+         logger.logLevel = processedConfigOrError.config.logLevel;
+
+         logger.info(`Checking DTS bundle for: ${entry.input}`);
 
          await checkDTSImpl(processedConfigOrError);
       }
@@ -71,11 +83,13 @@ async function checkDTS(config)
 
       if (typeof processedConfigOrError === 'string')
       {
-         Logger.error(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
+         logger.error(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
          return;
       }
 
-      Logger.info(`Checking DTS bundle for: ${config.input}`, processedConfigOrError.config.logLevel);
+      logger.setLogLevel(processedConfigOrError.config.logLevel);
+
+      logger.info(`Checking DTS bundle for: ${config.input}`);
 
       await checkDTSImpl(processedConfigOrError);
    }
@@ -110,11 +124,13 @@ async function generateDTS(config)
 
          if (typeof processedConfigOrError === 'string')
          {
-            Logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+            logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
             continue;
          }
 
-         Logger.info(`Generating DTS bundle for: ${entry.input}`, processedConfigOrError.config.logLevel);
+         logger.setLogLevel(processedConfigOrError.config.logLevel);
+
+         logger.info(`Generating DTS bundle for: ${entry.input}`);
 
          await generateDTSImpl(processedConfigOrError);
       }
@@ -125,11 +141,13 @@ async function generateDTS(config)
 
       if (typeof processedConfigOrError === 'string')
       {
-         Logger.error(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
+         logger.error(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
          return;
       }
 
-      Logger.info(`Generating DTS bundle for: ${config.input}`, processedConfigOrError.config.logLevel);
+      logger.setLogLevel(processedConfigOrError.config.logLevel);
+
+      logger.info(`Generating DTS bundle for: ${config.input}`);
 
       await generateDTSImpl(processedConfigOrError);
    }
@@ -150,9 +168,9 @@ async function generateDTSImpl(pConfig)
    if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
 
    // Log emit diagnostics as warnings.
-   compile(pConfig, true);
+   const jsdocModuleComments = compile(pConfig, true);
 
-   await bundleDTS(pConfig);
+   await bundleDTS(pConfig, jsdocModuleComments);
 }
 
 /**
@@ -169,9 +187,11 @@ export { checkDTS, generateDTS };
 /**
  * @param {ProcessedConfig}   pConfig - Processed config.
  *
+ * @param {{ comment: string, filepath: string}[]} jsdocModuleComments - Any comments with the `@module` tag.
+ *
  * @returns {Promise<void>}
  */
-async function bundleDTS(pConfig)
+async function bundleDTS(pConfig, jsdocModuleComments)
 {
    const { config, compilerOptions, dtsMainPath, packages } = pConfig;
 
@@ -186,11 +206,23 @@ async function bundleDTS(pConfig)
 
    if (!fs.existsSync(dtsMainPathActual))
    {
-      Logger.error(`bundleDTS error: could not locate DTS main file in './dts' output.'`);
+      logger.error(`bundleDTS error: could not locate DTS main file in './dts' output.'`);
       process.exit(1);
    }
 
-   let banner = '';
+   if (jsdocModuleComments.length > 1)
+   {
+      const filepaths = jsdocModuleComments.map((entry) => entry?.filepath).join('\n');
+
+      logger.warn(
+       `bundleDTS warning: multiple JSDoc comments detected with the '@module' / '@packageDocumentation' tag from:\n${
+         filepaths}`);
+   }
+
+   // Prepend any comment with the `@module` tag preserving it in the bundled DTS file.
+
+   let banner = jsdocModuleComments.length === 1 && typeof jsdocModuleComments[0]?.comment === 'string' ?
+    `${jsdocModuleComments[0].comment}\n` : '';
 
    if (isIterable(config.prependFiles))
    {
@@ -214,7 +246,7 @@ async function bundleDTS(pConfig)
             continue;
          }
 
-         Logger.warn(`bundleDTS warning: could not prepend file; '${prependFile}'.`, config.logLevel);
+         logger.warn(`bundleDTS warning: could not prepend file; '${prependFile}'.`);
       }
    }
 
@@ -273,7 +305,24 @@ async function bundleDTS(pConfig)
    await bundle.write(rollupConfig.output);
    await bundle.close();
 
-   Logger.verbose(`Output bundled DTS file to: '${config.output}'`, config.logLevel);
+   // Collect the postprocessor functions.
+   // Add the internal `outputGraph` post processor if `config.outputGraph` is defined.
+   const processors = typeof config.outputGraph === 'string' ? [
+      ...(isIterable(config.postprocess) ? config.postprocess : []),
+      outputGraph(config.outputGraph, config.outputGraphIndentation)
+   ] : [...(isIterable(config.postprocess) ? config.postprocess : [])];
+
+   // Handle any postprocessing of the bundled declarations.
+   if (processors.length)
+   {
+      PostProcess.process({
+         filepath: config.output,
+         output: config.outputPostprocess,
+         processors
+      });
+   }
+
+   logger.verbose(`Output bundled DTS file to: '${config.output}'`);
 }
 
 /**
@@ -282,6 +331,8 @@ async function bundleDTS(pConfig)
  * @param {ProcessedConfig}   pConfig - Processed config object.
  *
  * @param {boolean}  [warn=false] - Log the emit diagnostics as warnings for `generateDTS`.
+ *
+ * @returns {{ comment: string, filepath: string }[]} Any parsed JSDoc comments with the `@module` tag.
  */
 function compile(pConfig, warn = false)
 {
@@ -294,6 +345,8 @@ function compile(pConfig, warn = false)
 
    let emitResult;
 
+   const jsdocModuleComments = [];
+
    /**
     * Prepend `removePrivateStatic` as the Typescript compiler changes private static members to become public
     * defined with a string pattern that can be detected.
@@ -301,6 +354,7 @@ function compile(pConfig, warn = false)
     * Prepend `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
     */
    const transformers = [
+      jsdocPreserveModuleTag(jsdocModuleComments, config.input),
       ...(typeof config.removePrivateStatic === 'boolean' && config.removePrivateStatic ? [removePrivateStatic()] : []),
       ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
        [jsdocRemoveNodeByTags(config.filterTags)] : []),
@@ -347,8 +401,8 @@ function compile(pConfig, warn = false)
       // Special handling for `generateDTS` / log as warnings.
       if (warn)
       {
-         // Only log if logLevel is `warn` or `all` and `tsDiagnosticLog` is true.
-         if (!config.tsDiagnosticLog || Logger.logLevels[config.logLevel] > Logger.logLevels.warn) { continue; }
+         // Only log if logLevel is not `error` or `tsDiagnosticLog` is true.
+         if (!config.tsDiagnosticLog || !logger.is.warn) { continue; }
 
          if (diagnostic.file)
          {
@@ -375,6 +429,8 @@ function compile(pConfig, warn = false)
          }
       }
    }
+
+   return jsdocModuleComments;
 }
 
 /**
@@ -420,12 +476,11 @@ async function parseFiles(config)
             if (fs.existsSync(`${resolved}/index.js`) || fs.existsSync(`${resolved}/index.mjs`))
             {
                // Could not resolve index reference so skip file.
-               Logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`,
-                config.logLevel);
+               logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
             }
             else
             {
-               Logger.warn(`parseFiles warning: could not resolve directory; '${resolved}'`, config.logLevel);
+               logger.warn(`parseFiles warning: could not resolve directory; '${resolved}'`);
             }
 
             continue;
@@ -443,7 +498,7 @@ async function parseFiles(config)
             else if (fs.existsSync(`${resolved}.mjs`)) { resolved = `${resolved}.mjs`; }
             else
             {
-               Logger.warn(`parseFiles warning: could not resolve; '${resolved}'`, config.logLevel);
+               logger.warn(`parseFiles warning: could not resolve; '${resolved}'`);
                continue;
             }
          }
@@ -540,7 +595,7 @@ async function parseFiles(config)
    if (unresolvedImports.size > 0)
    {
       const keys = [...unresolvedImports.keys()].sort();
-      for (const key of keys) { Logger.warn(unresolvedImports.get(key), config.logLevel); }
+      for (const key of keys) { logger.warn(unresolvedImports.get(key)); }
    }
 
    return { files, packages };
@@ -592,9 +647,8 @@ function parsePackage(packageName, config)
 
    if (typeof packageJSON !== 'object')
    {
-      Logger.warn(
-       `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`,
-        config.logLevel);
+      logger.warn(
+       `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`);
 
       return void 0;
    }
@@ -743,7 +797,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    if (tsconfigPath)
    {
-      Logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${tsconfigPath}`, config.logLevel);
+      logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${tsconfigPath}`);
 
       try
       {
@@ -852,8 +906,7 @@ function resolvePackageExports(packages, config, outDir)
       const resolveDTS = parsePackage(packageName, config);
       if (!resolveDTS)
       {
-         Logger.warn(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`,
-          config.logLevel);
+         logger.warn(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`);
 
          continue;
       }
@@ -952,6 +1005,19 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
  * change the extension as desired.
  *
+ * @property {string}               [outputGraph] Outputs the package dependency graph to the given file path. The
+ * graph JSON is suitable for use in various graph libraries like cytoscape / Svelte Flow / amongst others.
+
+ * @property {number}               [outputGraphIndentation] When outputting the dependency graph use this indentation
+ * value for the JSON output.
+ *
+ * @property {string}               [outputPostprocess] When postprocessing is configured this is a helpful debugging
+ * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of
+ * any additional processing. You must specify a valid filepath.
+ *
+ * @property {Iterable<import('@typhonjs-build-test/esm-d-ts/postprocess').ProcessorFunction>} [postprocess] An
+ * iterable list of postprocessing functions. Note: This is experimental!
+ *
  * @property {Iterable<string>}     [prependFiles] Directly prepend these files to the bundled output. The files are
  * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied
  * across multiple subpath exports. Then a second attempt is made with the path provided.
@@ -1000,8 +1066,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {Record<string, string> | ((id: string) => string)} [rollupPaths] Rollup `paths` option.
  * {@link https://rollupjs.org/configuration-options/#output-paths}
  *
- * @property {(warning: import('rollup').RollupWarning,
- * defaultHandler: (warning: string | import('rollup').RollupWarning) => void) => void} [rollupOnwarn] Rollup `onwarn`
+ * @property {(warning: import('rollup').RollupLog,
+ * defaultHandler: (warning: string | import('rollup').RollupLog) => void) => void} [rollupOnwarn] Rollup `onwarn`
  * option. {@link https://rollupjs.org/configuration-options/#onwarn}
  */
 

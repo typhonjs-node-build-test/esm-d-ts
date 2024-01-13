@@ -1,7 +1,14 @@
+/**
+ * Provides the main entry points to the package including `checkDTS` and `generateDTS`.
+ *
+ * @module
+ */
+
 import * as rollup from 'rollup';
 import * as ts from 'typescript';
 import ts__default from 'typescript';
 import * as type_fest from 'type-fest';
+import * as _typhonjs_build_test_esm_d_ts_postprocess from '@typhonjs-build-test/esm-d-ts/postprocess';
 import * as _typhonjs_build_test_rollup_plugin_pkg_imports from '@typhonjs-build-test/rollup-plugin-pkg-imports';
 import * as resolve_exports from 'resolve.exports';
 
@@ -74,6 +81,27 @@ type GeneratePluginConfig = {
      */
     outputExt?: string;
     /**
+     * Outputs the package dependency graph to the given file path. The
+     * graph JSON is suitable for use in various graph libraries like cytoscape / Svelte Flow / amongst others.
+     */
+    outputGraph?: string;
+    /**
+     * When outputting the dependency graph use this indentation
+     * value for the JSON output.
+     */
+    outputGraphIndentation?: number;
+    /**
+     * When postprocessing is configured this is a helpful debugging
+     * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of
+     * any additional processing. You must specify a valid filepath.
+     */
+    outputPostprocess?: string;
+    /**
+     * An
+     * iterable list of postprocessing functions. Note: This is experimental!
+     */
+    postprocess?: Iterable<_typhonjs_build_test_esm_d_ts_postprocess.ProcessorFunction>;
+    /**
      * Directly prepend these files to the bundled output. The files are
      * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied
      * across multiple subpath exports. Then a second attempt is made with the path provided.
@@ -145,7 +173,7 @@ type GeneratePluginConfig = {
      * Rollup `onwarn`
      * option. {@link https://rollupjs.org/configuration-options/#onwarn}
      */
-    rollupOnwarn?: (warning: rollup.RollupWarning, defaultHandler: (warning: string | rollup.RollupWarning) => void) => void;
+    rollupOnwarn?: (warning: rollup.RollupLog, defaultHandler: (warning: string | rollup.RollupLog) => void) => void;
 };
 /**
  * Contains the processed config and associated data.
@@ -197,7 +225,7 @@ declare function checkDTS(config: GenerateConfig | Iterable<GenerateConfig>): Pr
  */
 declare function generateDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<void>;
 declare namespace generateDTS {
-    const plugin: (options?: GeneratePluginConfig) => rollup.Plugin;
+    let plugin: (options?: GeneratePluginConfig) => rollup.Plugin<any>;
 }
 
-export { GenerateConfig, GeneratePluginConfig, ProcessedConfig, checkDTS, generateDTS };
+export { type GenerateConfig, type GeneratePluginConfig, type ProcessedConfig, checkDTS, generateDTS };

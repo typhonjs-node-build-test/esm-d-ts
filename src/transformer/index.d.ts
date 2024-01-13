@@ -1,3 +1,9 @@
+/**
+ * Provides resources for AST transformation during type declarations compilation.
+ *
+ * @module
+ */
+
 import * as comment_parser from 'comment-parser';
 import ts from 'typescript';
 
