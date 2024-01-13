@@ -85,6 +85,10 @@
       "NPM": "https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts"
     },
     "externalSymbolLinkMappings": {
+      "@typhonjs-build-test/rollup-plugin-pkg-imports": {
+        "ImportsPluginOptions": "https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/types/ImportsPluginOptions.html",
+        "ImportsResolvePluginOptions": "https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/types/ImportsResolvePluginOptions.html"
+      },
       "@typhonjs-utils/logger-color": {
         "ColorLogger": "https://typhonjs-node-utils.github.io/logger-color/classes/_typhonjs_utils_logger_color.ColorLogger.html"
       },
@@ -92,6 +96,9 @@
         "cytoscape.Core": "https://js.cytoscape.org/#core",
         "cytoscape.ElementDefinition": "https://js.cytoscape.org/#notation/elements-json",
         "cytoscape.SearchVisitFunction": "https://js.cytoscape.org/#eles.depthFirstSearch"
+      },
+      "resolve.exports": {
+        "Options": "https://www.npmjs.com/package/resolve.exports#options"
       }
     }
   },
@@ -101,7 +108,7 @@
   "apidocs": "https://typhonjs-node-build-test.github.io/esm-d-ts/",
   "scripts": {
     "eslint": "eslint .",
-    "docs": "typedoc-pkg --api-link esm",
+    "docs": "typedoc-pkg --api-link esm --link-checker",
     "types": "node ./src/cli/index.js gen -c",
     "post-test": "node test/postprocess/test.js"
   }
