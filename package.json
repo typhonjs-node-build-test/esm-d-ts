@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@typhonjs-config/eslint-config" : "^0.6.0",
-    "@typhonjs-typedoc/typedoc-pkg": "github:@typhonjs-typedoc/typedoc-pkg",
+    "@typhonjs-typedoc/typedoc-pkg": "^0.0.2",
     "@types/node": "^20.9.0",
     "eslint": "^8.53.0"
  },
