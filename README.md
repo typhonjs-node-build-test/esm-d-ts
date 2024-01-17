@@ -49,8 +49,8 @@ name; this change fixes that mismatch.
   postprocessing and AST transformation [please see the wiki](https://github.com/typhonjs-node-build-test/esm-d-ts/wiki/AST-transformation-&-postprocessing#tstranformers).
 
 
-- Support for the JSDoc `@module` comment pass-through to the generated DTS bundle. This is helpful when generating
-  docs from the DTS bundle. This is only supported for the main entry point source file.
+- Support for the JSDoc `@module` / `@packageDocumentation` comment pass-through to the generated DTS bundle. This is
+helpful when generating docs from the DTS bundle. This is only supported for the main entry point source file.
 
 
 - All dependencies updated along with peer dependency requirements of `Rollup 3.3 - 4.x` and `Typescript 5.1+`.
