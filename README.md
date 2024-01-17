@@ -30,7 +30,18 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 ```
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
-## What's New (0.2.0):
+## What's New:
+
+### (0.2.1):
+
+- Added a new internal AST transformer that corrects the output of the TS compiler for setter accessor parameter names.
+The TS compiler for ESM will rename setter accessor parameter names to `arg` regardless of the value set in the source
+file. If there is a JSDoc comment associated with a setter the first `@param` tag name will be set to the AST node
+param name. Downstream tooling such as TypeDoc `0.25.7+` validates comment / `@param` name against the type declaration
+name; this change fixes that mismatch.
+
+### (0.2.0):
+
 - Optional postprocessing
   - The first built-in postprocessing function is support for `@inheritDoc`. This is an unsupported JSDoc tag for
   Typescript and when types are generated any methods or constructor functions that use `@inheritDoc` have parameters
@@ -38,8 +49,8 @@ Presently the CLI and `esm-d-ts` can not be installed or used globally; this wil
   postprocessing and AST transformation [please see the wiki](https://github.com/typhonjs-node-build-test/esm-d-ts/wiki/AST-transformation-&-postprocessing#tstranformers).
 
 
-- Support for the JSDoc `@module` comment pass-through to the generated DTS bundle. This is helpful when generating
-  docs from the DTS bundle. This is only supported for the main entry point source file.
+- Support for the JSDoc `@module` / `@packageDocumentation` comment pass-through to the generated DTS bundle. This is
+helpful when generating docs from the DTS bundle. This is only supported for the main entry point source file.
 
 
 - All dependencies updated along with peer dependency requirements of `Rollup 3.3 - 4.x` and `Typescript 5.1+`.
