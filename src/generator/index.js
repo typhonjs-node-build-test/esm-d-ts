@@ -47,6 +47,7 @@ import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 import {
    addSyntheticExports,
    jsdocPreserveModuleTag,
+   jsdocSetterParamName,
    removePrivateStatic }         from '../transformer/internal/index.js';
 
 /**
@@ -348,13 +349,22 @@ function compile(pConfig, warn = false)
    const jsdocModuleComments = [];
 
    /**
-    * Prepend `removePrivateStatic` as the Typescript compiler changes private static members to become public
+    * Add `jsdocPreserveModuleTag` to store any `@module` / `@packageDescription` tags to prepend to output DTS.
+    *
+    * Add `jsdocSetterParamName` to correct TS compiler renaming of setter param name.
+    *
+    * Optionally add `removePrivateStatic` as the Typescript compiler changes private static members to become public
     * defined with a string pattern that can be detected.
     *
-    * Prepend `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
+    * Optionally add `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
+    *
+    * Optionally add `addSyntheticExports` to add exports for any additional TS files compiled.
+    *
+    * Optionally add any user defined transformers.
     */
    const transformers = [
       jsdocPreserveModuleTag(jsdocModuleComments, config.input),
+      jsdocSetterParamName(),
       ...(typeof config.removePrivateStatic === 'boolean' && config.removePrivateStatic ? [removePrivateStatic()] : []),
       ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
        [jsdocRemoveNodeByTags(config.filterTags)] : []),
