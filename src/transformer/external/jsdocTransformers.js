@@ -47,20 +47,30 @@ export function jsdocRemoveNodeByTags(tags)
 }
 
 /**
- * Provides a convenient "meta-transformer" that invokes a handler function for each Node w/ the parsed leading
- * comment data for the Node. Only leading block comments are parsed. The `parsed` array is in the data format provided
- * by the `comment-parser` package. For convenience there are `lastComment` and `lastParsed` fields that return the
- * last comment block respectively before the node. Typically, the last comment is the active JSDoc block for a Node.
+ * Provides a convenient "meta-transformer" that invokes a handler function for each Node reducing the boilerplate
+ * required w/ the parsed leading comment data for the Node. Only leading block comments are parsed. The `parsed` array
+ * is in the data format provided by the `comment-parser` package. For convenience there are `lastComment` and
+ * `lastParsed` fields that return the last comment block respectively before the node. Typically, the last comment is
+ * the active JSDoc block for a Node.
  *
- * Note: In the handler return null to remove the Node.
+ * Note: In the `handler` return null to remove the Node. The `postHandler` allows final modification of the SourceFile
+ * after all nodes are visited; return a new SourceFile to update it.
  *
- * @param {(data: { node: ts.Node, sourceFile: ts.SourceFile, comments: string[],
- *         parsed: import('comment-parser').Block[], lastComment: string,
- *          lastParsed: import('comment-parser').Block }) => *}  handler - A function to process JSDoc comments.
+ * @param {((data: {
+ *    node: ts.Node,
+ *    sourceFile: ts.SourceFile,
+ *    comments: string[],
+ *    parsed: import('comment-parser').Block[],
+ *    lastComment: string,
+ *    lastParsed: import('comment-parser').Block
+ * }) => *)}  handler - A function to process AST nodes with JSDoc comments.
+ *
+ * @param {(sourceFile: ts.SourceFile) => ts.SourceFile | undefined} [postHandler] - A function to postprocess the
+ *        source file after all nodes visited. Return an updated SourceFile node.
  *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} JSDoc custom "meta-transformer".
  */
-export function jsdocTransformer(handler)
+export function jsdocTransformer(handler, postHandler)
 {
    if (typeof handler !== 'function')
    {
@@ -87,12 +97,32 @@ export function jsdocTransformer(handler)
 
          if (ts.isSourceFile(sourceFileOrBundle))
          {
-            return ts.visitNode(sourceFileOrBundle, (node) => visit(node, sourceFileOrBundle));
+            const visitedSourceFile = ts.visitNode(sourceFileOrBundle, (node) => visit(node, sourceFileOrBundle));
+
+            // Allow postprocessing of source file after all nodes visited.
+            if (typeof postHandler === 'function')
+            {
+               const processedSourceFile = postHandler(visitedSourceFile);
+               if (processedSourceFile && ts.isSourceFile(processedSourceFile)) { return processedSourceFile; }
+            }
+
+            return visitedSourceFile;
          }
          else if (ts.isBundle(sourceFileOrBundle))
          {
-            const newSourceFiles = sourceFileOrBundle.sourceFiles.map(
-             (sourceFile) => ts.visitNode(sourceFile, (node) => visit(node, sourceFile)));
+            const newSourceFiles = sourceFileOrBundle.sourceFiles.map((sourceFile) =>
+            {
+               const visitedSourceFile = ts.visitNode(sourceFile, (node) => visit(node, sourceFile));
+
+               // Allow postprocessing of source file after all nodes visited.
+               if (typeof postHandler === 'function')
+               {
+                  const processedSourceFile = postHandler(visitedSourceFile);
+                  if (processedSourceFile && ts.isSourceFile(processedSourceFile)) { return processedSourceFile; }
+               }
+
+               return visitedSourceFile;
+            });
 
             return ts.factory.updateBundle(sourceFileOrBundle, newSourceFiles);
          }

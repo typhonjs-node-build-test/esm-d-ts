@@ -1,7 +1,7 @@
 {
   "name": "@typhonjs-build-test/esm-d-ts",
   "description": "Generates bundled Typescript declaration files from ESM source w/ JSDoc.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
   "bin": "./src/cli/index.js",
@@ -33,7 +33,7 @@
   "dependencies": {
     "@rollup/plugin-alias": "^5.1.0",
     "@types/cytoscape": "^3.19.15",
-    "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.2.0",
+    "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.3.0",
     "@typhonjs-utils/file-util": "^0.1.0",
     "@typhonjs-utils/logger-color": "^0.1.0",
     "@typhonjs-utils/object": "^0.1.0",

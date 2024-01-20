@@ -1,4 +1,9 @@
 # Changelog
+## Release 0.2.2
+- Added a TS AST transformer to support import types in `@implements` JSDoc tags. This allows you to reference
+an interface from a class and have it properly converted to `implements <INTERFACE>` in the declarations generated.
+- Added `transformer` "meta-transformer" to reduce the boilerplate of creating custom TS AST transformers.
+
 ## Release 0.2.1
 - Added a new internal AST transformer that corrects the output of the TS compiler for setter accessor parameter names.
   The TS compiler for ESM will rename setter accessor parameter names to `arg` regardless of the value set in the source
