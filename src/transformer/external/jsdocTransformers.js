@@ -47,12 +47,14 @@ export function jsdocRemoveNodeByTags(tags)
 }
 
 /**
- * Provides a convenient "meta-transformer" that invokes a handler function for each Node w/ the parsed leading
- * comment data for the Node. Only leading block comments are parsed. The `parsed` array is in the data format provided
- * by the `comment-parser` package. For convenience there are `lastComment` and `lastParsed` fields that return the
- * last comment block respectively before the node. Typically, the last comment is the active JSDoc block for a Node.
+ * Provides a convenient "meta-transformer" that invokes a handler function for each Node reducing the boilerplate
+ * required w/ the parsed leading comment data for the Node. Only leading block comments are parsed. The `parsed` array
+ * is in the data format provided by the `comment-parser` package. For convenience there are `lastComment` and
+ * `lastParsed` fields that return the last comment block respectively before the node. Typically, the last comment is
+ * the active JSDoc block for a Node.
  *
- * Note: In the handler return null to remove the Node.
+ * Note: In the `handler` return null to remove the Node. The `postHandler` allows final modification of the SourceFile
+ * after all nodes are visited; return a new SourceFile to update it.
  *
  * @param {((data: {
  *    node: ts.Node,
