@@ -1,4 +1,4 @@
-import ts               from 'typescript';
+import ts   from 'typescript';
 
 /**
  * Provides a convenient "meta-transformer" that invokes a handler function for each Node reducing the boilerplate
