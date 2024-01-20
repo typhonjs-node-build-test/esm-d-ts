@@ -1,6 +1,6 @@
 # Changelog
 ## Release 0.2.2
-- Added a TS AST transformer to support dynamic import in `@implements` JSDoc tags. This allows you to reference
+- Added a TS AST transformer to support import types in `@implements` JSDoc tags. This allows you to reference
 an interface from a class and have it properly converted to `implements <INTERFACE>` in the declarations generated.
 - Added `transformer` "meta-transformer" to reduce the boilerplate of creating custom TS AST transformers.
 
