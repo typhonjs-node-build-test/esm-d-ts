@@ -1,5 +1,7 @@
-import ts      from 'typescript';
-import upath   from 'upath';
+import ts               from 'typescript';
+import upath            from 'upath';
+
+import { transformer }  from '../external/transformer.js';
 
 /**
  * Adds synthetic wildcard exports to the main declaration entry file for the given filepaths to extra compiled TS
@@ -14,62 +16,26 @@ import upath   from 'upath';
  */
 export function addSyntheticExports(entryFilepath, filepaths)
 {
-   /**
-    * @param {ts.TransformationContext} context -
-    *
-    * @returns {ts.Transformer<ts.Bundle|ts.SourceFile>} TS transformer
-    */
-   return (context) =>
+   return transformer(({ node }) =>
    {
-      /**
-       * @param {ts.Bundle | ts.SourceFile} sourceFileOrBundle -
-       *
-       * @returns {ts.Bundle | ts.SourceFile | undefined} Processed Node.
-       */
-      return (sourceFileOrBundle) =>
+      if (ts.isSourceFile(node) && node.fileName === entryFilepath)
       {
-         /**
-          * @param {ts.SourceFile}  node -
-          *
-          * @returns {ts.SourceFile} Source file
-          */
-         const visit = (node) =>
+         const dirname = upath.dirname(entryFilepath);
+
+         const exportDeclarations = [];
+
+         for (const filepath of filepaths)
          {
-            if (ts.isSourceFile(node) && node.fileName === entryFilepath)
-            {
-               const dirname = upath.dirname(entryFilepath);
+            // Must be relative to the entry point and no extension; the module resolution is `bundler`.
+            const adjustedPath = `./${upath.relative(dirname, upath.removeExt(filepath, '.ts'))}`;
 
-               const exportDeclarations = [];
-
-               for (const filepath of filepaths)
-               {
-                  // Must be relative to the entry point and no extension; the module resolution is `bundler`.
-                  const adjustedPath = `./${upath.relative(dirname, upath.removeExt(filepath, '.ts'))}`;
-
-                  exportDeclarations.push(ts.factory.createExportDeclaration(void 0, void 0, void 0,
-                   ts.factory.createStringLiteral(adjustedPath)));
-               }
-
-               const updatedStatements = ts.factory.createNodeArray([...node.statements, ...exportDeclarations]);
-
-               return ts.factory.updateSourceFile(node, updatedStatements);
-            }
-
-            return ts.visitEachChild(node, visit, context);
-         };
-
-         if (ts.isSourceFile(sourceFileOrBundle))
-         {
-            return ts.visitNode(sourceFileOrBundle, (node) => visit(node));
+            exportDeclarations.push(ts.factory.createExportDeclaration(void 0, void 0, void 0,
+             ts.factory.createStringLiteral(adjustedPath)));
          }
-         else if (ts.isBundle(sourceFileOrBundle))
-         {
-            /** @type {ts.SourceFile[]} */
-            const newSourceFiles = sourceFileOrBundle.sourceFiles.map(
-             (sourceFile) => ts.visitNode(sourceFile, (node) => visit(node)));
 
-            return ts.factory.updateBundle(sourceFileOrBundle, newSourceFiles);
-         }
-      };
-   };
+         const updatedStatements = ts.factory.createNodeArray([...node.statements, ...exportDeclarations]);
+
+         return ts.factory.updateSourceFile(node, updatedStatements);
+      }
+   });
 }

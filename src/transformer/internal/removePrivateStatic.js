@@ -1,4 +1,6 @@
-import ts   from 'typescript';
+import ts               from 'typescript';
+
+import { transformer }  from '../external/transformer.js';
 
 // Provides a regex to test the shape of renamed static private members.
 const s_REGEX_STATIC_PRIVATE = /__#\d+@#.*/;
@@ -37,39 +39,19 @@ function filterPrivateStatic(node)
 export function removePrivateStatic()
 {
    /**
-    * @param {ts.TransformationContext} context -
+    * For a reason not presently known when creating declarations the Typescript compiler renames static private member
+    * names to a string with it remaining in the public declaration. The pattern is similar to this "__#3@#initialize"
+    * where the original was `#initialze()`.
     *
-    * @returns {ts.Transformer<ts.Bundle|ts.SourceFile>} TS transformer
+    * This transformer removes all private static members.
+    *
+    * Note: A side effect of removing renamed private static nodes is that there may be leftover imports that were used
+    * in the private static member. A Rollup warning will be generated in this case.
+    *
+    * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} Transformer to remove private static nodes.
     */
-   return (context) =>
+   return transformer(({ node }) =>
    {
-      /**
-       * @param {ts.Bundle | ts.SourceFile} sourceFileOrBundle -
-       *
-       * @returns {ts.Bundle | ts.SourceFile | undefined} Processed Node.
-       */
-      return (sourceFileOrBundle) =>
-      {
-         /** @ignore */
-         function visit(node)
-         {
-            if (!filterPrivateStatic(node)) { return null; }
-
-            return ts.visitEachChild(node, visit, context);
-         }
-
-         if (ts.isSourceFile(sourceFileOrBundle))
-         {
-            return ts.visitNode(sourceFileOrBundle, (node) => visit(node));
-         }
-         else if (ts.isBundle(sourceFileOrBundle))
-         {
-            /** @type {ts.SourceFile[]} */
-            const newSourceFiles = sourceFileOrBundle.sourceFiles.map(
-             (sourceFile) => ts.visitNode(sourceFile, (node) => visit(node)));
-
-            return ts.factory.updateBundle(sourceFileOrBundle, newSourceFiles);
-         }
-      };
-   };
+      if (!filterPrivateStatic(node)) { return null; }
+   });
 }
