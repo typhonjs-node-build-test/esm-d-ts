@@ -31,6 +31,10 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
 ## What's New:
+### (0.2.2):
+- Added a TS AST transformer to support import types in `@implements` JSDoc tags. This allows you to reference
+  an interface from a class and have it properly converted to `implements <INTERFACE>` in the declarations generated.
+- Added `transformer` "meta-transformer" to reduce the boilerplate of creating custom TS AST transformers.
 
 ### (0.2.1):
 
@@ -225,6 +229,13 @@ may view a description of all options available in the documentation for
 `esm-d-ts` allows some rather advanced usage scenarios for library authors as well from handling `imports` in
 `package.json` to further modification of the TS declarations generated through processing the intermediate AST /
 Abstract Syntax Tree data.
+
+One thing that is super useful is that you can use Typescript `.ts` files and export named types (aliases / interfaces)
+and anything that is too cumbersome to manage with JSDoc. Any `.ts` files that are located at the entry point and
+subdirectories are included in compilation of the declarations. You may use `import types` to reference them just like
+other symbols across your project. With the new support for `@implements` you can now properly represent classes in ESM
+that implement an interface. Note: `.d.ts` files are not included in the declaration generation. However, it is useful
+to use `.d.ts` files exporting types that are considered package private.
 
 ## Caveats
 
