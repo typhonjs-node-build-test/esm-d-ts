@@ -46,6 +46,7 @@ import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
 import {
    addSyntheticExports,
+   jsdocImplementsDynamicImport,
    jsdocPreserveModuleTag,
    jsdocSetterParamName,
    removePrivateStatic }         from '../transformer/internal/index.js';
@@ -364,6 +365,7 @@ function compile(pConfig, warn = false)
     */
    const transformers = [
       jsdocPreserveModuleTag(jsdocModuleComments, config.input),
+      jsdocImplementsDynamicImport(),
       jsdocSetterParamName(),
       ...(typeof config.removePrivateStatic === 'boolean' && config.removePrivateStatic ? [removePrivateStatic()] : []),
       ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
