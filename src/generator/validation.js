@@ -10,6 +10,13 @@ import { logger } from '#util';
 const s_LOG_LEVELS = new Set(['all', 'verbose', 'info', 'warn', 'error']);
 
 /**
+ * Defines valid JS source extensions.
+ *
+ * @type {RegExp}
+ */
+export const regexJSExt = /\.(m?js)$/;
+
+/**
  * Validates the TS compiler options.
  *
  * @param {import('type-fest').TsConfigJson.CompilerOptions} compilerOptions - The TS compiler options.
