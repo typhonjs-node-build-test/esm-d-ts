@@ -31,11 +31,11 @@ import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
 import upath                     from 'upath';
 
-import * as internalPlugins      from './plugins.js';
-
-import { logger }                from '#util';
+import { pluginManager }         from './pluginManager.js';
+import * as internalPlugins      from './rollupPlugins.js';
 
 import {
+   regexJSExt,
    validateCompilerOptions,
    validateConfig }              from './validation.js';
 
@@ -51,6 +51,10 @@ import {
    jsdocSetterParamName,
    removePrivateStatic }         from '../transformer/internal/index.js';
 
+import { logger }                from '#util';
+
+const eventbus = pluginManager.getEventbus();
+
 /**
  * Invokes TS compiler in `checkJS` mode without processing DTS.
  *
@@ -60,6 +64,9 @@ import {
  */
 async function checkDTS(config)
 {
+   const pluginNames = pluginManager.getPluginNames();
+   if (pluginNames.length) { logger.verbose(`Loading plugins: ${pluginNames.join(', ')}`); }
+
    if (isIterable(config))
    {
       for (const entry of config)
@@ -72,7 +79,7 @@ async function checkDTS(config)
             continue;
          }
 
-         logger.logLevel = processedConfigOrError.config.logLevel;
+         logger.setLogLevel(processedConfigOrError.config.logLevel);
 
          logger.info(`Checking DTS bundle for: ${entry.input}`);
 
@@ -118,6 +125,9 @@ async function checkDTSImpl(pConfig)
  */
 async function generateDTS(config)
 {
+   const pluginNames = pluginManager.getPluginNames();
+   if (pluginNames.length) { logger.verbose(`Loading plugins: ${pluginNames.join(', ')}`); }
+
    if (isIterable(config))
    {
       for (const entry of config)
@@ -189,11 +199,11 @@ export { checkDTS, generateDTS };
 /**
  * @param {ProcessedConfig}   pConfig - Processed config.
  *
- * @param {{ comment: string, filepath: string}[]} jsdocModuleComments - Any comments with the `@module` tag.
+ * @param {{ comment: string, filepath: string}[]} [jsdocModuleComments] - Any comments with the `@module` tag.
  *
  * @returns {Promise<void>}
  */
-async function bundleDTS(pConfig, jsdocModuleComments)
+async function bundleDTS(pConfig, jsdocModuleComments = [])
 {
    const { config, compilerOptions, dtsMainPath, packages } = pConfig;
 
@@ -342,6 +352,20 @@ function compile(pConfig, warn = false)
 
    const host = ts.createCompilerHost(compilerOptions, /* setParentNodes */ true);
 
+   const memoryFiles = new Map();
+
+   // Allow any plugins to handle non-JS files potentially modifying `filepaths` and adding transformed code to
+   // `memoryFiles`.
+   eventbus.trigger('compile:transform', { config: pConfig, filepaths, memoryFiles });
+
+   // Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
+   const origReadFile = host.readFile;
+   host.readFile = (fileName) =>
+   {
+      if (memoryFiles.has(fileName)) { return memoryFiles.get(fileName); }
+      return origReadFile(fileName);
+   };
+
    // Prepare and emit the d.ts files
    const program = ts.createProgram(filepaths, compilerOptions, host);
 
@@ -442,6 +466,9 @@ function compile(pConfig, warn = false)
       }
    }
 
+   // Allow any plugins to handle postprocessing of generated DTS files.
+   eventbus.trigger('dts:postprocess', { config: pConfig, filepaths, memoryFiles });
+
    return jsdocModuleComments;
 }
 
@@ -515,9 +542,24 @@ async function parseFiles(config)
             }
          }
 
-         files.add(resolved);
+         let fileData = fs.readFileSync(resolved, 'utf-8').toString();
 
-         const fileData = fs.readFileSync(resolved, 'utf-8').toString();
+         const fileExt = upath.extname(resolved);
+
+         // For non-Javascript files allow any loaded plugins to attempt to transform the file data.
+         if (!regexJSExt.test(fileExt))
+         {
+            const transformed = eventbus.triggerSync(`lexer:transform:${fileExt}`, { config, fileData });
+            if (typeof transformed !== 'string')
+            {
+               logger.warn(`Lexer failed to transform: ${resolved}`);
+               continue;
+            }
+
+            fileData = transformed;
+         }
+
+         files.add(resolved);
 
          const [imports] = parse(fileData);
 
