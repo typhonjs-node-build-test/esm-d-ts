@@ -348,15 +348,15 @@ async function bundleDTS(pConfig, jsdocModuleComments = [])
  */
 function compile(pConfig, warn = false)
 {
-   const { config, compilerOptions, filepaths, inputRelativeDir, tsFilepaths } = pConfig;
+   const { config, compilerOptions, compileFilepaths, inputRelativeDir, tsFilepaths } = pConfig;
 
    const host = ts.createCompilerHost(compilerOptions, /* setParentNodes */ true);
 
    const memoryFiles = new Map();
 
-   // Allow any plugins to handle non-JS files potentially modifying `filepaths` and adding transformed code to
+   // Allow any plugins to handle non-JS files potentially modifying `compileFilepaths` and adding transformed code to
    // `memoryFiles`.
-   eventbus.trigger('transform:compile', { config: pConfig, filepaths, logger, memoryFiles });
+   eventbus.trigger('transform:compile', { config: pConfig, logger, memoryFiles });
 
    // Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
    const origReadFile = host.readFile;
@@ -367,7 +367,7 @@ function compile(pConfig, warn = false)
    };
 
    // Prepare and emit the d.ts files
-   const program = ts.createProgram(filepaths, compilerOptions, host);
+   const program = ts.createProgram(compileFilepaths, compilerOptions, host);
 
    let emitResult;
 
@@ -467,17 +467,19 @@ function compile(pConfig, warn = false)
    }
 
    // Allow any plugins to handle postprocessing of generated DTS files.
-   eventbus.trigger('postprocess:dts', { config: pConfig, filepaths, logger, memoryFiles });
+   eventbus.trigger('postprocess:dts', { config: pConfig, logger, memoryFiles });
 
    return jsdocModuleComments;
 }
 
 /**
- * Fully parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
+ * Lexically parses all files connected to the entry point. Additional data includes top level "re-exported" packages
+ * in `packages` data.
  *
  * @param {GenerateConfig} config - Generate config.
  *
- * @returns {Promise<{files: Set<string>, packages: Set<string>}>} Parsed files and top level packages exported.
+ * @returns {Promise<{lexerFilepaths: string[], packages: string[]}>} Lexically parsed files and top level
+ *          packages exported.
  */
 async function parseFiles(config)
 {
@@ -489,7 +491,7 @@ async function parseFiles(config)
 
    const parsedFiles = new Set();
 
-   const files = new Set();
+   const lexerFilepaths = new Set();
    const packages = new Set();
 
    /**
@@ -506,60 +508,61 @@ async function parseFiles(config)
 
       for (const file of fileList)
       {
-         let resolved = upath.isAbsolute(file) ? file : upath.resolve(file);
+         let resolvedPath = upath.isAbsolute(file) ? file : upath.resolve(file);
 
          // Must indicate warnings for the case when an `index.js` / `index.mjs` file is referenced by directory.
-         const stats = fs.statSync(resolved);
+         const stats = fs.statSync(resolvedPath);
          if (stats.isDirectory())
          {
-            if (fs.existsSync(`${resolved}/index.js`) || fs.existsSync(`${resolved}/index.mjs`))
+            if (fs.existsSync(`${resolvedPath}/index.js`) || fs.existsSync(`${resolvedPath}/index.mjs`))
             {
                // Could not resolve index reference so skip file.
                logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
             }
             else
             {
-               logger.warn(`parseFiles warning: could not resolve directory; '${resolved}'`);
+               logger.warn(`parseFiles warning: could not resolve directory; '${resolvedPath}'`);
             }
 
             continue;
          }
 
-         if (parsedFiles.has(resolved)) { continue; }
+         if (parsedFiles.has(resolvedPath)) { continue; }
 
-         parsedFiles.add(resolved);
+         parsedFiles.add(resolvedPath);
 
-         const dirpath = upath.dirname(resolved);
+         const dirpath = upath.dirname(resolvedPath);
 
-         if (!fs.existsSync(resolved))
+         if (!fs.existsSync(resolvedPath))
          {
-            if (fs.existsSync(`${resolved}.js`)) { resolved = `${resolved}.js`; }
-            else if (fs.existsSync(`${resolved}.mjs`)) { resolved = `${resolved}.mjs`; }
+            if (fs.existsSync(`${resolvedPath}.js`)) { resolvedPath = `${resolvedPath}.js`; }
+            else if (fs.existsSync(`${resolvedPath}.mjs`)) { resolvedPath = `${resolvedPath}.mjs`; }
             else
             {
-               logger.warn(`parseFiles warning: could not resolve; '${resolved}'`);
+               logger.warn(`parseFiles warning: could not resolve; '${resolvedPath}'`);
                continue;
             }
          }
 
-         let fileData = fs.readFileSync(resolved, 'utf-8').toString();
+         let fileData = fs.readFileSync(resolvedPath, 'utf-8').toString();
 
-         const fileExt = upath.extname(resolved);
+         // TODO: Consider multi-part file extensions in the future as applicable. `extname` extracts just the last.
+         const fileExt = upath.extname(resolvedPath);
 
          // For non-Javascript files allow any loaded plugins to attempt to transform the file data.
          if (!regexJSExt.test(fileExt))
          {
-            const transformed = eventbus.triggerSync(`transform:lexer:${fileExt}`, { config, fileData, logger });
+            const transformed = eventbus.triggerSync(`transform:lexer:${fileExt}`, { fileData, logger, resolvedPath });
             if (typeof transformed !== 'string')
             {
-               logger.warn(`Lexer failed to transform: ${resolved}`);
+               logger.warn(`Lexer failed to transform: ${resolvedPath}`);
                continue;
             }
 
             fileData = transformed;
          }
 
-         files.add(resolved);
+         lexerFilepaths.add(resolvedPath);
 
          const [imports] = parse(fileData);
 
@@ -652,7 +655,7 @@ async function parseFiles(config)
       for (const key of keys) { logger.warn(unresolvedImports.get(key)); }
    }
 
-   return { files, packages };
+   return { lexerFilepaths: [...lexerFilepaths], packages: [...packages] };
 }
 
 /**
@@ -900,20 +903,20 @@ async function processConfig(origConfig, defaultCompilerOptions)
    });
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { files, packages } = await parseFiles(config);
+   const { lexerFilepaths, packages } = await parseFiles(config);
 
    // Parsed input source files and any TS files found from input root.
-   const filepaths = [...files, ...tsFilepaths];
+   const compileFilepaths = [...lexerFilepaths, ...tsFilepaths];
 
    // Common path for all input source files linked to the entry point.
-   const commonPathFiles = commonPath(...files);
+   const commonPathFiles = commonPath(...lexerFilepaths);
 
    // Update options / configuration based on common parsed files path -----------------------------------------------
 
    // Adjust compilerOptions rootDir to common path of all source files detected.
    if (compilerOptions.rootDir === void 0)
    {
-      compilerOptions.rootDir = commonPathFiles === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
+      compilerOptions.rootDir = commonPathFiles === '' && compileFilepaths.length === 1 ? upath.dirname(compileFilepaths[0]) :
        commonPathFiles;
    }
 
@@ -933,7 +936,16 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    // ----------------------------------------------------------------------------------------------------------------
 
-   return { config, compilerOptions, dtsMainPath, filepaths, inputRelativeDir, packages, tsFilepaths };
+   return {
+      compileFilepaths,
+      compilerOptions,
+      config,
+      dtsMainPath,
+      inputRelativeDir,
+      lexerFilepaths,
+      packages,
+      tsFilepaths
+   };
 }
 
 /**
@@ -1128,17 +1140,19 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
 /**
  * @typedef {object} ProcessedConfig Contains the processed config and associated data.
  *
+ * @property {string[]}    compileFilepaths A list of all file paths to compile.
+ *
  * @property {ts.CompilerOptions} compilerOptions TS compiler options.
  *
  * @property {GenerateConfig} config Generate config w/ default data.
  *
- * @property {string}      dtsMainPath - The main output path for intermediate TS declarations generated.
- *
- * @property {string[]}    filepaths A list of all file paths to compile.
- *
- * @property {Set<string>} packages Top level packages exported from entry point.
+ * @property {string}      dtsMainPath The main output path for intermediate TS declarations generated.
  *
  * @property {string}      inputRelativeDir Relative directory of common project files path.
+ *
+ * @property {string[]}    lexerFilepaths The lexically parsed original file paths connected with the entry point.
+ *
+ * @property {string[]}    packages Top level packages exported from entry point.
  *
  * @property {string[]}    tsFilepaths A list of all TS files to add synthetic exports.
  */
