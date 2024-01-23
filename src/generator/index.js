@@ -224,11 +224,11 @@ async function bundleDTS(pConfig, jsdocModuleComments = [])
 
    if (jsdocModuleComments.length > 1)
    {
-      const filepaths = jsdocModuleComments.map((entry) => entry?.filepath).join('\n');
+      const jsdocPaths = jsdocModuleComments.map((entry) => entry?.filepath).join('\n');
 
       logger.warn(
        `bundleDTS warning: multiple JSDoc comments detected with the '@module' / '@packageDocumentation' tag from:\n${
-         filepaths}`);
+        jsdocPaths}`);
    }
 
    // Prepend any comment with the `@module` tag preserving it in the bundled DTS file.
@@ -356,7 +356,7 @@ function compile(pConfig, warn = false)
 
    // Allow any plugins to handle non-JS files potentially modifying `filepaths` and adding transformed code to
    // `memoryFiles`.
-   eventbus.trigger('compile:transform', { config: pConfig, filepaths, logger, memoryFiles });
+   eventbus.trigger('transform:compile', { config: pConfig, filepaths, logger, memoryFiles });
 
    // Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
    const origReadFile = host.readFile;
@@ -467,7 +467,7 @@ function compile(pConfig, warn = false)
    }
 
    // Allow any plugins to handle postprocessing of generated DTS files.
-   eventbus.trigger('dts:postprocess', { config: pConfig, filepaths, logger, memoryFiles });
+   eventbus.trigger('postprocess:dts', { config: pConfig, filepaths, logger, memoryFiles });
 
    return jsdocModuleComments;
 }
@@ -485,7 +485,7 @@ async function parseFiles(config)
 
    const { packageObj } = getPackageWithPath({ filepath: config.input });
 
-   const filepaths = [config.input];
+   const entrypoint = [config.input];
 
    const parsedFiles = new Set();
 
@@ -549,7 +549,7 @@ async function parseFiles(config)
          // For non-Javascript files allow any loaded plugins to attempt to transform the file data.
          if (!regexJSExt.test(fileExt))
          {
-            const transformed = eventbus.triggerSync(`lexer:transform:${fileExt}`, { config, fileData, logger });
+            const transformed = eventbus.triggerSync(`transform:lexer:${fileExt}`, { config, fileData, logger });
             if (typeof transformed !== 'string')
             {
                logger.warn(`Lexer failed to transform: ${resolved}`);
@@ -643,7 +643,7 @@ async function parseFiles(config)
       if (toParseFiles.size > 0) { parsePaths(toParseFiles); }
    };
 
-   parsePaths(filepaths, true);
+   parsePaths(entrypoint, true);
 
    // Produce any warnings about unresolved imports specifiers.
    if (unresolvedImports.size > 0)
