@@ -205,22 +205,10 @@ export { checkDTS, generateDTS };
  */
 async function bundleDTS(processedConfig, jsdocModuleComments = [])
 {
-   const { compilerOptions, dtsMainPath, generateConfig, packages } = processedConfig;
+   const { compilerOptions, dtsEntryPath, generateConfig, packages } = processedConfig;
 
    const packageAlias = typeof generateConfig.bundlePackageExports === 'boolean' &&
     generateConfig.bundlePackageExports ? resolvePackageExports(packages, generateConfig, compilerOptions.outDir) : [];
-
-   // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
-   let dtsMainPathActual = upath.changeExt(dtsMainPath, '.d.ts');
-
-   // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
-   if (!fs.existsSync(dtsMainPathActual)) { dtsMainPathActual = upath.changeExt(dtsMainPath, '.d.mts'); }
-
-   if (!fs.existsSync(dtsMainPathActual))
-   {
-      logger.error(`bundleDTS error: could not locate DTS main file in './dts' output.'`);
-      process.exit(1);
-   }
 
    if (jsdocModuleComments.length > 1)
    {
@@ -288,7 +276,7 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
 
    const rollupConfig = {
       input: {
-         input: dtsMainPathActual,
+         input: dtsEntryPath,
          plugins
       },
       output: {
@@ -348,7 +336,14 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
  */
 function compile(processedConfig, warn = false)
 {
-   const { compilerOptions, compileFilepaths, generateConfig, inputRelativeDir, tsFilepaths } = processedConfig;
+   const {
+      compilerOptions,
+      compileFilepaths,
+      dtsEntryPath,
+      generateConfig,
+      inputRelativeDir,
+      tsFilepaths
+   } = processedConfig;
 
    const host = ts.createCompilerHost(compilerOptions, /* setParentNodes */ true);
 
@@ -473,6 +468,21 @@ function compile(processedConfig, warn = false)
          }
       }
    }
+
+   // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
+   let dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.ts');
+
+   // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
+   if (!fs.existsSync(dtsEntryPathActual)) { dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.mts'); }
+
+   if (!fs.existsSync(dtsEntryPathActual))
+   {
+      logger.error(`compile error: could not locate DTS entry point file in './dts' output.'`);
+      process.exit(1);
+   }
+
+   // Update processed config for the actual DTS entry path after compilation.
+   processedConfig.dtsEntryPath = dtsEntryPathActual;
 
    // Allow any plugins to handle postprocessing of generated DTS files.
    eventbus.trigger('postprocess:dts', { logger, memoryFiles, processedConfig });
@@ -945,8 +955,9 @@ async function processConfig(origConfig, defaultCompilerOptions)
    const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, generateConfig.input) :
     upath.basename(generateConfig.input);
 
-   // Get the input DTS entry point; this is without DTS extension change.
-   const dtsMainPath = `${compilerOptions.outDir}/${localRelativePath}`;
+   // Get the input DTS entry point; this is without DTS extension change which occurs after compilation.
+   const dtsEntryPath = `${compilerOptions.outDir}/${localRelativePath}`;
+   const dtsDirectoryPath = compilerOptions.outDir;
 
    // ---
 
@@ -958,7 +969,8 @@ async function processConfig(origConfig, defaultCompilerOptions)
    return {
       compileFilepaths,
       compilerOptions,
-      dtsMainPath,
+      dtsDirectoryPath,
+      dtsEntryPath,
       generateConfig,
       inputRelativeDir,
       lexerFilepaths,
@@ -1163,7 +1175,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * @property {ts.CompilerOptions} compilerOptions TS compiler options.
  *
- * @property {string}      dtsMainPath The main output path for intermediate TS declarations generated.
+ * @property {string}      dtsDirectoryPath The directory path for intermediate TS declarations generated.
+ *
+ * @property {string}      dtsEntryPath The entry point path for intermediate TS declarations generated.
  *
  * @property {GenerateConfig} generateConfig The original generate generateConfig w/ default data.
  *
