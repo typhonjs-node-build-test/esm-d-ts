@@ -356,7 +356,7 @@ function compile(pConfig, warn = false)
 
    // Allow any plugins to handle non-JS files potentially modifying `filepaths` and adding transformed code to
    // `memoryFiles`.
-   eventbus.trigger('compile:transform', { config: pConfig, filepaths, memoryFiles });
+   eventbus.trigger('compile:transform', { config: pConfig, filepaths, logger, memoryFiles });
 
    // Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
    const origReadFile = host.readFile;
@@ -467,7 +467,7 @@ function compile(pConfig, warn = false)
    }
 
    // Allow any plugins to handle postprocessing of generated DTS files.
-   eventbus.trigger('dts:postprocess', { config: pConfig, filepaths, memoryFiles });
+   eventbus.trigger('dts:postprocess', { config: pConfig, filepaths, logger, memoryFiles });
 
    return jsdocModuleComments;
 }
@@ -549,7 +549,7 @@ async function parseFiles(config)
          // For non-Javascript files allow any loaded plugins to attempt to transform the file data.
          if (!regexJSExt.test(fileExt))
          {
-            const transformed = eventbus.triggerSync(`lexer:transform:${fileExt}`, { config, fileData });
+            const transformed = eventbus.triggerSync(`lexer:transform:${fileExt}`, { config, fileData, logger });
             if (typeof transformed !== 'string')
             {
                logger.warn(`Lexer failed to transform: ${resolved}`);
