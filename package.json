@@ -34,6 +34,7 @@
     "@rollup/plugin-alias": "^5.1.0",
     "@types/cytoscape": "^3.19.15",
     "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.3.0",
+    "@typhonjs-plugin/manager": "^0.1.2",
     "@typhonjs-utils/file-util": "^0.1.0",
     "@typhonjs-utils/logger-color": "^0.1.0",
     "@typhonjs-utils/object": "^0.1.0",
@@ -43,6 +44,7 @@
     "es-module-lexer": "^1.4.1",
     "fs-extra": "^11.2.0",
     "import-meta-resolve": "^4.0.0",
+    "prettier": "^3.2.4",
     "resolve.exports": "^2.0.2",
     "rollup-plugin-dts": "^6.1.0",
     "sade": "^1.8.1",
@@ -52,9 +54,10 @@
   },
   "devDependencies": {
     "@typhonjs-config/eslint-config" : "^0.6.0",
-    "@typhonjs-typedoc/typedoc-pkg": "^0.0.2",
-    "@types/node": "^20.9.0",
-    "eslint": "^8.53.0"
+    "@typhonjs-typedoc/typedoc-pkg": "^0.0.3",
+    "@types/node": "^20.11.5",
+    "eslint": "^8.56.0",
+    "svelte": "^4.2.9"
  },
   "peerDependencies": {
     "rollup": "3.3 - 4",
@@ -109,7 +112,9 @@
   "scripts": {
     "eslint": "eslint .",
     "docs": "typedoc-pkg --api-link esm --link-checker",
-    "types": "node ./src/cli/index.js gen -c",
-    "post-test": "node test/postprocess/test.js"
+    "types": "node ./src/cli/index.js gen -c --loglevel verbose",
+    "post-test": "node test/postprocess/test.js",
+    "svelte-test": "node ./src/cli/index.js gen ./test/fixture/svelte/index.js",
+    "docs-svelte": "typedoc-pkg --path test/fixture/svelte/index.d.ts --output docs-svelte"
   }
 }
