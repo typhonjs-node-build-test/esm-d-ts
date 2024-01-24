@@ -67,9 +67,6 @@ const eventbus = pluginManager.getEventbus();
  */
 async function checkDTS(config)
 {
-   const pluginNames = pluginManager.getPluginNames();
-   if (pluginNames.length) { logger.verbose(`Loading plugins: ${pluginNames.join(', ')}`); }
-
    if (isIterable(config))
    {
       for (const entry of config)
@@ -83,6 +80,8 @@ async function checkDTS(config)
          }
 
          logger.setLogLevel(processedConfigOrError.generateConfig.logLevel);
+
+         await pluginManager.initialize();
 
          logger.info(`Checking DTS bundle for: ${entry.input}`);
 
@@ -101,6 +100,8 @@ async function checkDTS(config)
 
       logger.setLogLevel(processedConfigOrError.generateConfig.logLevel);
 
+      await pluginManager.initialize();
+
       logger.info(`Checking DTS bundle for: ${config.input}`);
 
       await checkDTSImpl(processedConfigOrError);
@@ -116,7 +117,11 @@ async function checkDTS(config)
  */
 async function checkDTSImpl(processedConfig)
 {
+   await eventbus.triggerAsync('lifecycle:start', { processedConfig });
+
    await compile(processedConfig);
+
+   await eventbus.triggerAsync('lifecycle:end', { processedConfig });
 }
 
 /**
@@ -128,9 +133,6 @@ async function checkDTSImpl(processedConfig)
  */
 async function generateDTS(config)
 {
-   const pluginNames = pluginManager.getPluginNames();
-   if (pluginNames.length) { logger.verbose(`Loading plugins: ${pluginNames.join(', ')}`); }
-
    if (isIterable(config))
    {
       for (const entry of config)
@@ -144,6 +146,8 @@ async function generateDTS(config)
          }
 
          logger.setLogLevel(processedConfigOrError.generateConfig.logLevel);
+
+         await pluginManager.initialize();
 
          logger.info(`Generating DTS bundle for: ${entry.input}`);
 
@@ -162,6 +166,8 @@ async function generateDTS(config)
 
       logger.setLogLevel(processedConfigOrError.generateConfig.logLevel);
 
+      await pluginManager.initialize();
+
       logger.info(`Generating DTS bundle for: ${config.input}`);
 
       await generateDTSImpl(processedConfigOrError);
@@ -177,6 +183,8 @@ async function generateDTS(config)
  */
 async function generateDTSImpl(processedConfig)
 {
+   await eventbus.triggerAsync('lifecycle:start', { processedConfig });
+
    const { dtsDirectoryPath, generateConfig } = processedConfig;
 
    // Empty intermediate declaration output directory.
@@ -191,6 +199,8 @@ async function generateDTSImpl(processedConfig)
    const text = fs.readFileSync(generateConfig.output, 'utf-8');
    const formatted = await prettier.format(text, { parser: 'typescript', printWidth: 120, singleQuote: true });
    fs.writeFileSync(generateConfig.output, formatted);
+
+   await eventbus.triggerAsync('lifecycle:end', { processedConfig });
 }
 
 /**
