@@ -25,6 +25,7 @@ import {
 import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
 import { resolve }               from 'import-meta-resolve';
+import * as prettier             from 'prettier';
 import * as resolvePkg           from 'resolve.exports';
 import { rollup }                from 'rollup';
 import dts                       from 'rollup-plugin-dts';
@@ -174,15 +175,20 @@ async function generateDTS(config)
  */
 async function generateDTSImpl(processedConfig)
 {
-   const { compilerOptions } = processedConfig;
+   const { dtsDirectoryPath, generateConfig } = processedConfig;
 
    // Empty intermediate declaration output directory.
-   if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
+   if (fs.existsSync(dtsDirectoryPath)) { fs.emptyDirSync(dtsDirectoryPath); }
 
    // Log emit diagnostics as warnings.
    const jsdocModuleComments = await compile(processedConfig, true);
 
    await bundleDTS(processedConfig, jsdocModuleComments);
+
+   // Run prettier on the bundled output file.
+   const text = fs.readFileSync(generateConfig.output, 'utf-8');
+   const formatted = await prettier.format(text, { parser: 'typescript', printWidth: 120, singleQuote: true });
+   fs.writeFileSync(generateConfig.output, formatted);
 }
 
 /**
