@@ -16,7 +16,10 @@ import * as comment_parser from 'comment-parser';
  * @param {'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'trace'} [logLevel='debug'] Optional alternate
  *        logging level.
  */
-declare function logTSNode(node: ts.Node, logLevel?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'trace'): void;
+declare function logTSNode(
+  node: ts.Node,
+  logLevel?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'trace',
+): void;
 
 /**
  * Removes all nodes with the matching JSDoc tags provided. This is useful for handling the `@internal` tag removing
@@ -27,7 +30,9 @@ declare function logTSNode(node: ts.Node, logLevel?: 'fatal' | 'error' | 'warn' 
  *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} A custom transformer to remove nodes by JSDoc tags.
  */
-declare function jsdocRemoveNodeByTags(tags: string | Iterable<string>): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
+declare function jsdocRemoveNodeByTags(
+  tags: string | Iterable<string>,
+): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
 /**
  * Provides a convenient "meta-transformer" that invokes a handler function for each Node reducing the boilerplate
  * required w/ the parsed leading comment data for the Node. Only leading block comments are parsed. The `parsed` array
@@ -52,14 +57,17 @@ declare function jsdocRemoveNodeByTags(tags: string | Iterable<string>): ts.Tran
  *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} JSDoc custom "meta-transformer".
  */
-declare function jsdocTransformer(handler: (data: {
+declare function jsdocTransformer(
+  handler: (data: {
     node: ts.Node;
     sourceFile: ts.SourceFile;
     comments: string[];
     parsed: comment_parser.Block[];
     lastComment: string;
     lastParsed: comment_parser.Block;
-}) => any, postHandler?: (sourceFile: ts.SourceFile) => ts.SourceFile | undefined): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
+  }) => any,
+  postHandler?: (sourceFile: ts.SourceFile) => ts.SourceFile | undefined,
+): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
 /**
  * Returns the leading comment strings for a Node.
  *
@@ -84,11 +92,14 @@ declare function getLeadingComments(node: ts.Node, sourceFile: ts.SourceFile): s
  *    lastParsed: import('comment-parser').Block
  * }} The parsed leading comments.
  */
-declare function parseLeadingComments(node: ts.Node, sourceFile: ts.SourceFile): {
-    comments: string[];
-    parsed: comment_parser.Block[];
-    lastComment: string;
-    lastParsed: comment_parser.Block;
+declare function parseLeadingComments(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+): {
+  comments: string[];
+  parsed: comment_parser.Block[];
+  lastComment: string;
+  lastParsed: comment_parser.Block;
 };
 
 /**
@@ -108,9 +119,9 @@ declare function parseLeadingComments(node: ts.Node, sourceFile: ts.SourceFile):
  *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} JSDoc custom "meta-transformer".
  */
-declare function transformer(handler: (data: {
-    node: ts.Node;
-    sourceFile: ts.SourceFile;
-}) => any, postHandler?: (sourceFile: ts.SourceFile) => ts.SourceFile | undefined): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
+declare function transformer(
+  handler: (data: { node: ts.Node; sourceFile: ts.SourceFile }) => any,
+  postHandler?: (sourceFile: ts.SourceFile) => ts.SourceFile | undefined,
+): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
 
 export { getLeadingComments, jsdocRemoveNodeByTags, jsdocTransformer, logTSNode, parseLeadingComments, transformer };
