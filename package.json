@@ -48,7 +48,7 @@
     "resolve.exports": "^2.0.2",
     "rollup-plugin-dts": "^6.1.0",
     "sade": "^1.8.1",
-    "ts-morph": "^20.0.0",
+    "ts-morph": "^21.0.1",
     "type-fest": "^4.9.0",
     "upath": "^2.0.1"
   },
