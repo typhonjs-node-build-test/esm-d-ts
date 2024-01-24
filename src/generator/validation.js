@@ -1,8 +1,9 @@
+import { isFile } from '@typhonjs-utils/file-util';
+
 import {
    isIterable,
    isObject }     from '@typhonjs-utils/object';
 
-import fs         from 'fs-extra';
 import ts         from 'typescript';
 
 import { logger } from '#util';
@@ -58,7 +59,7 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (!fs.existsSync(config.input))
+   if (!isFile(config.input))
    {
       logger.error(`validateConfig error: 'config.input' file does not exist.`);
       result = false;

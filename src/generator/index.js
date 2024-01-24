@@ -16,7 +16,9 @@ import {
 
 import {
    commonPath,
-   getFileList }                 from '@typhonjs-utils/file-util';
+   getFileList,
+   isDirectory,
+   isFile }                      from '@typhonjs-utils/file-util';
 
 import {
    isIterable,
@@ -178,7 +180,7 @@ async function generateDTSImpl(processedConfig)
    const { dtsDirectoryPath, generateConfig } = processedConfig;
 
    // Empty intermediate declaration output directory.
-   if (fs.existsSync(dtsDirectoryPath)) { fs.emptyDirSync(dtsDirectoryPath); }
+   if (isDirectory(dtsDirectoryPath)) { fs.emptyDirSync(dtsDirectoryPath); }
 
    // Log emit diagnostics as warnings.
    const jsdocModuleComments = await compile(processedConfig, true);
@@ -239,14 +241,14 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
          const resolvedPath = upath.resolve(dir, prependFile);
 
          // First attempt to load the file relative to the entry point file.
-         if (fs.existsSync(resolvedPath))
+         if (isFile(resolvedPath))
          {
             banner += fs.readFileSync(resolvedPath, 'utf-8');
             continue;
          }
 
          // Make a second attempt to load the file with the path provided.
-         if (fs.existsSync(prependFile))
+         if (isFile(prependFile))
          {
             banner += fs.readFileSync(prependFile, 'utf-8');
             continue;
@@ -479,9 +481,9 @@ async function compile(processedConfig, warn = false)
    let dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.ts');
 
    // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
-   if (!fs.existsSync(dtsEntryPathActual)) { dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.mts'); }
+   if (!isFile(dtsEntryPathActual)) { dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.mts'); }
 
-   if (!fs.existsSync(dtsEntryPathActual))
+   if (!isFile(dtsEntryPathActual))
    {
       logger.error(`compile error: could not locate DTS entry point file in './dts' output.'`);
       process.exit(1);
@@ -535,20 +537,25 @@ async function parseFiles(generateConfig)
          let resolvedPath = upath.isAbsolute(file) ? file : upath.resolve(file);
 
          // Must indicate warnings for the case when an `index.js` / `index.mjs` file is referenced by directory.
-         const stats = fs.statSync(resolvedPath);
-         if (stats.isDirectory())
+         if (isDirectory(resolvedPath))
          {
-            if (fs.existsSync(`${resolvedPath}/index.js`) || fs.existsSync(`${resolvedPath}/index.mjs`))
+            const hasIndexJs = isFile(`${resolvedPath}/index.js`);
+            const hasIndexMjs = isFile(`${resolvedPath}/index.mjs`);
+
+            if (!hasIndexJs && !hasIndexMjs)
             {
                // Could not resolve index reference so skip file.
                logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
-            }
-            else
-            {
-               logger.warn(`parseFiles warning: could not resolve directory; '${resolvedPath}'`);
-            }
 
-            continue;
+               continue;
+            }
+            // else
+            // {
+            //    logger.warn(`parseFiles warning: could not resolve directory; '${resolvedPath}'`);
+            // }
+
+            if (hasIndexJs) { resolvedPath = `${resolvedPath}/index.js`; }
+            else if (hasIndexMjs) { resolvedPath = `${resolvedPath}/index.mjs`; }
          }
 
          if (parsedFiles.has(resolvedPath)) { continue; }
@@ -557,10 +564,10 @@ async function parseFiles(generateConfig)
 
          const dirpath = upath.dirname(resolvedPath);
 
-         if (!fs.existsSync(resolvedPath))
+         if (!isFile(resolvedPath))
          {
-            if (fs.existsSync(`${resolvedPath}.js`)) { resolvedPath = `${resolvedPath}.js`; }
-            else if (fs.existsSync(`${resolvedPath}.mjs`)) { resolvedPath = `${resolvedPath}.mjs`; }
+            if (isFile(`${resolvedPath}.js`)) { resolvedPath = `${resolvedPath}.js`; }
+            else if (isFile(`${resolvedPath}.mjs`)) { resolvedPath = `${resolvedPath}.mjs`; }
             else
             {
                logger.warn(`parseFiles warning: could not resolve; '${resolvedPath}'`);
@@ -613,7 +620,7 @@ async function parseFiles(generateConfig)
                      if (result[0]?.startsWith?.('.'))
                      {
                         const fullpath = upath.resolve(result[0]);
-                        if (fs.existsSync(fullpath))
+                        if (isFile(fullpath))
                         {
                            importpath = fullpath;
                         }
@@ -757,7 +764,7 @@ function parsePackage(packageName, generateConfig)
          resolvePath = upath.join(packageDir, ...exportTypesPath);
 
          // If a declaration is found and the file exists return now.
-         if (resolvePath.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
+         if (resolvePath.match(s_REGEX_DTS_EXTENSIONS) && isFile(resolvePath)) { return `./${resolvePath}`; }
       }
 
       const exportConditionPath = resolvePkg.exports(packageJSON, exportPath, generateConfig.conditionExports);
@@ -773,7 +780,7 @@ function parsePackage(packageName, generateConfig)
           `./${upath.changeExt(resolvePath, '.d.ts')}`;
 
          // Found a TS declaration directly associated with the export then return it.
-         if (fs.existsSync(resolveDTS)) { return resolveDTS; }
+         if (isFile(resolveDTS)) { return resolveDTS; }
       }
 
       // Now attempt to find the nearest `package.json` that isn't the root `package.json`.
@@ -787,7 +794,7 @@ function parsePackage(packageName, generateConfig)
       if (packageObj && typeof packageObj.types === 'string')
       {
          const lastResolveDTS = `./${upath.join(packageDir, packageObj.types)}`;
-         if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+         if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && isFile(lastResolveDTS)) { return lastResolveDTS; }
       }
    }
 
@@ -795,7 +802,7 @@ function parsePackage(packageName, generateConfig)
    if (typeof packageJSON.types === 'string')
    {
       const lastResolveDTS = `./${upath.join(packageDir, packageJSON.types)}`;
-      if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+      if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && isFile(lastResolveDTS)) { return lastResolveDTS; }
    }
 
    // The reason this is gated behind a config option is that typically a package without an `exports` / `types` field
@@ -803,7 +810,7 @@ function parsePackage(packageName, generateConfig)
    if (generateConfig.checkDefaultPath)
    {
       const lastResolveDTS = `./${packageDir}/index.d.ts`;
-      if (fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+      if (isFile(lastResolveDTS)) { return lastResolveDTS; }
    }
 
    return void 0;
@@ -867,7 +874,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    // Verify any tsconfig provided path.
    if (generateConfig.tsconfig)
    {
-      if (fs.existsSync(generateConfig.tsconfig))
+      if (isFile(generateConfig.tsconfig))
       {
          tsconfigPath = generateConfig.tsconfig;
       }
@@ -880,7 +887,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    else
    {
       // Check for default `./tsconfig.json`
-      if (fs.existsSync('./tsconfig.json')) { tsconfigPath = './tsconfig.json'; }
+      if (isFile('./tsconfig.json')) { tsconfigPath = './tsconfig.json'; }
    }
 
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */

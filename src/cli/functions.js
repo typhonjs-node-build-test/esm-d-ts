@@ -2,6 +2,8 @@ import fs                  from 'node:fs';
 import path                from 'node:path';
 import { pathToFileURL }   from 'node:url';
 
+import { isFile }          from '@typhonjs-utils/file-util';
+
 import {
    isObject,
    isIterable }            from '@typhonjs-utils/object';
@@ -97,7 +99,7 @@ async function loadConfig(filepath)
          exit(`The config exported does not have the required 'input' attribute: ${filepath}`);
       }
 
-      if (!fs.existsSync(module.default.input))
+      if (!isFile(module.default.input))
       {
          exit(`The config 'input' / entry point file does not exist for: ${module.default.input}`);
       }
@@ -118,7 +120,7 @@ async function loadConfig(filepath)
              filepath}`);
          }
 
-         if (!fs.existsSync(entry.input))
+         if (!isFile(entry.input))
          {
             exit(`The config exports a list, but entry[${i}].input / entry point file does not exist for: ${
              entry.input}`);
@@ -170,17 +172,17 @@ async function processOptions(input, opts)
       {
          // Load default config.
          case 'boolean':
-            if (!fs.existsSync('./esm-d-ts.config.js') && !fs.existsSync('./esm-d-ts.config.mjs'))
+            if (!isFile('./esm-d-ts.config.js') && !isFile('./esm-d-ts.config.mjs'))
             {
                exit(`No default config file 'esm-d-ts.config.[m]js' available in: ${dirname}`);
             }
 
-            if (fs.existsSync('./esm-d-ts.config.js'))
+            if (isFile('./esm-d-ts.config.js'))
             {
                logger.verbose(`Loading config from path: './esm-d-ts.config.js'`);
                config = await loadConfig(path.resolve('./esm-d-ts.config.js'));
             }
-            else if (fs.existsSync('./esm-d-ts.config.mjs'))
+            else if (isFile('./esm-d-ts.config.mjs'))
             {
                logger.verbose(`Loading config from path: './esm-d-ts.config.mjs'`);
                config = await loadConfig(path.resolve('./esm-d-ts.config.mjs'));
@@ -192,7 +194,7 @@ async function processOptions(input, opts)
          {
             const configPath = path.resolve(opts.config);
 
-            if (!fs.existsSync(configPath)) { exit(`No config file available at: ${configPath}`); }
+            if (!isFile(configPath)) { exit(`No config file available at: ${configPath}`); }
 
             logger.verbose(`Loading config from path: '${configPath}'`);
             config = await loadConfig(configPath);
@@ -221,7 +223,7 @@ async function processOptions(input, opts)
    {
       // Verify `input` file.
       const inputpath = path.resolve(input);
-      if (!fs.existsSync(inputpath)) { exit(`No input / entry point file exists for: ${input}`); }
+      if (!isFile(inputpath)) { exit(`No input / entry point file exists for: ${input}`); }
    }
 
    /**

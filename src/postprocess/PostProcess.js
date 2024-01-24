@@ -1,8 +1,8 @@
+import fs                     from 'node:fs';
+
+import { isFile }             from '@typhonjs-utils/file-util';
 import { isIterable }         from '@typhonjs-utils/object';
-import fs                     from 'fs-extra';
-
 import { Project }            from 'ts-morph';
-
 import ts                     from 'typescript';
 
 import { DependencyParser }   from './DependencyParser.js';
@@ -46,7 +46,7 @@ export class PostProcess
          throw new TypeError(`PostProcess.process error: 'processors' is not an iterable list.`);
       }
 
-      if (!fs.existsSync(filepath))
+      if (!isFile(filepath))
       {
          throw new TypeError(`PostProcess.process error: 'filepath' does not exist:\n${filepath}`);
       }
