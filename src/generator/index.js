@@ -113,7 +113,7 @@ async function checkDTS(config)
  */
 async function checkDTSImpl(processedConfig)
 {
-   compile(processedConfig);
+   await compile(processedConfig);
 }
 
 /**
@@ -180,7 +180,7 @@ async function generateDTSImpl(processedConfig)
    if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
 
    // Log emit diagnostics as warnings.
-   const jsdocModuleComments = compile(processedConfig, true);
+   const jsdocModuleComments = await compile(processedConfig, true);
 
    await bundleDTS(processedConfig, jsdocModuleComments);
 }
@@ -332,9 +332,9 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
  *
  * @param {boolean}  [warn=false] - Log the emit diagnostics as warnings for `generateDTS`.
  *
- * @returns {{ comment: string, filepath: string }[]} Any parsed JSDoc comments with the `@module` tag.
+ * @returns {Promise<{ comment: string, filepath: string }[]>} Any parsed JSDoc comments with the `@module` tag.
  */
-function compile(processedConfig, warn = false)
+async function compile(processedConfig, warn = false)
 {
    const {
       compilerOptions,
@@ -351,7 +351,7 @@ function compile(processedConfig, warn = false)
 
    // Allow any plugins to handle non-JS files potentially modifying `compileFilepaths` and adding transformed code to
    // `memoryFiles`.
-   eventbus.trigger('transform:compile', { logger, memoryFiles, processedConfig });
+   await eventbus.triggerAsync('transform:compile', { logger, memoryFiles, processedConfig });
 
    // Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
    const origReadFile = host.readFile;
@@ -485,7 +485,7 @@ function compile(processedConfig, warn = false)
    processedConfig.dtsEntryPath = dtsEntryPathActual;
 
    // Allow any plugins to handle postprocessing of generated DTS files.
-   eventbus.trigger('postprocess:dts', { logger, memoryFiles, processedConfig });
+   await eventbus.triggerAsync('postprocess:dts', { logger, memoryFiles, PostProcess, processedConfig });
 
    return jsdocModuleComments;
 }
@@ -520,7 +520,7 @@ async function parseFiles(generateConfig)
     */
    const unresolvedImports = new Map();
 
-   const parsePaths = (fileList, topLevel = false) =>
+   const parsePaths = async (fileList, topLevel = false) =>
    {
       const toParseFiles = new Set();
 
@@ -570,7 +570,7 @@ async function parseFiles(generateConfig)
          // For non-Javascript files allow any loaded plugins to attempt to transform the file data.
          if (!regexJSExt.test(fileExt))
          {
-            const transformed = eventbus.triggerSync(`transform:lexer:${fileExt}`, { fileData, logger, resolvedPath });
+            const transformed = await eventbus.triggerAsync(`transform:lexer:${fileExt}`, { fileData, logger, resolvedPath });
             if (typeof transformed !== 'string')
             {
                logger.warn(`Lexer failed to transform: ${resolvedPath}`);
@@ -661,10 +661,10 @@ async function parseFiles(generateConfig)
          }
       }
 
-      if (toParseFiles.size > 0) { parsePaths(toParseFiles); }
+      if (toParseFiles.size > 0) { await parsePaths(toParseFiles); }
    };
 
-   parsePaths(entrypoint, true);
+   await parsePaths(entrypoint, true);
 
    // Produce any warnings about unresolved imports specifiers.
    if (unresolvedImports.size > 0)
