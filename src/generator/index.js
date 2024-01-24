@@ -79,10 +79,6 @@ async function checkDTS(config)
             continue;
          }
 
-         logger.setLogLevel(processedConfigOrError.generateConfig.logLevel);
-
-         await pluginManager.initialize();
-
          logger.info(`Checking DTS bundle for: ${entry.input}`);
 
          await checkDTSImpl(processedConfigOrError);
@@ -97,10 +93,6 @@ async function checkDTS(config)
          logger.error(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
          return;
       }
-
-      logger.setLogLevel(processedConfigOrError.generateConfig.logLevel);
-
-      await pluginManager.initialize();
 
       logger.info(`Checking DTS bundle for: ${config.input}`);
 
@@ -145,10 +137,6 @@ async function generateDTS(config)
             continue;
          }
 
-         logger.setLogLevel(processedConfigOrError.generateConfig.logLevel);
-
-         await pluginManager.initialize();
-
          logger.info(`Generating DTS bundle for: ${entry.input}`);
 
          await generateDTSImpl(processedConfigOrError);
@@ -163,10 +151,6 @@ async function generateDTS(config)
          logger.error(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
          return;
       }
-
-      logger.setLogLevel(processedConfigOrError.generateConfig.logLevel);
-
-      await pluginManager.initialize();
 
       logger.info(`Generating DTS bundle for: ${config.input}`);
 
@@ -876,6 +860,11 @@ async function processConfig(origConfig, defaultCompilerOptions)
    {
       return `error: Aborting as 'config' failed validation.`;
    }
+
+   logger.setLogLevel(generateConfig.logLevel);
+
+   // Initialize plugin manager after logger log level set. Initialization only occurs once per entire invocation.
+   await pluginManager.initialize();
 
    // Load default or configured `tsconfig.json` file to configure `compilerOptions`. --------------------------------
 
