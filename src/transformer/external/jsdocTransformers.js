@@ -164,12 +164,7 @@ export function getLeadingComments(node, sourceFile)
  *
  * @param {ts.SourceFile}  sourceFile - The source file of the Node.
  *
- * @returns {{
- *    comments: string[],
- *    parsed: import('comment-parser').Block[],
- *    lastComment: string,
- *    lastParsed: import('comment-parser').Block
- * }} The parsed leading comments.
+ * @returns {ParsedLeadingComments} The parsed leading comments.
  */
 export function parseLeadingComments(node, sourceFile)
 {
@@ -201,3 +196,15 @@ export function parseLeadingComments(node, sourceFile)
 
    return { comments, parsed, lastComment, lastParsed };
 }
+
+/**
+ * @typedef {object} ParsedLeadingComments Defines all leading JSDoc comments for a Typescript compiler node.
+ *
+ * @property {string[]} comments - All raw JSDoc comment blocks.
+ *
+ * @property {import('comment-parser').Block[]} parsed - All parsed JSDoc comment blocks.
+ *
+ * @property {string} lastComment - Last raw JSDoc comment block before node.
+ *
+ * @property {import('comment-parser').Block} lastParsed - Last parsed leading JSDoc comment block before node.
+ */
