@@ -55,7 +55,8 @@ export class PostProcess
          compilerOptions: {
             target: ts.ScriptTarget.ES2022,
             module: ts.ModuleKind.ES2022,
-         }
+         },
+         useVirtualFileSystem: true
       });
 
       // Add the declaration file to the project
