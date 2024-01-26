@@ -950,7 +950,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    const compileFilepaths = [...lexerFilepaths, ...tsFilepaths];
 
    // Common path for all input source files linked to the entry point.
-   const commonPathFiles = commonPath(...lexerFilepaths);
+   const commonPathFiles = commonPath(...compileFilepaths);
 
    // Update options / configuration based on common parsed files path -----------------------------------------------
 
