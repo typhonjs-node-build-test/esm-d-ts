@@ -88,6 +88,8 @@ export class PostProcess
             logger.error(
              `PostProcess.process error: processor[${cntr}] raised an error (aborting processing):\n${err.message}`);
 
+            logger.debug(err);
+
             return;
          }
       }
