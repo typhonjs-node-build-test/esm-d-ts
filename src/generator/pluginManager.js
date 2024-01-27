@@ -20,6 +20,8 @@ import { logger }          from "#util";
  * - `compile:transform` - Provides an opportunity for plugins to transform any files collected for compilation before
  *  invoking the Typescript compiler.
  *
+ * - 'compile:diagnostic:filter' - Allows plugins to filter any raised diagnostic warnings from compilation.
+ *
  * - `compile:end` - Allows any postprocessing of intermediate declarations generated before bundling of declarations.
  *
  * - `lifecycle:end` - After the work flow has completed.
