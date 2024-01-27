@@ -487,7 +487,7 @@ async function compile(processedConfig, warn = false)
 
    // Default filter to exclude non-project files when option `tsDiagnosticExternal` is true and no explicit
    // `tsDiagnosticFilter` option is set.
-   const filterExternalDiagnostic = (diagnostic) =>
+   const filterExternalDiagnostic = ({ diagnostic }) =>
    {
       if (diagnostic.file)
       {
@@ -502,11 +502,53 @@ async function compile(processedConfig, warn = false)
    const filterDiagnostic = generateConfig.tsDiagnosticFilter ?? !generateConfig.tsDiagnosticExternal ?
     filterExternalDiagnostic : (() => false);
 
+   /**
+    * Helper method used to log a diagnostic instance. This is passed to plugins for consistent formatting.
+    *
+    * @param {import('typescript').Diagnostic}  diagnostic - A diagnostic to log.
+    *
+    * @param {import('@typhonjs-utils/logger-color').LogLevel} [logLevel='warn'] - Log level to use.
+    */
+   const diagnosticLog = (diagnostic, logLevel = 'warn') =>
+   {
+      if (!logger.isValidLevel(logLevel))
+      {
+         logger.warn(`[diagnosticLog] Unknown log level: ${logLevel}`);
+      }
+
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+
+      if (diagnostic.file)
+      {
+         const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
+         const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
+         logger.ext[`${logLevel}Raw`](`${fileName} (${line + 1},${character + 1})[33m: [TS] ${message}[0m`);
+      }
+      else
+      {
+         logger[logLevel](`[TS] ${message}`);
+      }
+   };
+
    for (const diagnostic of allDiagnostics)
    {
       const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
 
-      if (filterDiagnostic(diagnostic, message)) { continue; }
+      if (filterDiagnostic({ diagnostic, message })) { continue; }
+
+      try
+      {
+         const result = await eventbus.triggerAsync('compile:diagnostic:filter',
+          { diagnostic, diagnosticLog, logger, message });
+
+         if (typeof result === 'boolean' && result) { continue; }
+      }
+      catch (err)
+      {
+         logger.error(`External plugin error for event 'compile:diagnostic:filter': ${err.message}`);
+
+         throw err;
+      }
 
       // Special handling for `generateDTS` / log as warnings.
       if (warn)
@@ -514,29 +556,11 @@ async function compile(processedConfig, warn = false)
          // Only log if logLevel is not `error` or `tsDiagnosticLog` is true.
          if (!generateConfig.tsDiagnosticLog || !logger.is.warn) { continue; }
 
-         if (diagnostic.file)
-         {
-            const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
-            const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
-            console.warn(`${fileName} (${line + 1},${character + 1})[33m: [TS] ${message}[0m`);
-         }
-         else
-         {
-            console.warn(`[33m[esm-d-ts] [TS] ${message}[0m`);
-         }
+         diagnosticLog(diagnostic);
       }
       else
       {
-         if (diagnostic.file)
-         {
-            const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
-            const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
-            console.warn(`${fileName} (${line + 1},${character + 1}): [TS] ${message}`);
-         }
-         else
-         {
-            console.warn(`[esm-d-ts] [TS] ${message}`);
-         }
+         diagnosticLog(diagnostic);
       }
    }
 
@@ -1239,9 +1263,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `tsDiagnosticFilter` this
  * option is ignored.
  *
- * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [tsDiagnosticFilter] Optional
- * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
- * filter the given diagnostic from posting to `console.error` otherwise return false to include.
+ * @property {({ diagnostic: import('typescript').Diagnostic, message?: string }) => boolean} [tsDiagnosticFilter]
+ * Optional filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return
+ * `true` to filter the given diagnostic from posting to `console.error` otherwise return false to include.
  *
  * @property {boolean} [tsDiagnosticLog=true] When generating a DTS bundle you may opt to turn off any emitted TS
  * compiler diagnostic messages.
