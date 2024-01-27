@@ -349,11 +349,17 @@ async function compile(processedConfig, warn = false)
 
    const host = ts.createCompilerHost(compilerOptions, /* setParentNodes */ true);
 
+   /**
+    * Stores any in-memory transformed file data from plugin processing. The key is the file name and value is
+    * transformed code.
+    *
+    * @type {Map<string, string>}
+    */
    const memoryFiles = new Map();
 
    // Allow any plugins to handle non-JS files potentially modifying `compileFilepaths` and adding transformed code to
    // `memoryFiles`.
-   await eventbus.triggerAsync('transform:compile', { logger, memoryFiles, processedConfig });
+   await eventbus.triggerAsync('compile:transform', { logger, memoryFiles, processedConfig });
 
    // Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
    const origReadFile = host.readFile;
@@ -487,7 +493,7 @@ async function compile(processedConfig, warn = false)
    processedConfig.dtsEntryPath = dtsEntryPathActual;
 
    // Allow any plugins to handle postprocessing of generated DTS files.
-   await eventbus.triggerAsync('postprocess:dts', { logger, memoryFiles, PostProcess, processedConfig });
+   await eventbus.triggerAsync('compile:end', { logger, memoryFiles, PostProcess, processedConfig });
 
    return jsdocModuleComments;
 }
@@ -577,7 +583,7 @@ async function parseFiles(generateConfig)
          // For non-Javascript files allow any loaded plugins to attempt to transform the file data.
          if (!regexJSExt.test(fileExt))
          {
-            const transformed = await eventbus.triggerAsync(`transform:lexer:${fileExt}`, { fileData, logger, resolvedPath });
+            const transformed = await eventbus.triggerAsync(`lexer:transform:${fileExt}`, { fileData, logger, resolvedPath });
             if (typeof transformed !== 'string')
             {
                logger.warn(`Lexer failed to transform: ${resolvedPath}`);
