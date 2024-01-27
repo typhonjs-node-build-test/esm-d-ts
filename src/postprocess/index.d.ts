@@ -156,18 +156,26 @@ declare class PostProcess {
    *
    * @param {string}   options.filepath - Source DTS file to process.
    *
-   * @param {string}   [options.output] - Alternate output filepath for testing.
-   *
    * @param {Iterable<import('./').ProcessorFunction>}   options.processors - List of processor functions.
+   *
+   * @param {boolean}  [options.dependencies=false] - When true generate dependencies graph analysis.
+   *
+   * @param {boolean}  [options.logStart=false] - When true verbosely log processor start.
+   *
+   * @param {string}   [options.output] - Alternate output filepath for testing.
    */
   static process({
     filepath,
-    output,
     processors,
+    dependencies,
+    logStart,
+    output,
   }: {
     filepath: string;
-    output?: string;
     processors: Iterable<ProcessorFunction>;
+    dependencies?: boolean;
+    logStart?: boolean;
+    output?: string;
   }): void;
 }
 

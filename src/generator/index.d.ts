@@ -138,11 +138,11 @@ type GeneratePluginConfig = {
    */
   tsDiagnosticExternal?: boolean;
   /**
-   * Optional
-   * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
-   * filter the given diagnostic from posting to `console.error` otherwise return false to include.
+   * Optional filter function to handle diagnostic messages in a similar manner as the `onwarn`
+   * Rollup callback. Return `true` to filter the given diagnostic from posting to `console.error` otherwise return false
+   * to include.
    */
-  tsDiagnosticFilter?: (diagnostic: ts.Diagnostic, message?: string) => boolean;
+  tsDiagnosticFilter?: (params: { diagnostic: ts.Diagnostic; message?: string }) => boolean;
   /**
    * When generating a DTS bundle you may opt to turn off any emitted TS
    * compiler diagnostic messages.

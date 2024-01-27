@@ -1265,9 +1265,11 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `tsDiagnosticFilter` this
  * option is ignored.
  *
- * @property {({ diagnostic: import('typescript').Diagnostic, message?: string }) => boolean} [tsDiagnosticFilter]
- * Optional filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return
- * `true` to filter the given diagnostic from posting to `console.error` otherwise return false to include.
+ * @property {(
+ *    (params: { diagnostic: import('typescript').Diagnostic, message?: string }) => boolean
+ * )} [tsDiagnosticFilter] Optional filter function to handle diagnostic messages in a similar manner as the `onwarn`
+ * Rollup callback. Return `true` to filter the given diagnostic from posting to `console.error` otherwise return false
+ * to include.
  *
  * @property {boolean} [tsDiagnosticLog=true] When generating a DTS bundle you may opt to turn off any emitted TS
  * compiler diagnostic messages.
