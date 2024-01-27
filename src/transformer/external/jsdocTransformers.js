@@ -164,8 +164,9 @@ export function getLeadingComments(node, sourceFile)
  *
  * @param {ts.SourceFile}  sourceFile - The source file of the Node.
  *
- * @param {Partial<import('comment-parser').Options>} options - Options for `comment-parser`. The default is to preserve
- *        spacing in comment descriptions.
+ * @param {Partial<import('comment-parser').Options>} [options] - Options for `comment-parser`. The default is to
+ *        preserve spacing in comment descriptions. Please refer to the `comment-parser` documentation for options
+ *        available. Currently, `comment-parser` doesn't export the `Options`.
  *
  * @returns {ParsedLeadingComments} The parsed leading comments.
  */
