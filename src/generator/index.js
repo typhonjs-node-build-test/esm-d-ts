@@ -1106,7 +1106,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsResolvePluginOptions} [importsResolve]
  * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
  *
- * @property {'all' | 'verbose' | 'info' | 'warn' | 'error'} [logLevel='info'] Defines the logging level.
+ * @property {'off' | 'fatal' | 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'trace' | 'all'} [logLevel='info']
+ * Defines the logging level.
  *
  * @property {string}               [output] The output file path for the bundled TS declarations.
  *

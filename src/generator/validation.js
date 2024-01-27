@@ -8,8 +8,6 @@ import ts         from 'typescript';
 
 import { logger } from '#util';
 
-const s_LOG_LEVELS = new Set(['all', 'verbose', 'info', 'warn', 'error']);
-
 /**
  * Defines valid JS source extensions.
  *
@@ -118,11 +116,10 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (!s_LOG_LEVELS.has(config.logLevel))
+   if (!logger.isValidLevel(config.logLevel))
    {
-      logger.error(
-       `validateConfig error: 'config.logLevel' must be 'all', 'verbose', 'info', 'warn', or 'error'; received: '${
-         config.logLevel}'`);
+      logger.error(`validateConfig error: 'config.logLevel' must be 'off', 'fatal', 'error', 'warn', 'info', ` +
+       `'verbose', 'debug', 'trace', or 'all'; received: '${config.logLevel}'`);
 
       result = false;
    }
