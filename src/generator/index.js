@@ -374,7 +374,9 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
       PostProcess.process({
          filepath: generateConfig.output,
          output: generateConfig.outputPostprocess,
-         processors
+         processors,
+         dependencies: true,
+         logStart: true
       });
    }
 
