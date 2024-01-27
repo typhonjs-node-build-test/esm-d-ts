@@ -6,6 +6,24 @@ import upath               from 'upath';
 
 import { logger }          from "#util";
 
+/**
+ * Provides custom initialization of plugins located in `node_modules/@typhonjs-build-test` organization. Presently,
+ * only official first party plugins are supported.
+ *
+ * `esm-d-ts` plugins receive the following event callbacks in the order that they are fired:
+ *
+ * - `lifecycle:start` - Before starting either the `checkJS` or `generateDTS` work flow.
+ *
+ * - `lexer:transform:<FILE_EXTENSION>` - Allows plugins to handle unknown file extensions transforming them into ESM
+ *  code that can be lexically analyzed for imports / dependency connection to the main entry point being processed.
+ *
+ * - `compile:transform` - Provides an opportunity for plugins to transform any files collected for compilation before
+ *  invoking the Typescript compiler.
+ *
+ * - `compile:end` - Allows any postprocessing of intermediate declarations generated before bundling of declarations.
+ *
+ * - `lifecycle:end` - After the work flow has completed.
+ */
 class DTSPluginManager extends PluginManager
 {
    #initialized = false;
