@@ -164,9 +164,12 @@ export function getLeadingComments(node, sourceFile)
  *
  * @param {ts.SourceFile}  sourceFile - The source file of the Node.
  *
+ * @param {Partial<import('comment-parser').Options>} options - Options for `comment-parser`. The default is to preserve
+ *        spacing in comment descriptions.
+ *
  * @returns {ParsedLeadingComments} The parsed leading comments.
  */
-export function parseLeadingComments(node, sourceFile)
+export function parseLeadingComments(node, sourceFile, options = { spacing: 'preserve' })
 {
    const comments = [];
    const parsed = [];
@@ -177,7 +180,7 @@ export function parseLeadingComments(node, sourceFile)
    {
       for (const comment of allComments)
       {
-         const parsedComment = parse(comment);
+         const parsedComment = parse(comment, options);
 
          if (parsedComment.length)
          {
