@@ -67,36 +67,45 @@ const eventbus = pluginManager.getEventbus();
  */
 async function checkDTS(config)
 {
-   if (isIterable(config))
+   try
    {
-      for (const entry of config)
+      if (isIterable(config))
       {
-         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
+         for (const entry of config)
+         {
+            const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
+
+            if (typeof processedConfigOrError === 'string')
+            {
+               logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+               continue;
+            }
+
+            logger.info(`Checking DTS bundle for: ${entry.input}`);
+
+            await checkDTSImpl(processedConfigOrError);
+         }
+      }
+      else
+      {
+         const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
 
          if (typeof processedConfigOrError === 'string')
          {
-            logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry.input}'`);
-            continue;
+            logger.error(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
+            return;
          }
 
-         logger.info(`Checking DTS bundle for: ${entry.input}`);
+         logger.info(`Checking DTS bundle for: ${config.input}`);
 
          await checkDTSImpl(processedConfigOrError);
       }
    }
-   else
+   catch (err)
    {
-      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
-
-      if (typeof processedConfigOrError === 'string')
-      {
-         logger.error(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
-         return;
-      }
-
-      logger.info(`Checking DTS bundle for: ${config.input}`);
-
-      await checkDTSImpl(processedConfigOrError);
+      logger.fatal(`A fatal uncaught exception has been raised. Terminating processing.`);
+      logger.debug(err);
+      process.exit(1);
    }
 }
 
@@ -109,11 +118,29 @@ async function checkDTS(config)
  */
 async function checkDTSImpl(processedConfig)
 {
-   await eventbus.triggerAsync('lifecycle:start', { processedConfig });
+   try
+   {
+      await eventbus.triggerAsync('lifecycle:start', { processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'lifecycle:start': ${err.message}`);
+
+      throw err;
+   }
 
    await compile(processedConfig);
 
-   await eventbus.triggerAsync('lifecycle:end', { processedConfig });
+   try
+   {
+      await eventbus.triggerAsync('lifecycle:end', { processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'lifecycle:end': ${err.message}`);
+
+      throw err;
+   }
 }
 
 /**
@@ -125,36 +152,45 @@ async function checkDTSImpl(processedConfig)
  */
 async function generateDTS(config)
 {
-   if (isIterable(config))
+   try
    {
-      for (const entry of config)
+      if (isIterable(config))
       {
-         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
+         for (const entry of config)
+         {
+            const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
+
+            if (typeof processedConfigOrError === 'string')
+            {
+               logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+               continue;
+            }
+
+            logger.info(`Generating DTS bundle for: ${entry.input}`);
+
+            await generateDTSImpl(processedConfigOrError);
+         }
+      }
+      else
+      {
+         const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
 
          if (typeof processedConfigOrError === 'string')
          {
-            logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
-            continue;
+            logger.error(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
+            return;
          }
 
-         logger.info(`Generating DTS bundle for: ${entry.input}`);
+         logger.info(`Generating DTS bundle for: ${config.input}`);
 
          await generateDTSImpl(processedConfigOrError);
       }
    }
-   else
+   catch (err)
    {
-      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
-
-      if (typeof processedConfigOrError === 'string')
-      {
-         logger.error(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
-         return;
-      }
-
-      logger.info(`Generating DTS bundle for: ${config.input}`);
-
-      await generateDTSImpl(processedConfigOrError);
+      logger.fatal(`A fatal uncaught exception has been raised. Terminating processing.`);
+      logger.debug(err);
+      process.exit(1);
    }
 }
 
@@ -167,7 +203,16 @@ async function generateDTS(config)
  */
 async function generateDTSImpl(processedConfig)
 {
-   await eventbus.triggerAsync('lifecycle:start', { processedConfig });
+   try
+   {
+      await eventbus.triggerAsync('lifecycle:start', { processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'lifecycle:start': ${err.message}`);
+
+      throw err;
+   }
 
    const { dtsDirectoryPath, generateConfig } = processedConfig;
 
@@ -184,7 +229,16 @@ async function generateDTSImpl(processedConfig)
    const formatted = await prettier.format(text, { parser: 'typescript', printWidth: 120, singleQuote: true });
    fs.writeFileSync(generateConfig.output, formatted);
 
-   await eventbus.triggerAsync('lifecycle:end', { processedConfig });
+   try
+   {
+      await eventbus.triggerAsync('lifecycle:end', { processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'lifecycle:end': ${err.message}`);
+
+      throw err;
+   }
 }
 
 /**
@@ -357,9 +411,18 @@ async function compile(processedConfig, warn = false)
     */
    const memoryFiles = new Map();
 
-   // Allow any plugins to handle non-JS files potentially modifying `compileFilepaths` and adding transformed code to
-   // `memoryFiles`.
-   await eventbus.triggerAsync('compile:transform', { logger, memoryFiles, processedConfig });
+   try
+   {
+      // Allow any plugins to handle non-JS files potentially modifying `compileFilepaths` and adding transformed code to
+      // `memoryFiles`.
+      await eventbus.triggerAsync('compile:transform', { logger, memoryFiles, processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'compile:transform': ${err.message}`);
+
+      throw err;
+   }
 
    // Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
    const origReadFile = host.readFile;
@@ -492,8 +555,17 @@ async function compile(processedConfig, warn = false)
    // Update processed config for the actual DTS entry path after compilation.
    processedConfig.dtsEntryPath = dtsEntryPathActual;
 
-   // Allow any plugins to handle postprocessing of generated DTS files.
-   await eventbus.triggerAsync('compile:end', { logger, memoryFiles, PostProcess, processedConfig });
+   try
+   {
+      // Allow any plugins to handle postprocessing of generated DTS files.
+      await eventbus.triggerAsync('compile:end', { logger, memoryFiles, PostProcess, processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'compile:end': ${err.message}`);
+
+      throw err;
+   }
 
    return jsdocModuleComments;
 }
@@ -549,10 +621,6 @@ async function parseFiles(generateConfig)
 
                continue;
             }
-            // else
-            // {
-            //    logger.warn(`parseFiles warning: could not resolve directory; '${resolvedPath}'`);
-            // }
 
             if (hasIndexJs) { resolvedPath = `${resolvedPath}/index.js`; }
             else if (hasIndexMjs) { resolvedPath = `${resolvedPath}/index.mjs`; }
@@ -583,14 +651,27 @@ async function parseFiles(generateConfig)
          // For non-Javascript files allow any loaded plugins to attempt to transform the file data.
          if (!regexJSExt.test(fileExt))
          {
-            const transformed = await eventbus.triggerAsync(`lexer:transform:${fileExt}`, { fileData, logger, resolvedPath });
-            if (typeof transformed !== 'string')
-            {
-               logger.warn(`Lexer failed to transform: ${resolvedPath}`);
-               continue;
-            }
+            const event = `lexer:transform:${fileExt}`;
 
-            fileData = transformed;
+            try
+            {
+               const transformed = await eventbus.triggerAsync(event, { fileData, logger, resolvedPath });
+
+               if (typeof transformed !== 'string')
+               {
+                  logger.warn(`Lexer failed to transform: ${resolvedPath}`);
+                  continue;
+               }
+
+               fileData = transformed;
+            }
+            catch (err)
+            {
+               logger.error(`Lexer failed to transform: ${resolvedPath}`);
+               logger.error(`External plugin error for event '${event}': ${err.message}`);
+
+               throw err;
+            }
          }
 
          lexerFilepaths.add(resolvedPath);
