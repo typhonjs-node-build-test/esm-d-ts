@@ -172,6 +172,12 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.prettier !== void 0 && typeof config.prettier !== 'boolean' && !isObject(config.prettier))
+   {
+      logger.error(`validateConfig error: 'config.prettier' must be a boolean or 'prettier' configuration object.`);
+      result = false;
+  }
+
    if (typeof config.removePrivateStatic !== 'boolean')
    {
       logger.error(`validateConfig error: 'config.removePrivateStatic' must be a boolean.`);

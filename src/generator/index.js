@@ -225,9 +225,28 @@ async function generateDTSImpl(processedConfig)
    await bundleDTS(processedConfig, jsdocModuleComments);
 
    // Run prettier on the bundled output file.
-   const text = fs.readFileSync(generateConfig.output, 'utf-8');
-   const formatted = await prettier.format(text, { parser: 'typescript', printWidth: 120, singleQuote: true });
-   fs.writeFileSync(generateConfig.output, formatted);
+   if (generateConfig.prettier !== void 0)
+   {
+      /** @type {import('prettier').Options} */
+      let prettierOptions;
+
+      if (typeof generateConfig.prettier === 'boolean' && generateConfig.prettier)
+      {
+         prettierOptions = { parser: 'typescript', printWidth: 120, singleQuote: true };
+      }
+      else if (isObject(generateConfig.prettier))
+      {
+         // Always use the `typescript` parser.
+         prettierOptions = Object.assign({}, generateConfig.prettier, { parser: 'typescript' });
+      }
+
+      if (prettierOptions)
+      {
+         const text = fs.readFileSync(generateConfig.output, 'utf-8');
+         const formatted = await prettier.format(text, prettierOptions);
+         fs.writeFileSync(generateConfig.output, formatted);
+      }
+   }
 
    try
    {
@@ -954,6 +973,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    const generateConfig = Object.assign({
       filterTags: 'internal',
       logLevel: 'info',
+      prettier: true,
       removePrivateStatic: true,
       tsDiagnosticExternal: false,
       tsDiagnosticLog: true,
@@ -1246,6 +1266,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * across multiple subpath exports. Then a second attempt is made with the path provided.
  *
  * @property {Iterable<string>}     [prependString] Directly prepend these strings to the bundled output.
+ *
+ * @property {boolean | import('prettier').Options} [prettier] When defined as "false" `prettier` is not executed on
+ * the bundled declaration output. Otherwise, you may provide a custom `prettier` configuration object.
  *
  * @property {boolean}              [removePrivateStatic=true] When true a custom transformer is added to remove the
  * renaming of private static class members that Typescript currently renames.
