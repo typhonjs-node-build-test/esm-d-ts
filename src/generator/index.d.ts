@@ -8,6 +8,7 @@ import * as rollup from 'rollup';
 import * as ts from 'typescript';
 import ts__default from 'typescript';
 import * as type_fest from 'type-fest';
+import * as prettier from 'prettier';
 import * as _typhonjs_build_test_esm_d_ts_postprocess from '@typhonjs-build-test/esm-d-ts/postprocess';
 import * as _typhonjs_build_test_rollup_plugin_pkg_imports from '@typhonjs-build-test/rollup-plugin-pkg-imports';
 import * as resolve_exports from 'resolve.exports';
@@ -111,6 +112,11 @@ type GeneratePluginConfig = {
    * Directly prepend these strings to the bundled output.
    */
   prependString?: Iterable<string>;
+  /**
+   * When defined as "false" `prettier` is not executed on
+   * the bundled declaration output. Otherwise, you may provide a custom `prettier` configuration object.
+   */
+  prettier?: boolean | prettier.Options;
   /**
    * When true a custom transformer is added to remove the
    * renaming of private static class members that Typescript currently renames.
