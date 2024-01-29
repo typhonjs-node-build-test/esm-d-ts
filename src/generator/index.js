@@ -263,7 +263,7 @@ async function generateDTSImpl(processedConfig)
 /**
  * Provides a Rollup plugin generating a bundled TS declaration after the bundle has been written.
  *
- * @type {(options?: GeneratePluginConfig) => import('rollup').Plugin}
+ * @type {(options?: Partial<GenerateConfig>) => import('rollup').Plugin}
  */
 generateDTS.plugin = internalPlugins.generateDTSPlugin(generateDTS);
 
@@ -1205,13 +1205,9 @@ const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 
 /**
- * @typedef {{ input: string } & GeneratePluginConfig} GenerateConfig Data used to generate the bundled TS declaration.
- */
-
-/**
- * @typedef {object} GeneratePluginConfig Data used to generate the bundled TS declaration.
+ * @typedef {object} GenerateConfig Data used to generate the bundled TS declaration.
  *
- * @property {string}               [input] The input entry ESM source path.
+ * @property {string}               input The input entry ESM source path.
  *
  * @property {boolean}              [bundlePackageExports=false] When true attempt to bundle types of top level
  * exported packages. This is useful for re-bundling libraries.

@@ -11,7 +11,7 @@ import upath         from 'upath';
  *
  * @param {function(import('./index.js').GenerateConfig): Promise<void>} generateDTS - Generation function.
  *
- * @returns {(options?: import('./index.js').GeneratePluginConfig) => import('rollup').Plugin} The Rollup plugin.
+ * @returns {(options?: Partial<import('./index.js').GenerateConfig>) => import('rollup').Plugin} The Rollup plugin.
  */
 export function generateDTSPlugin(generateDTS)
 {
