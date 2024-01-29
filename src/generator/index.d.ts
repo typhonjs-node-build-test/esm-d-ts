@@ -17,16 +17,10 @@ import * as resolve_exports from 'resolve.exports';
  * Data used to generate the bundled TS declaration.
  */
 type GenerateConfig = {
-  input: string;
-} & GeneratePluginConfig;
-/**
- * Data used to generate the bundled TS declaration.
- */
-type GeneratePluginConfig = {
   /**
    * The input entry ESM source path.
    */
-  input?: string;
+  input: string;
   /**
    * When true attempt to bundle types of top level
    * exported packages. This is useful for re-bundling libraries.
@@ -245,7 +239,7 @@ declare function checkDTS(config: GenerateConfig | Iterable<GenerateConfig>): Pr
  */
 declare function generateDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<void>;
 declare namespace generateDTS {
-  let plugin: (options?: GeneratePluginConfig) => rollup.Plugin<any>;
+  let plugin: (options?: Partial<GenerateConfig>) => rollup.Plugin<any>;
 }
 
-export { type GenerateConfig, type GeneratePluginConfig, type ProcessedConfig, checkDTS, generateDTS };
+export { type GenerateConfig, type ProcessedConfig, checkDTS, generateDTS };
