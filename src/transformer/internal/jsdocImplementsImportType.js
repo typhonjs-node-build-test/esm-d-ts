@@ -1,31 +1,19 @@
 import ts                     from 'typescript';
-import path                   from 'upath';
 
 import { jsdocTransformer }   from '../index.js';
 
-/**
- * Matches dynamic named import types; IE `import('./types').Value`. It is lenient and allows the import to be enclosed
- * in `()` which helps for `checkJs` support / prevents TS from choking as import types in `@implements` tags is not
- * supported by TS.
- *
- * Capture group `1`: module path.
- * Capture group `2`: top level import identifier.
- * Optional capture group `3`: remainder of potential namespaced symbol.
- *
- * @type {RegExp}
- */
-const s_REGEX_DYNAMIC_IMPORT = /import\(['"]([^'"]+)['"]\)\.([^.\s]+?)(?:\.([^)\s]+?))?(?=\)?$)/;
+import { parseImportType }    from '#util';
 
 /**
- * A custom transformer that supports dynamic import for `@implements` JSDoc tag on class declarations.
+ * A custom transformer that supports `import types` for the `@implements` JSDoc tag on class declarations.
  *
- * Note: Currently in Typescript compilation for ESM dynamic import is not supported for `@implements`.
+ * Note: Currently in Typescript compilation for import types is not supported for `@implements`.
  *
  * @returns {(
  *    import('typescript').TransformerFactory<import('typescript').Bundle|import('typescript').SourceFile>
  * )} A custom transformer to synthetically add the type import and assignment of `@implements` for dynamic imports.
  */
-export function jsdocImplementsDynamicImport()
+export function jsdocImplementsImportType()
 {
    /**
     * Stores the identifier strings for synthetic import declaration generation from `@implements` tags. In the post
@@ -53,27 +41,15 @@ export function jsdocImplementsDynamicImport()
          {
             if (entry.tag === 'implements' && typeof entry.type === 'string')
             {
-               const match = s_REGEX_DYNAMIC_IMPORT.exec(entry.type);
-               if (match)
+               const result = parseImportType(entry.type);
+               if (result)
                {
-                  // Remove any extension as `Bundler` module resolution is used.
-                  const module = path.trimExt(match[1].replace(/\.d\.ts$/, ''));
-
-                  // This is the main imported identifier / symbol.
-                  const ident = match[2];
-
-                  // Captures any additional extended symbol; IE a namespaced identifier.
-                  const extended = match[3] ?? void 0;
-
-                  // Constructs the fully qualified interface identifier.
-                  const qualified = extended ? `${ident}.${extended}` : ident;
-
                   // Add the imported identifier to the module Map.
-                  if (importIdents.has(module)) { importIdents.get(module).add(ident); }
-                  else { importIdents.set(module, new Set([ident])); }
+                  if (importIdents.has(result.module)) { importIdents.get(result.module).add(result.identImport); }
+                  else { importIdents.set(result.module, new Set([result.identImport])); }
 
                   // Add the qualified name to be added as an implemented interface.
-                  implementIdents.add(qualified);
+                  implementIdents.add(result.identFull);
                }
             }
          }

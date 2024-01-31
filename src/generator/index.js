@@ -49,7 +49,7 @@ import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
 import {
    addSyntheticExports,
-   jsdocImplementsDynamicImport,
+   jsdocImplementsImportType,
    jsdocPreserveModuleTag,
    jsdocSetterParamName,
    removePrivateStatic }         from '../transformer/internal/index.js';
@@ -464,6 +464,8 @@ async function compile(processedConfig, warn = false)
    /**
     * Add `jsdocPreserveModuleTag` to store any `@module` / `@packageDescription` tags to prepend to output DTS.
     *
+    * Add `jsdocImplementsImportType` to support adding interfaces to classes via import types and `@implements`.
+    *
     * Add `jsdocSetterParamName` to correct TS compiler renaming of setter param name.
     *
     * Optionally add `removePrivateStatic` as the Typescript compiler changes private static members to become public
@@ -478,7 +480,7 @@ async function compile(processedConfig, warn = false)
    const transformers = [
       jsdocPreserveModuleTag(jsdocModuleComments, generateConfig.input),
 
-      jsdocImplementsDynamicImport(),
+      jsdocImplementsImportType(),
 
       jsdocSetterParamName(),
 
