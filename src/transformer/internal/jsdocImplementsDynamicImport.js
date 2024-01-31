@@ -3,16 +3,18 @@ import path                   from 'upath';
 
 import { jsdocTransformer }   from '../index.js';
 
-import { logTSNode } from "../index.js";
-
 /**
  * Matches dynamic named import types; IE `import('./types').Value`. It is lenient and allows the import to be enclosed
  * in `()` which helps for `checkJs` support / prevents TS from choking as import types in `@implements` tags is not
  * supported by TS.
  *
+ * Capture group `1`: module path.
+ * Capture group `2`: top level import identifier.
+ * Optional capture group `3`: remainder of potential namespaced symbol.
+ *
  * @type {RegExp}
  */
-const s_REGEX_DYNAMIC_IMPORT = /import\(['"]([^'"]+)['"]\)\.([^)]+?)(?=\)?$)/;
+const s_REGEX_DYNAMIC_IMPORT = /import\(['"]([^'"]+)['"]\)\.([^.\s]+?)(?:\.([^)\s]+?))?(?=\)?$)/;
 
 /**
  * A custom transformer that supports dynamic import for `@implements` JSDoc tag on class declarations.
@@ -56,12 +58,22 @@ export function jsdocImplementsDynamicImport()
                {
                   // Remove any extension as `Bundler` module resolution is used.
                   const module = path.trimExt(match[1].replace(/\.d\.ts$/, ''));
+
+                  // This is the main imported identifier / symbol.
                   const ident = match[2];
 
+                  // Captures any additional extended symbol; IE a namespaced identifier.
+                  const extended = match[3] ?? void 0;
+
+                  // Constructs the fully qualified interface identifier.
+                  const qualified = extended ? `${ident}.${extended}` : ident;
+
+                  // Add the imported identifier to the module Map.
                   if (importIdents.has(module)) { importIdents.get(module).add(ident); }
                   else { importIdents.set(module, new Set([ident])); }
 
-                  implementIdents.add(ident);
+                  // Add the qualified name to be added as an implemented interface.
+                  implementIdents.add(qualified);
                }
             }
          }
@@ -109,8 +121,6 @@ export function jsdocImplementsDynamicImport()
              ts.factory.createStringLiteral(module));
 
             importDeclarations.push(importDeclaration);
-
-            logTSNode(importDeclaration);
          }
 
          importIdents.clear();
