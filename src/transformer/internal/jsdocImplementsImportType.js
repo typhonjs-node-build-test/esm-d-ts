@@ -1,8 +1,8 @@
-import ts                     from 'typescript';
+import ts                              from 'typescript';
 
-import { jsdocTransformer }   from '../index.js';
+import { jsdocTransformer }            from '../index.js';
 
-import { parseImportType }    from '#util';
+import { parseImportTypesFromBlock }   from '#util';
 
 /**
  * A custom transformer that supports `import types` for the `@implements` JSDoc tag on class declarations.
@@ -27,7 +27,7 @@ export function jsdocImplementsImportType()
    // Only consider the last parsed comment as that is the active JSDoc comment.
    return jsdocTransformer(({ node, lastParsed }) =>
    {
-      if (ts.isClassDeclaration(node))
+      if (ts.isClassDeclaration(node) && lastParsed)
       {
          /**
           * Stores all synthetic import identifiers for the class.
@@ -36,21 +36,17 @@ export function jsdocImplementsImportType()
           */
          const implementIdents = new Set();
 
-         // Store the first `@param` name.
-         for (const entry of lastParsed.tags)
+         const results = parseImportTypesFromBlock({ block: lastParsed, tag: 'implements' });
+         if (results?.length)
          {
-            if (entry.tag === 'implements' && typeof entry.type === 'string')
+            for (const result of results)
             {
-               const result = parseImportType(entry.type);
-               if (result)
-               {
-                  // Add the imported identifier to the module Map.
-                  if (importIdents.has(result.module)) { importIdents.get(result.module).add(result.identImport); }
-                  else { importIdents.set(result.module, new Set([result.identImport])); }
+               // Add the imported identifier to the module Map.
+               if (importIdents.has(result.module)) { importIdents.get(result.module).add(result.identImport); }
+               else { importIdents.set(result.module, new Set([result.identImport])); }
 
-                  // Add the qualified name to be added as an implemented interface.
-                  implementIdents.add(result.identFull);
-               }
+               // Add the qualified name to be added as an implemented interface.
+               implementIdents.add(result.identFull);
             }
          }
 
