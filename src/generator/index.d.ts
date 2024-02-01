@@ -6,12 +6,89 @@
 
 import * as rollup from 'rollup';
 import * as ts from 'typescript';
-import ts__default from 'typescript';
+import ts__default, { Diagnostic } from 'typescript';
 import * as type_fest from 'type-fest';
 import * as prettier from 'prettier';
 import * as _typhonjs_build_test_esm_d_ts_postprocess from '@typhonjs-build-test/esm-d-ts/postprocess';
+import { PostProcess } from '@typhonjs-build-test/esm-d-ts/postprocess';
+import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
+import { LogLevel, ColorLogger } from '@typhonjs-utils/logger-color';
 import * as _typhonjs_build_test_rollup_plugin_pkg_imports from '@typhonjs-build-test/rollup-plugin-pkg-imports';
 import * as resolve_exports from 'resolve.exports';
+
+/**
+ * Defines all plugin event data and any associated return type signatures. `esm-d-ts` supports plugins for additional
+ * file type processing that needs to be transformed to ESM for lexical analysis and potential transformation to
+ * Typescript compatible file data before compilation. There is only one officially supported plugin at this time for
+ * Svelte components.
+ *
+ * @see {@link https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts-plugin-svelte | @typhonjs-build-test/esm-d-ts-plugin-svelte}
+ */
+declare namespace PluginEvent {
+  /**
+   * Event data passed for implementing plugin event functions.
+   */
+  type Data = {
+    /** Triggered to filter each diagnostic message raised during compilation. */
+    'compile:diagnostic:filter': {
+      diagnostic: Diagnostic;
+      /** Helper to log the diagnostic at a different log level. */
+      diagnosticLog: (diagnostic: Diagnostic, logLevel: LogLevel) => void;
+      /** `esm-d-ts` logger instance. */
+      logger: ColorLogger;
+      /** The flattened diagnostic message. */
+      message: string;
+    };
+    /** Triggered after compilation before final bundling allowing postprocessing of intermediate declarations */
+    'compile:end': {
+      /** `esm-d-ts` logger instance. */
+      logger: ColorLogger;
+      /** Stores in-memory transformed file data. The key is the file name and value is transformed source code. */
+      memoryFiles: Map<string, string>;
+      /** The `esm-d-ts` PostProcess manager. */
+      PostProcess: typeof PostProcess;
+      /** The processed `esm-d-ts` configuration. */
+      processedConfig: ProcessedConfig;
+    };
+    /** Triggered just before declaration compilation allowing additional source code transformation. */
+    'compile:transform': {
+      /** `esm-d-ts` logger instance. */
+      logger: ColorLogger;
+      /** Stores in-memory transformed file data. The key is the file name and value is transformed source code. */
+      memoryFiles: Map<string, string>;
+      /** The processed `esm-d-ts` configuration. */
+      processedConfig: ProcessedConfig;
+    };
+    /** Triggered during lexical analysis allowing plugins to transform file data to ESM. */
+    'lexer:transform': {
+      /** The file data to potentially transform. */
+      fileData: string;
+      /** `esm-d-ts` logger instance. */
+      logger: ColorLogger;
+      /** The resolved path for the file being transformed. */
+      resolvedPath: string;
+    };
+    /** Triggered at the end of processing. */
+    'lifecycle:end': {
+      /** The processed `esm-d-ts` configuration. */
+      processedConfig: ProcessedConfig;
+    };
+    /** Triggered at the start of processing. */
+    'lifecycle:start': {
+      /** The processed `esm-d-ts` configuration. */
+      processedConfig: ProcessedConfig;
+    };
+  };
+  /**
+   * Return types for implementing plugin event functions.
+   */
+  type Returns = {
+    /** Return true to filter the given diagnostic. */
+    'compile:diagnostic:filter': boolean | Promise<boolean>;
+    /** Any transformation to ESM for the given file type. */
+    'lexer:transform': string | Promise<string>;
+  };
+}
 
 /**
  * Data used to generate the bundled TS declaration.
@@ -54,17 +131,19 @@ type GenerateConfig = {
    */
   filterTags?: string | Iterable<string> | false | null | undefined;
   /**
-   * When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
+   * When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
+   * package.
    */
   importsExternal?: boolean | _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
   /**
-   * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
+   * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
+   * package.
    */
   importsResolve?: boolean | _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsResolvePluginOptions;
   /**
    * Defines the logging level.
    */
-  logLevel?: 'off' | 'fatal' | 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'trace' | 'all';
+  logLevel?: _typhonjs_utils_logger_color.LogLevel;
   /**
    * The output file path for the bundled TS declarations.
    */
@@ -242,4 +321,4 @@ declare namespace generateDTS {
   let plugin: (options?: Partial<GenerateConfig>) => rollup.Plugin<any>;
 }
 
-export { type GenerateConfig, type ProcessedConfig, checkDTS, generateDTS };
+export { type GenerateConfig, PluginEvent, type ProcessedConfig, checkDTS, generateDTS };
