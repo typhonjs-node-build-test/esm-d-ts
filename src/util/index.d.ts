@@ -9,7 +9,8 @@ import * as comment_parser from 'comment-parser';
 declare const logger: _typhonjs_utils_logger_color.ColorLogger;
 
 /**
- * Parses a string for `import types` returning an object with the parts required to perform AST manipulation.
+ * Parses a string for bare / leading `import types` returning an object with the parts required to perform AST
+ * manipulation. This is necessary to support `@implements`.
  *
  * If no import type statement detected the result is undefined.
  *
@@ -19,7 +20,8 @@ declare const logger: _typhonjs_utils_logger_color.ColorLogger;
  */
 declare function parseImportType(type: any): ParsedImportType | undefined;
 /**
- * Parses all import type statements from a parsed comment block given a JSDoc tag to parse for the type.
+ * Parses all bare / leading import type statements from a parsed comment block given a JSDoc tag to parse for the type.
+ * This is necessary to support `@implements`.
  *
  * @param {object} options - Options.
  *
