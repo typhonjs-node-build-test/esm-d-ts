@@ -1231,14 +1231,17 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
  * `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
  *
- * @property {boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsExternal]
- * When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
+ * @property {(
+ *    boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions
+ * )} [importsExternal] When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
+ * package.
  *
- * @property {boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsResolvePluginOptions} [importsResolve]
- * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
+ * @property {(
+ *    boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsResolvePluginOptions
+ * )} [importsResolve] When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
+ * package.
  *
- * @property {'off' | 'fatal' | 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'trace' | 'all'} [logLevel='info']
- * Defines the logging level.
+ * @property {import('@typhonjs-utils/logger-color').LogLevel} [logLevel='info'] Defines the logging level.
  *
  * @property {string}               [output] The output file path for the bundled TS declarations.
  *
