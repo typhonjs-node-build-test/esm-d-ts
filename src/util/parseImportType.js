@@ -15,10 +15,11 @@ import upath   from 'upath';
  *
  * @type {RegExp}
  */
-export const regexImportType = /import\(['"]([^'"]+)['"]\)\.([^.\s]+?)(?:\.([^)\s]+?))?(?=\)?$)/;
+export const regexImportType = /^\(?import\(['"]([^'"]+)['"]\)\.([^.\s]+?)([.<][^)\s]+?)?(?=\)?$)/;
 
 /**
- * Parses a string for `import types` returning an object with the parts required to perform AST manipulation.
+ * Parses a string for bare / leading `import types` returning an object with the parts required to perform AST
+ * manipulation. This is necessary to support `@implements`.
  *
  * If no import type statement detected the result is undefined.
  *
@@ -44,7 +45,7 @@ export function parseImportType(type)
       const extended = match[3] ?? void 0;
 
       // Constructs the fully qualified identifier.
-      const identFull = extended ? `${identImport}.${extended}` : identImport;
+      const identFull = extended ? `${identImport}${extended}` : identImport;
 
       return {
          identFull,
@@ -55,7 +56,8 @@ export function parseImportType(type)
 }
 
 /**
- * Parses all import type statements from a parsed comment block given a JSDoc tag to parse for the type.
+ * Parses all bare / leading import type statements from a parsed comment block given a JSDoc tag to parse for the type.
+ * This is necessary to support `@implements`.
  *
  * @param {object} options - Options.
  *
