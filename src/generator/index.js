@@ -42,7 +42,7 @@ import {
    validateCompilerOptions,
    validateConfig }              from './validation.js';
 
-// import { PostProcess }           from '../postprocess/index.js';
+import { PostProcess }           from '../postprocess/index.js';
 import { outputGraph }           from '../postprocess/internal/outputGraph.js';
 
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
@@ -390,13 +390,13 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
    // Handle any postprocessing of the bundled declarations.
    if (processors.length)
    {
-      // PostProcess.process({
-      //    filepath: generateConfig.output,
-      //    output: generateConfig.outputPostprocess,
-      //    processors,
-      //    dependencies: true,
-      //    logStart: true
-      // });
+      PostProcess.process({
+         filepath: generateConfig.output,
+         output: generateConfig.outputPostprocess,
+         processors,
+         dependencies: true,
+         logStart: true
+      });
    }
 
    logger.verbose(`Output bundled DTS file to: '${generateConfig.output}'`);
@@ -605,7 +605,7 @@ async function compile(processedConfig, warn = false)
    try
    {
       // Allow any plugins to handle postprocessing of generated DTS files.
-      // await eventbus.triggerAsync('compile:end', { logger, memoryFiles, PostProcess, processedConfig });
+      await eventbus.triggerAsync('compile:end', { logger, memoryFiles, PostProcess, processedConfig });
    }
    catch (err)
    {
