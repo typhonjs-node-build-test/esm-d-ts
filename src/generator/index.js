@@ -42,7 +42,7 @@ import {
    validateCompilerOptions,
    validateConfig }              from './validation.js';
 
-import { PostProcess }           from '../postprocess/index.js';
+// import { PostProcess }           from '../postprocess/index.js';
 import { outputGraph }           from '../postprocess/internal/outputGraph.js';
 
 import { jsdocRemoveNodeByTags } from '../transformer/index.js';
@@ -390,13 +390,13 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
    // Handle any postprocessing of the bundled declarations.
    if (processors.length)
    {
-      PostProcess.process({
-         filepath: generateConfig.output,
-         output: generateConfig.outputPostprocess,
-         processors,
-         dependencies: true,
-         logStart: true
-      });
+      // PostProcess.process({
+      //    filepath: generateConfig.output,
+      //    output: generateConfig.outputPostprocess,
+      //    processors,
+      //    dependencies: true,
+      //    logStart: true
+      // });
    }
 
    logger.verbose(`Output bundled DTS file to: '${generateConfig.output}'`);
@@ -605,7 +605,7 @@ async function compile(processedConfig, warn = false)
    try
    {
       // Allow any plugins to handle postprocessing of generated DTS files.
-      await eventbus.triggerAsync('compile:end', { logger, memoryFiles, PostProcess, processedConfig });
+      // await eventbus.triggerAsync('compile:end', { logger, memoryFiles, PostProcess, processedConfig });
    }
    catch (err)
    {
@@ -974,6 +974,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
     */
    const generateConfig = Object.assign({
       filterTags: 'internal',
+      loadTSConfig: true,
       logLevel: 'info',
       prettier: true,
       removePrivateStatic: true,
@@ -1005,23 +1006,26 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    let tsconfigPath;
 
-   // Verify any tsconfig provided path.
-   if (generateConfig.tsconfig)
+   if (generateConfig.loadTSConfig)
    {
-      if (isFile(generateConfig.tsconfig))
+      // Verify any tsconfig provided path.
+      if (generateConfig.tsconfig)
       {
-         tsconfigPath = generateConfig.tsconfig;
+         if (isFile(generateConfig.tsconfig))
+         {
+            tsconfigPath = generateConfig.tsconfig;
+         }
+         else
+         {
+            return `error: Aborting as 'tsconfig' path is specified, but file does not exist; '${
+             generateConfig.tsconfig}'`;
+         }
       }
       else
       {
-         return `error: Aborting as 'tsconfig' path is specified, but file does not exist; '${
-          generateConfig.tsconfig}'`;
+         // Check for default `./tsconfig.json`
+         if (isFile('./tsconfig.json')) { tsconfigPath = './tsconfig.json'; }
       }
-   }
-   else
-   {
-      // Check for default `./tsconfig.json`
-      if (isFile('./tsconfig.json')) { tsconfigPath = './tsconfig.json'; }
    }
 
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
@@ -1278,6 +1282,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * @property {import('type-fest').TsConfigJson.CompilerOptions}   [compilerOptions] Typescript compiler options.
  * {@link https://www.typescriptlang.org/tsconfig}
+ *
+ * @property {boolean}  [loadTSConfig=true] When true any `tsconfig.json` file located in the project root will be
+ * loaded for compiler options. When false no default `tsconfig.json` file is loaded.
  *
  * @property {boolean}  [tsCheckJs=false] When true set `checkJs` to default compiler options. This is a
  * convenience parameter to quickly turn `checkJs` on / off.
