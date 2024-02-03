@@ -241,7 +241,7 @@ async function processOptions(input, opts)
    if (typeof opts?.loglevel === 'string') { options.logLevel = opts.loglevel; }
    if (typeof opts?.output === 'string' && opts.output !== '') { options.output = opts.output; }
    // `--no-tsconfig` will set `tsconfig` to false.
-   if (typeof opts?.tsconfig === 'boolean' && !opts.tsconfig) { config.loadTSConfig = false; }
+   if (typeof opts?.tsconfig === 'boolean' && !opts.tsconfig) { options.loadTSConfig = false; }
    if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { options.tsconfig = opts.tsconfig; }
 
    return { config, options };
