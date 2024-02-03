@@ -1,5 +1,45 @@
+import * as _es_joy_jsdoccomment from '@es-joy/jsdoccomment';
 import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
 import * as comment_parser from 'comment-parser';
+
+/**
+ * Provides a more flexible mechanism to modify JSDoc comment blocks. `comment-parser` is the main parsing mechanism
+ * that `esm-d-ts` uses as well as the supporting package `@es-joy/jsdoccomment` for ESTree AST compatible parsing. The
+ * latter AST format is much easier to modify and recreate a comment block.
+ */
+declare class ESTreeParsedComment {
+  /**
+   * @param {string}   rawComment - A JSDoc comment string.
+   */
+  constructor(rawComment: string);
+  /**
+   * @returns {import('@es-joy/jsdoccomment').JsdocBlock} ESTree AST.
+   */
+  get ast(): _es_joy_jsdoccomment.JsdocBlock;
+  /**
+   * Removes the JSDoc tags specified from the AST.
+   *
+   * @param {string | Set<string> | undefined} [tagNames] - A string or Set of strings defining tag names to remove
+   *        from the AST. When undefined _all_ tags are removed.
+   *
+   * @returns {this} This instance.
+   */
+  removeTags(tagNames?: string | Set<string> | undefined): this;
+  /**
+   * Provides an iterator over all tags or a subset from the given tag names.
+   *
+   * @param {string | Set<string>} [tagNames] - A string or Set of strings defining tag names to iterate.
+   *
+   * @returns {IterableIterator<import('@es-joy/jsdoccomment').JsdocTag>} Tag iterator.
+   * @yields {import('@es-joy/jsdoccomment').JsdocTag}
+   */
+  tags(tagNames?: string | Set<string>): IterableIterator<_es_joy_jsdoccomment.JsdocTag>;
+  /**
+   * @returns {string} Returns the comment block with current AST converted back to a string.
+   */
+  toString(): string;
+  #private;
+}
 
 /**
  * Provides a ColorLogger instance accessible across the package.
@@ -72,4 +112,11 @@ type ParsedImportType = {
   module: string;
 };
 
-export { type ParsedImportType, logger, parseImportType, parseImportTypesFromBlock, regexImportType };
+export {
+  ESTreeParsedComment,
+  type ParsedImportType,
+  logger,
+  parseImportType,
+  parseImportTypesFromBlock,
+  regexImportType,
+};
