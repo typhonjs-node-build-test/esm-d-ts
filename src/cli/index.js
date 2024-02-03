@@ -15,7 +15,8 @@ const program = sade('esm-d-ts')
    // Global options
    .option('-c, --config', 'Provide a path to custom config.')
    .option('-l, --loglevel', `Specify logging level: 'all', 'verbose', 'info', 'warn', or 'error'`)
-   .option('-t, --tsconfig', `Provide a path to custom 'tsconfig.json' file.`);
+   .option('-t, --tsconfig', `Provide a path to custom 'tsconfig.json' file.`)
+   .option('--no-tsconfig', `Skip loading any default or defined 'tsconfig.json'.`);
 
 program
    .command('check [input]')
