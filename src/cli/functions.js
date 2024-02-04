@@ -209,8 +209,6 @@ async function processOptions(input, opts)
          {
             if (typeof opts?.check === 'boolean' && opts.check) { entry.tsCheckJs = true; }
             if (typeof opts?.loglevel === 'string') { entry.logLevel = opts.loglevel; }
-            // `--no-tsconfig` will set `tsconfig` to false.
-            if (typeof opts?.tsconfig === 'boolean' && !opts.tsconfig) { entry.loadTSConfig = false; }
             if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { entry.tsconfig = opts.tsconfig; }
          }
       }
@@ -218,8 +216,6 @@ async function processOptions(input, opts)
       {
          if (typeof opts?.check === 'boolean' && opts.check) { config.tsCheckJs = true; }
          if (typeof opts?.loglevel === 'string') { config.logLevel = opts.loglevel; }
-         // `--no-tsconfig` will set `tsconfig` to false.
-         if (typeof opts?.tsconfig === 'boolean' && !opts.tsconfig) { config.loadTSConfig = false; }
          if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { config.tsconfig = opts.tsconfig; }
       }
    }
@@ -240,8 +236,6 @@ async function processOptions(input, opts)
    if (typeof opts?.check === 'boolean' && opts.check) { options.tsCheckJs = true; }
    if (typeof opts?.loglevel === 'string') { options.logLevel = opts.loglevel; }
    if (typeof opts?.output === 'string' && opts.output !== '') { options.output = opts.output; }
-   // `--no-tsconfig` will set `tsconfig` to false.
-   if (typeof opts?.tsconfig === 'boolean' && !opts.tsconfig) { options.loadTSConfig = false; }
    if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { options.tsconfig = opts.tsconfig; }
 
    return { config, options };
