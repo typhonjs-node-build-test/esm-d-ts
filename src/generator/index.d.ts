@@ -201,17 +201,12 @@ type GenerateConfig = {
    */
   compilerOptions?: type_fest.TsConfigJson.CompilerOptions;
   /**
-   * When true any `tsconfig.json` file located in the project root will be
-   * loaded for compiler options. When false no default `tsconfig.json` file is loaded.
-   */
-  loadTSConfig?: boolean;
-  /**
    * When true set `checkJs` to default compiler options. This is a
    * convenience parameter to quickly turn `checkJs` on / off.
    */
   tsCheckJs?: boolean;
   /**
-   * Provide a path to a `tsconfig.json` for `compilerOptions` configuration.
+   * Provide a path to a `tsconfig.json` for custom `compilerOptions` configuration.
    */
   tsconfig?: string;
   /**
