@@ -974,7 +974,6 @@ async function processConfig(origConfig, defaultCompilerOptions)
     */
    const generateConfig = Object.assign({
       filterTags: 'internal',
-      loadTSConfig: true,
       logLevel: 'info',
       prettier: true,
       removePrivateStatic: true,
@@ -1006,20 +1005,17 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    let tsconfigPath;
 
-   if (generateConfig.loadTSConfig)
+   // Verify any tsconfig provided path.
+   if (generateConfig.tsconfig)
    {
-      // Verify any tsconfig provided path.
-      if (generateConfig.tsconfig)
+      if (isFile(generateConfig.tsconfig))
       {
-         if (isFile(generateConfig.tsconfig))
-         {
-            tsconfigPath = generateConfig.tsconfig;
-         }
-         else
-         {
-            return `error: Aborting as 'tsconfig' path is specified, but file does not exist; '${
-             generateConfig.tsconfig}'`;
-         }
+         tsconfigPath = generateConfig.tsconfig;
+      }
+      else
+      {
+         return `error: Aborting as 'tsconfig' path is specified, but file does not exist; '${
+          generateConfig.tsconfig}'`;
       }
    }
 
