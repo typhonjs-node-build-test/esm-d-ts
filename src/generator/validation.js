@@ -186,12 +186,6 @@ export function validateConfig(config)
 
    // Typescript related configuration options -----------------------------------------------------------------------
 
-   if (config.loadTSConfig !== void 0 && typeof config.loadTSConfig !== 'boolean')
-   {
-      logger.error(`validateConfig error: 'config.loadTSConfig' must be a boolean.`);
-      result = false;
-   }
-
    if (config.tsCheckJs !== void 0 && typeof config.tsCheckJs !== 'boolean')
    {
       logger.error(`validateConfig error: 'config.tsCheckJs' must be a boolean.`);

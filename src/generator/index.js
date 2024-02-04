@@ -1021,11 +1021,6 @@ async function processConfig(origConfig, defaultCompilerOptions)
              generateConfig.tsconfig}'`;
          }
       }
-      else
-      {
-         // Check for default `./tsconfig.json`
-         if (isFile('./tsconfig.json')) { tsconfigPath = './tsconfig.json'; }
-      }
    }
 
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
@@ -1283,13 +1278,10 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {import('type-fest').TsConfigJson.CompilerOptions}   [compilerOptions] Typescript compiler options.
  * {@link https://www.typescriptlang.org/tsconfig}
  *
- * @property {boolean}  [loadTSConfig=true] When true any `tsconfig.json` file located in the project root will be
- * loaded for compiler options. When false no default `tsconfig.json` file is loaded.
- *
  * @property {boolean}  [tsCheckJs=false] When true set `checkJs` to default compiler options. This is a
  * convenience parameter to quickly turn `checkJs` on / off.
  *
- * @property {string}   [tsconfig] Provide a path to a `tsconfig.json` for `compilerOptions` configuration.
+ * @property {string}   [tsconfig] Provide a path to a `tsconfig.json` for custom `compilerOptions` configuration.
  *
  * @property {boolean} [tsDiagnosticExternal=false] By default, all diagnostic errors that are external to the common
  * root path from the `input` source file will be filtered from diagnostic logging. Set to `true` to include all
