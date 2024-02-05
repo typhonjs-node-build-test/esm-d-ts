@@ -179,12 +179,12 @@ async function processOptions(input, opts)
 
             if (isFile('./esm-d-ts.config.js'))
             {
-               logger.verbose(`Loading config from path: './esm-d-ts.config.js'`);
+               logger.verbose(`Loading config from path: ./esm-d-ts.config.js`);
                config = await loadConfig(path.resolve('./esm-d-ts.config.js'));
             }
             else if (isFile('./esm-d-ts.config.mjs'))
             {
-               logger.verbose(`Loading config from path: './esm-d-ts.config.mjs'`);
+               logger.verbose(`Loading config from path: ./esm-d-ts.config.mjs`);
                config = await loadConfig(path.resolve('./esm-d-ts.config.mjs'));
             }
             break;
@@ -196,7 +196,7 @@ async function processOptions(input, opts)
 
             if (!isFile(configPath)) { exit(`No config file available at: ${configPath}`); }
 
-            logger.verbose(`Loading config from path: '${configPath}'`);
+            logger.verbose(`Loading config from path: ${configPath}`);
             config = await loadConfig(configPath);
             break;
          }
