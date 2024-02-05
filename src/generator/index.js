@@ -118,6 +118,11 @@ async function checkDTS(config)
  */
 async function checkDTSImpl(processedConfig)
 {
+   const { generateConfig } = processedConfig;
+
+   // Always ensure `tsCheckJs` is set to true.
+   generateConfig.tsCheckJs = true;
+
    try
    {
       await eventbus.triggerAsync('lifecycle:start', { processedConfig });
@@ -589,20 +594,23 @@ async function compile(processedConfig, warn = false)
       }
    }
 
-   // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
-   let dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.ts');
-
-   // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
-   if (!isFile(dtsEntryPathActual)) { dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.mts'); }
-
-   if (!isFile(dtsEntryPathActual))
+   if (!generateConfig.tsCheckJs)
    {
-      logger.error(`compile error: could not locate DTS entry point file in './dts' output.'`);
-      process.exit(1);
-   }
+      // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
+      let dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.ts');
 
-   // Update processed config for the actual DTS entry path after compilation.
-   processedConfig.dtsEntryPath = dtsEntryPathActual;
+      // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
+      if (!isFile(dtsEntryPathActual)) { dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.mts'); }
+
+      if (!isFile(dtsEntryPathActual))
+      {
+         logger.error(`compile error: could not locate DTS entry point file in './dts' output.'`);
+         process.exit(1);
+      }
+
+      // Update processed config for the actual DTS entry path after compilation.
+      processedConfig.dtsEntryPath = dtsEntryPathActual;
+   }
 
    try
    {
