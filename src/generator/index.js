@@ -203,6 +203,10 @@ async function generateDTS(config)
  */
 async function generateDTSImpl(processedConfig)
 {
+   const { dtsDirectoryPath, generateConfig } = processedConfig;
+
+   logger.debug(`Intermediate declarations output path: ${upath.relative(process.cwd(), dtsDirectoryPath)}`);
+
    try
    {
       await eventbus.triggerAsync('lifecycle:start', { processedConfig });
@@ -213,8 +217,6 @@ async function generateDTSImpl(processedConfig)
 
       throw err;
    }
-
-   const { dtsDirectoryPath, generateConfig } = processedConfig;
 
    // Empty intermediate declaration output directory.
    if (isDirectory(dtsDirectoryPath)) { fs.emptyDirSync(dtsDirectoryPath); }
@@ -399,7 +401,7 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
       });
    }
 
-   logger.verbose(`Output bundled DTS file to: '${generateConfig.output}'`);
+   logger.verbose(`Output bundled DTS file to: ${generateConfig.output}`);
 }
 
 /**
@@ -1041,7 +1043,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    // ----------------------------------------------------------------------------------------------------------------
 
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
-   const compilerOptionsJson = Object.assign(defaultCompilerOptions, generateConfig.compilerOptions,
+   const compilerOptionsJson = Object.assign({}, defaultCompilerOptions, generateConfig.compilerOptions,
     tsconfigCompilerOptions);
 
    // Apply config override if available.
@@ -1168,7 +1170,6 @@ function resolvePackageExports(packages, generateConfig, outDir)
    return packageAlias;
 }
 
-
 /**
  * @type {import('type-fest').TsConfigJson.CompilerOptions}
  */
@@ -1179,7 +1180,7 @@ const s_DEFAULT_TS_GEN_COMPILER_OPTIONS = {
    moduleResolution: 'bundler',
    module: 'es2022',
    target: 'es2022',
-   outDir: './.dts'
+   outDir: upath.resolve(fileURLToPath(import.meta.url), '../../../.dts')
 };
 
 /**
@@ -1193,7 +1194,7 @@ const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
    moduleResolution: 'bundler',
    module: 'es2022',
    target: 'es2022',
-   outDir: './.dts'
+   outDir: upath.resolve(fileURLToPath(import.meta.url), '../../../.dts')
 };
 
 const s_REGEX_DTS_EXTENSIONS = /\.d\.m?ts$/;
