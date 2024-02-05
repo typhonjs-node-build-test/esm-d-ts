@@ -1188,7 +1188,7 @@ const s_DEFAULT_TS_GEN_COMPILER_OPTIONS = {
    moduleResolution: 'bundler',
    module: 'es2022',
    target: 'es2022',
-   outDir: upath.resolve(fileURLToPath(import.meta.url), '../../../.dts')
+   outDir: './.dts'
 };
 
 /**
@@ -1202,7 +1202,7 @@ const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
    moduleResolution: 'bundler',
    module: 'es2022',
    target: 'es2022',
-   outDir: upath.resolve(fileURLToPath(import.meta.url), '../../../.dts')
+   outDir: './.dts'
 };
 
 const s_REGEX_DTS_EXTENSIONS = /\.d\.m?ts$/;
