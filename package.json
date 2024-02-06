@@ -31,6 +31,7 @@
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "dependencies": {
+    "@es-joy/jsdoccomment": "^0.42.0",
     "@rollup/plugin-alias": "^5.1.0",
     "@types/cytoscape": "^3.19.15",
     "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.3.0",
@@ -82,6 +83,7 @@
     "typescript"
   ],
   "typedocOptions": {
+    "excludeInternal": true,
     "dmtLinksService": {
       "Discord": "https://typhonjs.io/discord/",
       "GitHub": "https://github.com/typhonjs-node-build-test/esm-d-ts",
@@ -93,7 +95,8 @@
         "ImportsResolvePluginOptions": "https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/types/ImportsResolvePluginOptions.html"
       },
       "@typhonjs-utils/logger-color": {
-        "ColorLogger": "https://typhonjs-node-utils.github.io/logger-color/classes/_typhonjs_utils_logger_color.ColorLogger.html"
+        "ColorLogger": "https://typhonjs-node-utils.github.io/logger-color/classes/_typhonjs_utils_logger_color.ColorLogger.html",
+        "LogLevel": "https://typhonjs-node-utils.github.io/logger-color/types/_typhonjs_utils_logger_color.LogLevel.html"
       },
       "@types/cytoscape": {
         "cytoscape.Core": "https://js.cytoscape.org/#core",
@@ -111,10 +114,8 @@
   "apidocs": "https://typhonjs-node-build-test.github.io/esm-d-ts/",
   "scripts": {
     "eslint": "eslint .",
-    "docs": "typedoc-pkg --api-link esm --link-checker",
-    "types": "node ./src/cli/index.js gen -c --loglevel verbose",
-    "post-test": "node test/postprocess/test.js",
-    "svelte-test": "node ./src/cli/index.js gen ./test/fixture/svelte/index.js",
-    "docs-svelte": "typedoc-pkg --path test/fixture/svelte/index.d.ts --output docs-svelte"
+    "docs": "typedoc-pkg --api-link esm --loglevel debug",
+    "types": "node ./src/cli/index.js gen -c --loglevel debug",
+    "post-test": "node test/postprocess/test.js"
   }
 }
