@@ -134,7 +134,7 @@ async function checkDTSImpl(processedConfig)
       throw err;
    }
 
-   await compile(processedConfig);
+   await compile(processedConfig, false);
 
    try
    {
@@ -414,11 +414,11 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
  *
  * @param {ProcessedConfig}   processedConfig - Processed config object.
  *
- * @param {boolean}  [warn=false] - Log the emit diagnostics as warnings for `generateDTS`.
+ * @param {boolean}  isGenerate - Indicates compilation is from DTS generation vs just `checkJs`.
  *
  * @returns {Promise<{ comment: string, filepath: string }[]>} Any parsed JSDoc comments with the `@module` tag.
  */
-async function compile(processedConfig, warn = false)
+async function compile(processedConfig, isGenerate)
 {
    const {
       compilerOptions,
@@ -581,7 +581,7 @@ async function compile(processedConfig, warn = false)
       }
 
       // Special handling for `generateDTS` / log as warnings.
-      if (warn)
+      if (isGenerate)
       {
          // Only log if logLevel is not `error` or `tsDiagnosticLog` is true.
          if (!generateConfig.tsDiagnosticLog || !logger.is.warn) { continue; }
@@ -594,7 +594,7 @@ async function compile(processedConfig, warn = false)
       }
    }
 
-   if (!generateConfig.tsCheckJs)
+   if (isGenerate)
    {
       // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
       let dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.ts');
@@ -604,7 +604,7 @@ async function compile(processedConfig, warn = false)
 
       if (!isFile(dtsEntryPathActual))
       {
-         logger.error(`compile error: could not locate DTS entry point file in './dts' output.'`);
+         logger.fatal(`compile error: could not locate DTS entry point file in './dts' output.'`);
          process.exit(1);
       }
 
