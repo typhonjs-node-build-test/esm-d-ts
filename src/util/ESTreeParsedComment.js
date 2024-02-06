@@ -18,10 +18,7 @@ export class ESTreeParsedComment
     */
    constructor(rawComment)
    {
-      // `@es-joy/jsdoccomment` expects a comment string without leading / trailing delimiters.
-      const cleanComment = rawComment.replace(/^\s*\/\*\*([\s\S]*?)\*\/\s*$/, '* $1').trim();
-
-      this.#ast = commentParserToESTree(parseComment({ value: cleanComment }), 'typescript');
+      this.#ast = commentParserToESTree(parseComment(rawComment), 'typescript');
    }
 
    /**
