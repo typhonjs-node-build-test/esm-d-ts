@@ -1,4 +1,12 @@
 # Changelog
+## Release 0.3.0
+- Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
+  ESM Svelte components (`.svelte` files). For more information on ESM Svelte component support please see:
+  [@typhonjs-build-test/esm-d-ts-plugin-svelte](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts-plugin-svelte).
+  Eventually, the plugin system may be opened to 3rd party extensions along with additional 1st party support for
+  alternate file formats / frameworks that are ESM compatible. Presently, compatible 1st party plugins simply need to be
+  installed as additional developer dependencies and load automatically.
+
 ## Release 0.2.2
 - Added a TS AST transformer to support import types in `@implements` JSDoc tags. This allows you to reference
 an interface from a class and have it properly converted to `implements <INTERFACE>` in the declarations generated.
