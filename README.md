@@ -24,40 +24,20 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 ```json
 {
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": "^0.2.0"
+    "@typhonjs-build-test/esm-d-ts": "^0.3.0"
   }
 }
 ```
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
 ## What's New:
-### (0.2.2):
-- Added a TS AST transformer to support import types in `@implements` JSDoc tags. This allows you to reference
-  an interface from a class and have it properly converted to `implements <INTERFACE>` in the declarations generated.
-- Added `transformer` "meta-transformer" to reduce the boilerplate of creating custom TS AST transformers.
-
-### (0.2.1):
-
-- Added a new internal AST transformer that corrects the output of the TS compiler for setter accessor parameter names.
-The TS compiler for ESM will rename setter accessor parameter names to `arg` regardless of the value set in the source
-file. If there is a JSDoc comment associated with a setter the first `@param` tag name will be set to the AST node
-param name. Downstream tooling such as TypeDoc `0.25.7+` validates comment / `@param` name against the type declaration
-name; this change fixes that mismatch.
-
-### (0.2.0):
-
-- Optional postprocessing
-  - The first built-in postprocessing function is support for `@inheritDoc`. This is an unsupported JSDoc tag for
-  Typescript and when types are generated any methods or constructor functions that use `@inheritDoc` have parameters
-  that are typed as `any`. It is also possible to create custom postprocessing functions. For more details on
-  postprocessing and AST transformation [please see the wiki](https://github.com/typhonjs-node-build-test/esm-d-ts/wiki/AST-transformation-&-postprocessing#tstranformers).
-
-
-- Support for the JSDoc `@module` / `@packageDocumentation` comment pass-through to the generated DTS bundle. This is
-helpful when generating docs from the DTS bundle. This is only supported for the main entry point source file.
-
-
-- All dependencies updated along with peer dependency requirements of `Rollup 3.3 - 4.x` and `Typescript 5.1+`.
+### (0.3.0):
+- Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
+ESM Svelte components (`.svelte` files). For more information on ESM Svelte component support please see:
+[@typhonjs-build-test/esm-d-ts-plugin-svelte](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts-plugin-svelte).
+Eventually, the plugin system may be opened to 3rd party extensions along with additional 1st party support for
+alternate file formats / frameworks that are ESM compatible. Presently, compatible 1st party plugins simply need to be
+installed as additional developer dependencies and load automatically.
 
 ## Overview:
 
