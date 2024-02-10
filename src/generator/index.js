@@ -489,6 +489,7 @@ async function compile(processedConfig, isGenerate)
 
       jsdocImplementsImportType(),
 
+      // TODO: It is possible TS 5.3+ may have fixed the problem this transformer solves; investigate in the future.
       jsdocSetterParamName(),
 
       ...(typeof generateConfig.removePrivateStatic === 'boolean' && generateConfig.removePrivateStatic ?
