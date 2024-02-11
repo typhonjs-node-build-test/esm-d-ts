@@ -42,6 +42,49 @@ declare class ESTreeParsedComment {
 }
 
 /**
+ * Check if the given file path is a TS declaration file.
+ *
+ * @param {string}   filepath - Path to check.
+ *
+ * @returns {boolean} Returns if the given path is a TS declaration file.
+ */
+declare function isDTSFile(filepath: string): boolean;
+/**
+ * Check if the given file path is a standard TS file.
+ *
+ * @param {string}   filepath - Path to check.
+ *
+ * @returns {boolean} Returns if the given path is a standard TS file.
+ */
+declare function isTSFile(filepath: string): boolean;
+/**
+ * Check if the given file path is any supported TS file.
+ *
+ * @param {string}   filepath - Path to check.
+ *
+ * @returns {boolean} Returns if the given path is any supported TS file.
+ */
+declare function isTSFileExt(filepath: string): boolean;
+/**
+ * A regex to test if a file path is a Typescript declaration.
+ *
+ * @type {RegExp}
+ */
+declare const regexIsDTSFile: RegExp;
+/**
+ * A regex to test if a file path is a standard Typescript file.
+ *
+ * @type {RegExp}
+ */
+declare const regexIsTSFile: RegExp;
+/**
+ * A regex to test if a file path is any supported Typescript file.
+ *
+ * @type {RegExp}
+ */
+declare const regexIsTSFileExt: RegExp;
+
+/**
  * Provides a ColorLogger instance accessible across the package.
  *
  * @type {import('@typhonjs-utils/logger-color').ColorLogger}
@@ -115,8 +158,14 @@ type ParsedImportType = {
 export {
   ESTreeParsedComment,
   type ParsedImportType,
+  isDTSFile,
+  isTSFile,
+  isTSFileExt,
   logger,
   parseImportType,
   parseImportTypesFromBlock,
   regexImportType,
+  regexIsDTSFile,
+  regexIsTSFile,
+  regexIsTSFileExt,
 };

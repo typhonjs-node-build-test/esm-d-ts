@@ -6,7 +6,7 @@
 
 import * as rollup from 'rollup';
 import * as ts from 'typescript';
-import ts__default, { Diagnostic } from 'typescript';
+import ts__default, { Diagnostic, CompilerOptions } from 'typescript';
 import * as type_fest from 'type-fest';
 import * as prettier from 'prettier';
 import * as _typhonjs_build_test_esm_d_ts_postprocess from '@typhonjs-build-test/esm-d-ts/postprocess';
@@ -61,6 +61,7 @@ declare namespace PluginEvent {
     };
     /** Triggered during lexical analysis allowing plugins to transform file data to ESM. */
     'lexer:transform': {
+      compilerOptions: CompilerOptions;
       /** The file data to potentially transform. */
       fileData: string;
       /** `esm-d-ts` logger instance. */
@@ -288,6 +289,10 @@ type ProcessedConfig = {
    * Relative directory of common project files path.
    */
   inputRelativeDir: string;
+  /**
+   * Indicates if the Typescript mode / processing is enabled.
+   */
+  isTSMode: boolean;
   /**
    * The lexically parsed original file paths connected with the entry point.
    */
