@@ -2,7 +2,9 @@ import type { PostProcess }   from '@typhonjs-build-test/esm-d-ts/postprocess';
 import type {
    ColorLogger,
    LogLevel }                 from '@typhonjs-utils/logger-color';
-import type { Diagnostic }    from 'typescript';
+import type {
+   CompilerOptions,
+   Diagnostic }               from 'typescript';
 
 /**
  * Defines all plugin event data and any associated return type signatures. `esm-d-ts` supports plugins for additional
@@ -52,6 +54,7 @@ export declare namespace PluginEvent {
 
       /** Triggered during lexical analysis allowing plugins to transform file data to ESM. */
       'lexer:transform': {
+         compilerOptions: CompilerOptions;
          /** The file data to potentially transform. */
          fileData: string;
          /** `esm-d-ts` logger instance. */

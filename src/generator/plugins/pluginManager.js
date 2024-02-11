@@ -1,10 +1,12 @@
-import { fileURLToPath }   from 'node:url';
+import { fileURLToPath }         from 'node:url';
 
-import { PluginManager }   from '@typhonjs-plugin/manager';
-import { getDirList }      from '@typhonjs-utils/file-util';
-import upath               from 'upath';
+import { PluginManager }         from '@typhonjs-plugin/manager';
+import { getDirList }            from '@typhonjs-utils/file-util';
+import upath                     from 'upath';
 
-import { logger }          from "#util";
+import { logger }                from "#util";
+
+import { DTSPluginTypescript }   from './DTSPluginTypescript.js';
 
 /**
  * Provides custom initialization of plugins located in `node_modules/@typhonjs-build-test` organization. Presently,
@@ -33,13 +35,23 @@ class DTSPluginManager extends PluginManager
    /**
     * Handles deferred plugin loading until after the logger log level has been set for programmatic API.
     *
+    * @param {boolean} isTSMode - Is Typescript mode enabled.
+    *
     * @returns {Promise<void>}
     */
-   async initialize()
+   async initialize(isTSMode)
    {
       if (this.#initialized) { return; }
 
       this.#initialized = true;
+
+      if (isTSMode)
+      {
+         await super.add({
+            name: '@typhonjs-build-test/esm-d-ts-plugin-typescript',
+            instance: new DTSPluginTypescript()
+         });
+      }
 
       const dir = upath.resolve(fileURLToPath(import.meta.url), '../../../../');
 

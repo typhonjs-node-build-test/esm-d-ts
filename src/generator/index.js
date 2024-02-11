@@ -34,8 +34,8 @@ import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
 import upath                     from 'upath';
 
-import { pluginManager }         from './pluginManager.js';
-import * as rollupPlugins      from './plugins/rollupPlugins.js';
+import { pluginManager }         from './plugins/pluginManager.js';
+import * as rollupPlugins        from './plugins/rollupPlugins.js';
 
 import {
    regexJSExt,
@@ -54,7 +54,9 @@ import {
    jsdocSetterParamName,
    removePrivateStatic }         from '../transformer/internal/index.js';
 
-import { logger }                from '#util';
+import {
+   isTSFile,
+   logger }                      from '#util';
 
 const eventbus = pluginManager.getEventbus();
 
@@ -292,15 +294,6 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
    const packageAlias = typeof generateConfig.bundlePackageExports === 'boolean' &&
     generateConfig.bundlePackageExports ? resolvePackageExports(packages, generateConfig, compilerOptions.outDir) : [];
 
-   if (jsdocModuleComments.length > 1)
-   {
-      const jsdocPaths = jsdocModuleComments.map((entry) => entry?.filepath).join('\n');
-
-      logger.warn(
-       `bundleDTS warning: multiple JSDoc comments detected with the '@module' / '@packageDocumentation' tag from:\n${
-        jsdocPaths}`);
-   }
-
    // Prepend any comment with the `@module` tag preserving it in the bundled DTS file.
 
    let banner = jsdocModuleComments.length === 1 && typeof jsdocModuleComments[0]?.comment === 'string' ?
@@ -426,6 +419,7 @@ async function compile(processedConfig, isGenerate)
       dtsEntryPath,
       generateConfig,
       inputRelativeDir,
+      isTSMode,
       tsFilepaths
    } = processedConfig;
 
@@ -441,8 +435,8 @@ async function compile(processedConfig, isGenerate)
 
    try
    {
-      // Allow any plugins to handle non-JS files potentially modifying `compileFilepaths` and adding transformed code to
-      // `memoryFiles`.
+      // Allow any plugins to handle non-JS files potentially modifying `compileFilepaths` and adding transformed code
+      // to `memoryFiles`.
       await eventbus.triggerAsync('compile:transform', { logger, memoryFiles, processedConfig });
    }
    catch (err)
@@ -471,6 +465,16 @@ async function compile(processedConfig, isGenerate)
    /**
     * Add `jsdocPreserveModuleTag` to store any `@module` / `@packageDescription` tags to prepend to output DTS.
     *
+    * Optionally add `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
+    */
+   const alwaysTransformers = [
+      jsdocPreserveModuleTag(jsdocModuleComments, generateConfig.input),
+
+      ...(typeof generateConfig.filterTags === 'string' || isIterable(generateConfig.filterTags) ?
+       [jsdocRemoveNodeByTags(generateConfig.filterTags)] : []),
+   ];
+
+   /**
     * Add `jsdocImplementsImportType` to support adding interfaces to classes via import types and `@implements`.
     *
     * Add `jsdocSetterParamName` to correct TS compiler renaming of setter param name.
@@ -478,15 +482,9 @@ async function compile(processedConfig, isGenerate)
     * Optionally add `removePrivateStatic` as the Typescript compiler changes private static members to become public
     * defined with a string pattern that can be detected.
     *
-    * Optionally add `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
-    *
     * Optionally add `addSyntheticExports` to add exports for any additional TS files compiled.
-    *
-    * Optionally add any user defined transformers.
     */
-   const transformers = [
-      jsdocPreserveModuleTag(jsdocModuleComments, generateConfig.input),
-
+   const jsTransformers = isTSMode ? [] : [
       jsdocImplementsImportType(),
 
       // TODO: It is possible TS 5.3+ may have fixed the problem this transformer solves; investigate in the future.
@@ -499,7 +497,14 @@ async function compile(processedConfig, isGenerate)
        [jsdocRemoveNodeByTags(generateConfig.filterTags)] : []),
 
       ...(tsFilepaths.length ? [addSyntheticExports(generateConfig.input, tsFilepaths)] : []),
+   ];
 
+   /**
+    * Combines all transformers optionally including any user specified transformers.
+    */
+   const transformers = [
+      ...alwaysTransformers,
+      ...jsTransformers,
       ...(isIterable(generateConfig.tsTransformers) ? generateConfig.tsTransformers : [])
    ];
 
@@ -634,10 +639,14 @@ async function compile(processedConfig, isGenerate)
  *
  * @param {GenerateConfig} generateConfig - Generate config.
  *
+ * @param {ts.CompilerOptions} compilerOptions - Typescript compiler options.
+ *
+ * @param {boolean} isTSMode - Is Typescript mode enabled.
+ *
  * @returns {Promise<{lexerFilepaths: string[], packages: string[]}>} Lexically parsed files and top level
  *          packages exported.
  */
-async function parseFiles(generateConfig)
+async function parseFiles(generateConfig, compilerOptions, isTSMode)
 {
    await init;
 
@@ -669,19 +678,38 @@ async function parseFiles(generateConfig)
          // Must indicate warnings for the case when an `index.js` / `index.mjs` file is referenced by directory.
          if (isDirectory(resolvedPath))
          {
-            const hasIndexJs = isFile(`${resolvedPath}/index.js`);
-            const hasIndexMjs = isFile(`${resolvedPath}/index.mjs`);
-
-            if (!hasIndexJs && !hasIndexMjs)
+            if (isTSMode)
             {
-               // Could not resolve index reference so skip file.
-               logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
+               const hasIndexTs = isFile(`${resolvedPath}/index.ts`);
+               const hasIndexMts = isFile(`${resolvedPath}/index.mts`);
 
-               continue;
+               if (!hasIndexTs && !hasIndexMts)
+               {
+                  // Could not resolve index reference so skip file.
+                  logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)ts'`);
+
+                  continue;
+               }
+
+               if (hasIndexTs) { resolvedPath = `${resolvedPath}/index.ts`; }
+               else if (hasIndexMts) { resolvedPath = `${resolvedPath}/index.mts`; }
             }
+            else
+            {
+               const hasIndexJs = isFile(`${resolvedPath}/index.js`);
+               const hasIndexMjs = isFile(`${resolvedPath}/index.mjs`);
 
-            if (hasIndexJs) { resolvedPath = `${resolvedPath}/index.js`; }
-            else if (hasIndexMjs) { resolvedPath = `${resolvedPath}/index.mjs`; }
+               if (!hasIndexJs && !hasIndexMjs)
+               {
+                  // Could not resolve index reference so skip file.
+                  logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
+
+                  continue;
+               }
+
+               if (hasIndexJs) { resolvedPath = `${resolvedPath}/index.js`; }
+               else if (hasIndexMjs) { resolvedPath = `${resolvedPath}/index.mjs`; }
+            }
          }
 
          if (parsedFiles.has(resolvedPath)) { continue; }
@@ -713,7 +741,8 @@ async function parseFiles(generateConfig)
 
             try
             {
-               const transformed = await eventbus.triggerAsync(event, { fileData, logger, resolvedPath });
+               const transformed = await eventbus.triggerAsync(event,
+                { compilerOptions, fileData, logger, resolvedPath });
 
                if (typeof transformed !== 'string')
                {
@@ -1009,8 +1038,13 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    logger.setLogLevel(generateConfig.logLevel);
 
+   // Resolve to full path.
+   generateConfig.input = upath.resolve(generateConfig.input);
+
+   const isTSMode = isTSFile(generateConfig.input);
+
    // Initialize plugin manager after logger log level set. Initialization only occurs once per entire invocation.
-   await pluginManager.initialize();
+   await pluginManager.initialize(isTSMode);
 
    // Load default or configured `tsconfig.json` file to configure `compilerOptions`. --------------------------------
 
@@ -1072,20 +1106,22 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    // Parse project files --------------------------------------------------------------------------------------------
 
-   // Resolve to full path.
-   generateConfig.input = upath.resolve(generateConfig.input);
+   let tsFilepaths = [];
 
-   // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS files
-   // will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
-   const tsFilepaths = await getFileList({
-      dir: upath.dirname(generateConfig.input),
-      includeFile: /^(?!.*\.d\.ts$).*\.ts$/,
-      resolve: true,
-      walk: generateConfig.tsFileWalk
-   });
+   if (!isTSMode)
+   {
+      // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS
+      // files will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
+      tsFilepaths = await getFileList({
+         dir: upath.dirname(generateConfig.input),
+         includeFile: /^(?!.*\.d\.ts$).*\.ts$/,
+         resolve: true,
+         walk: generateConfig.tsFileWalk
+      });
+   }
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { lexerFilepaths, packages } = await parseFiles(generateConfig);
+   const { lexerFilepaths, packages } = await parseFiles(generateConfig, compilerOptions, isTSMode);
 
    // Parsed input source files and any TS files found from input root.
    const compileFilepaths = [...lexerFilepaths, ...tsFilepaths];
@@ -1126,6 +1162,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
       dtsEntryPath,
       generateConfig,
       inputRelativeDir,
+      isTSMode,
       lexerFilepaths,
       packages,
       tsFilepaths
@@ -1183,6 +1220,7 @@ function resolvePackageExports(packages, generateConfig, outDir)
  * @type {import('type-fest').TsConfigJson.CompilerOptions}
  */
 const s_DEFAULT_TS_GEN_COMPILER_OPTIONS = {
+   allowImportingTsExtensions: true,
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
@@ -1196,6 +1234,7 @@ const s_DEFAULT_TS_GEN_COMPILER_OPTIONS = {
  * @type {import('type-fest').TsConfigJson.CompilerOptions}
  */
 const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
+   allowImportingTsExtensions: true,
    allowJs: true,
    checkJs: true,
    declaration: true,
@@ -1339,6 +1378,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {GenerateConfig} generateConfig The original generate generateConfig w/ default data.
  *
  * @property {string}      inputRelativeDir Relative directory of common project files path.
+ *
+ * @property {boolean}     isTSMode Indicates if the Typescript mode / processing is enabled.
  *
  * @property {string[]}    lexerFilepaths The lexically parsed original file paths connected with the entry point.
  *
