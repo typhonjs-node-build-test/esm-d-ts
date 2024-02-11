@@ -20,10 +20,14 @@ export function jsdocPreserveModuleTag(moduleComments, fileName)
       {
          if ((entry.tag === 'module' || entry.tag === 'packageDocumentation') && fileName === sourceFile.fileName)
          {
-            moduleComments.push({
-               filepath: sourceFile.fileName,
-               comment: lastComment
-            });
+            // Only push first encountered comment block.
+            if (!moduleComments.length)
+            {
+               moduleComments.push({
+                  filepath: sourceFile.fileName,
+                  comment: lastComment
+               });
+            }
          }
       }
    });
