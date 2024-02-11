@@ -43,6 +43,9 @@ class DTSPluginManager extends PluginManager
 
       const dir = upath.resolve(fileURLToPath(import.meta.url), '../../../../');
 
+      // Early out if not initializing from `node_modules/@typhonjs-build-test`.
+      if (upath.dirname(dir) !== '@typhonjs-build-test') { return; }
+
       const plugins = await getDirList({ dir, includeDir: /^esm-d-ts-plugin/ });
 
       for (const plugin of plugins)
