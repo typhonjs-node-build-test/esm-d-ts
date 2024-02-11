@@ -57,8 +57,11 @@
     "@typhonjs-config/eslint-config" : "^0.6.0",
     "@typhonjs-typedoc/typedoc-pkg": "^0.0.3",
     "@types/node": "^20.11.5",
+    "@vitest/coverage-v8": "^1.2.2",
+    "@vitest/ui": "^1.2.2",
     "eslint": "^8.56.0",
-    "svelte": "^4.2.9"
+    "svelte": "^4.2.9",
+    "vitest": "^1.2.2"
  },
   "peerDependencies": {
     "rollup": "3.3 - 4",
@@ -114,8 +117,10 @@
   "apidocs": "https://typhonjs-node-build-test.github.io/esm-d-ts/",
   "scripts": {
     "eslint": "eslint .",
-    "docs": "typedoc-pkg --api-link esm --loglevel debug",
+    "docs": "typedoc-pkg --api-link es --loglevel debug",
     "types": "node ./src/cli/index.js gen -c --loglevel debug",
-    "post-test": "node test/postprocess/test.js"
+    "test": "vitest --coverage",
+    "test-ui": "vitest --ui --coverage",
+    "coverage": "vitest run --coverage"
   }
 }
