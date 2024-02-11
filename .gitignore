@@ -9,4 +9,4 @@ npm-debug.log
 /env
 /.nyc_output
 /coverage
-/test/output
+/test/fixture/output
