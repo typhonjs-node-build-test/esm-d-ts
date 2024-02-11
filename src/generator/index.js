@@ -35,7 +35,7 @@ import ts                        from 'typescript';
 import upath                     from 'upath';
 
 import { pluginManager }         from './pluginManager.js';
-import * as internalPlugins      from './rollupPlugins.js';
+import * as rollupPlugins      from './plugins/rollupPlugins.js';
 
 import {
    regexJSExt,
@@ -272,7 +272,7 @@ async function generateDTSImpl(processedConfig)
  *
  * @type {(options?: Partial<GenerateConfig>) => import('rollup').Plugin}
  */
-generateDTS.plugin = internalPlugins.generateDTSPlugin(generateDTS);
+generateDTS.plugin = rollupPlugins.generateDTSPlugin(generateDTS);
 
 export { checkDTS, generateDTS };
 
@@ -378,7 +378,7 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
 
    if (isObject(generateConfig.dtsReplace))
    {
-      rollupConfig.input.plugins.push(internalPlugins.naiveReplace(generateConfig.dtsReplace));
+      rollupConfig.input.plugins.push(rollupPlugins.naiveReplace(generateConfig.dtsReplace));
    }
 
    // ----------------------------------------------------------------------------------------------------------------
