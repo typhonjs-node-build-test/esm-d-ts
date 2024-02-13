@@ -1015,6 +1015,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    const generateConfig = Object.assign({
       filterTags: 'internal',
       logLevel: 'info',
+      plugins: [],
       prettier: true,
       removePrivateStatic: true,
       tsDiagnosticExternal: false,
@@ -1044,7 +1045,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    const isTSMode = isTSFile(generateConfig.input);
 
    // Initialize plugin manager after logger log level set. Initialization only occurs once per entire invocation.
-   await pluginManager.initialize(isTSMode);
+   await pluginManager.initialize(generateConfig.plugins, isTSMode);
 
    // Load default or configured `tsconfig.json` file to configure `compilerOptions`. --------------------------------
 
@@ -1302,6 +1303,10 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {string}               [outputPostprocess] When postprocessing is configured this is a helpful debugging
  * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of
  * any additional processing. You must specify a valid filepath.
+ *
+ * @property {Iterable<string>}     [plugins] An iterable list of NPM package names or local source files providing ESM
+ * plugins to load for additional file type support. Official 1st party plugins installed will automatically load. Use
+ * `plugins` to load any 3rd party plugins.
  *
  * @property {Iterable<import('@typhonjs-build-test/esm-d-ts/postprocess').ProcessorFunction>} [postprocess] An
  * iterable list of postprocessing functions. Note: This is experimental!

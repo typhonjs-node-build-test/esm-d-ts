@@ -1,7 +1,10 @@
 import { fileURLToPath }         from 'node:url';
 
 import { PluginManager }         from '@typhonjs-plugin/manager';
-import { getDirList }            from '@typhonjs-utils/file-util';
+import {
+   getDirList,
+   isFile }                      from '@typhonjs-utils/file-util';
+
 import upath                     from 'upath';
 
 import { logger }                from "#util";
@@ -35,16 +38,19 @@ class DTSPluginManager extends PluginManager
    /**
     * Handles deferred plugin loading until after the logger log level has been set for programmatic API.
     *
+    * @param {Iterable<string>} externalPlugins - Iterable list of 3rd party plugins to load.
+    *
     * @param {boolean} isTSMode - Is Typescript mode enabled.
     *
     * @returns {Promise<void>}
     */
-   async initialize(isTSMode)
+   async initialize(externalPlugins, isTSMode)
    {
       if (this.#initialized) { return; }
 
       this.#initialized = true;
 
+      // Add Typescript plugin if entry point is a Typescript file.
       if (isTSMode)
       {
          await super.add({
@@ -55,18 +61,34 @@ class DTSPluginManager extends PluginManager
 
       const dir = upath.resolve(fileURLToPath(import.meta.url), '../../../../');
 
-      // Early out if not initializing from `node_modules/@typhonjs-build-test`.
-      if (upath.dirname(dir) !== '@typhonjs-build-test') { return; }
-
-      const plugins = await getDirList({ dir, includeDir: /^esm-d-ts-plugin/ });
-
-      for (const plugin of plugins)
+      // Only load 1st party plugins when `esm-d-ts` is installed from `node_modules/@typhonjs-build-test`.
+      if (upath.dirname(dir) === '@typhonjs-build-test')
       {
-         const name = `@typhonjs-build-test/${plugin}`;
-         await super.add({ name });
+         const firstPartyPlugins = await getDirList({ dir, includeDir: /^esm-d-ts-plugin/ });
+
+         for (const plugin of firstPartyPlugins)
+         {
+            const name = `@typhonjs-build-test/${plugin}`;
+            await super.add({ name });
+         }
+      }
+
+      for (const plugin of externalPlugins)
+      {
+         // Load from local file.
+         if (isFile(plugin))
+         {
+            const name = upath.basename(plugin);
+            await super.add({ name, target: plugin });
+         }
+         else // Load as NPM package.
+         {
+            await super.add({ name: plugin });
+         }
       }
 
       const pluginNames = super.getPluginNames();
+
       if (pluginNames.length) { logger.verbose(`Loading plugins: ${pluginNames.join(', ')}`); }
    }
 }

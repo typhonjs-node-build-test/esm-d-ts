@@ -160,6 +160,13 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.plugins !== void 0 && !isIterable(config.plugins))
+   {
+      logger.error(
+       `validateConfig error: 'config.plugins' must be an iterable list of 3rd party NPM packages to load as plugins.`);
+      result = false;
+   }
+
    if (config.prependFiles !== void 0 && !isIterable(config.prependFiles))
    {
       logger.error(`validateConfig error: 'config.prependFiles' must be an iterable list of strings.`);
