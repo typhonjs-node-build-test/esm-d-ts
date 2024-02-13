@@ -172,6 +172,12 @@ type GenerateConfig = {
    */
   outputPostprocess?: string;
   /**
+   * An iterable list of NPM package names or local source files providing ESM
+   * plugins to load for additional file type support. Official 1st party plugins installed will automatically load. Use
+   * `plugins` to load any 3rd party plugins.
+   */
+  plugins?: Iterable<string>;
+  /**
    * An
    * iterable list of postprocessing functions. Note: This is experimental!
    */
