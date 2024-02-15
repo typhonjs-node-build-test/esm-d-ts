@@ -1,4 +1,5 @@
 import * as comment_parser from 'comment-parser';
+import * as ts_morph from 'ts-morph';
 import ts from 'typescript';
 import * as _es_joy_jsdoccomment from '@es-joy/jsdoccomment';
 import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
@@ -6,17 +7,17 @@ import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
 /**
  * Returns the leading comment strings for a Node.
  *
- * @param {ts.Node}  node - Node being processed.
+ * @param {ts.Node | import('ts-morph').ts.Node}  node - Node being processed.
  *
  * @param {string}  sourceFileText - The complete source file text.
  *
  * @returns {string[]|undefined} All leading comment block strings.
  */
-declare function getLeadingComments(node: ts.Node, sourceFileText: string): string[] | undefined;
+declare function getLeadingComments(node: ts.Node | ts_morph.ts.Node, sourceFileText: string): string[] | undefined;
 /**
  * Parses all leading JSDoc like block comments for the given Node.
  *
- * @param {ts.Node}  node - Node being processed.
+ * @param {ts.Node | import('ts-morph').ts.Node}  node - Node being processed.
  *
  * @param {string}   sourceFileText - The complete source file text.
  *
@@ -26,7 +27,11 @@ declare function getLeadingComments(node: ts.Node, sourceFileText: string): stri
  *
  * @returns {ParsedLeadingComments} The parsed leading comments.
  */
-declare function parseLeadingComments(node: ts.Node, sourceFileText: string, options?: any): ParsedLeadingComments;
+declare function parseLeadingComments(
+  node: ts.Node | ts_morph.ts.Node,
+  sourceFileText: string,
+  options?: any,
+): ParsedLeadingComments;
 /**
  * Defines all leading JSDoc comments for a Typescript compiler node.
  */
