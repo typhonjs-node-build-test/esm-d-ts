@@ -4,7 +4,7 @@ import { parse }  from 'comment-parser';
 /**
  * Returns the leading comment strings for a Node.
  *
- * @param {ts.Node}  node - Node being processed.
+ * @param {ts.Node | import('ts-morph').ts.Node}  node - Node being processed.
  *
  * @param {string}  sourceFileText - The complete source file text.
  *
@@ -31,7 +31,7 @@ export function getLeadingComments(node, sourceFileText)
 /**
  * Parses all leading JSDoc like block comments for the given Node.
  *
- * @param {ts.Node}  node - Node being processed.
+ * @param {ts.Node | import('ts-morph').ts.Node}  node - Node being processed.
  *
  * @param {string}   sourceFileText - The complete source file text.
  *
