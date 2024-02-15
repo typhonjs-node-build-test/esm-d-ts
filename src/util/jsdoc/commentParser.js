@@ -6,13 +6,15 @@ import { parse }  from 'comment-parser';
  *
  * @param {ts.Node | import('ts-morph').ts.Node}  node - Node being processed.
  *
- * @param {string}  sourceFileText - The complete source file text.
+ * @param {ts.SourceFile | import('ts-morph').SourceFile}   sourceFile - The TS source file node.
  *
  * @returns {string[]|undefined} All leading comment block strings.
  */
-export function getLeadingComments(node, sourceFileText)
+export function getLeadingComments(node, sourceFile)
 {
    if (node.pos < 0 || node.end < 0) { return; }
+
+   const sourceFileText = sourceFile.getFullText();
 
    const commentRanges = ts.getLeadingCommentRanges(sourceFileText, node.getFullStart());
 
@@ -33,7 +35,7 @@ export function getLeadingComments(node, sourceFileText)
  *
  * @param {ts.Node | import('ts-morph').ts.Node}  node - Node being processed.
  *
- * @param {string}   sourceFileText - The complete source file text.
+ * @param {ts.SourceFile | import('ts-morph').SourceFile}   sourceFile - The TS source file node.
  *
  * @param {Partial<import('comment-parser').Options>} [options] - Options for `comment-parser`. The default is to
  *        preserve spacing in comment descriptions. Please refer to the `comment-parser` documentation for options
@@ -41,13 +43,13 @@ export function getLeadingComments(node, sourceFileText)
  *
  * @returns {ParsedLeadingComments} The parsed leading comments.
  */
-export function parseLeadingComments(node, sourceFileText, options = { spacing: 'preserve' })
+export function parseLeadingComments(node, sourceFile, options = { spacing: 'preserve' })
 {
    const comments = [];
    const parsed = [];
    let lastComment, lastParsed;
 
-   const allComments = getLeadingComments(node, sourceFileText);
+   const allComments = getLeadingComments(node, sourceFile);
    if (allComments)
    {
       for (const comment of allComments)

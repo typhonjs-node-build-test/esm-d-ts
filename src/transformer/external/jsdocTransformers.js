@@ -83,7 +83,7 @@ export function jsdocTransformer(handler, postHandler)
          /** @ignore */
          function visit(node, sourceFile)
          {
-            const { comments, parsed, lastComment, lastParsed } = parseLeadingComments(node, sourceFile.text);
+            const { comments, parsed, lastComment, lastParsed } = parseLeadingComments(node, sourceFile);
 
             if (lastParsed)
             {
