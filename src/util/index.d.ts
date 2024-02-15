@@ -9,17 +9,20 @@ import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
  *
  * @param {ts.Node | import('ts-morph').ts.Node}  node - Node being processed.
  *
- * @param {string}  sourceFileText - The complete source file text.
+ * @param {ts.SourceFile | import('ts-morph').SourceFile}   sourceFile - The TS source file node.
  *
  * @returns {string[]|undefined} All leading comment block strings.
  */
-declare function getLeadingComments(node: ts.Node | ts_morph.ts.Node, sourceFileText: string): string[] | undefined;
+declare function getLeadingComments(
+  node: ts.Node | ts_morph.ts.Node,
+  sourceFile: ts.SourceFile | ts_morph.SourceFile,
+): string[] | undefined;
 /**
  * Parses all leading JSDoc like block comments for the given Node.
  *
  * @param {ts.Node | import('ts-morph').ts.Node}  node - Node being processed.
  *
- * @param {string}   sourceFileText - The complete source file text.
+ * @param {ts.SourceFile | import('ts-morph').SourceFile}   sourceFile - The TS source file node.
  *
  * @param {Partial<import('comment-parser').Options>} [options] - Options for `comment-parser`. The default is to
  *        preserve spacing in comment descriptions. Please refer to the `comment-parser` documentation for options
@@ -29,7 +32,7 @@ declare function getLeadingComments(node: ts.Node | ts_morph.ts.Node, sourceFile
  */
 declare function parseLeadingComments(
   node: ts.Node | ts_morph.ts.Node,
-  sourceFileText: string,
+  sourceFile: ts.SourceFile | ts_morph.SourceFile,
   options?: any,
 ): ParsedLeadingComments;
 /**
