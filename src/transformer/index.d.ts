@@ -68,51 +68,6 @@ declare function jsdocTransformer(
   }) => any,
   postHandler?: (sourceFile: ts.SourceFile) => ts.SourceFile | undefined,
 ): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
-/**
- * Returns the leading comment strings for a Node.
- *
- * @param {ts.Node}  node - Node being processed.
- *
- * @param {ts.SourceFile}  sourceFile - The source file of the Node.
- *
- * @returns {string[]|undefined} All leading comment block strings.
- */
-declare function getLeadingComments(node: ts.Node, sourceFile: ts.SourceFile): string[] | undefined;
-/**
- * Parses all leading JSDoc like block comments for the given Node.
- *
- * @param {ts.Node}  node - Node being processed.
- *
- * @param {ts.SourceFile}  sourceFile - The source file of the Node.
- *
- * @param {Partial<import('comment-parser').Options>} [options] - Options for `comment-parser`. The default is to
- *        preserve spacing in comment descriptions. Please refer to the `comment-parser` documentation for options
- *        available. Currently, `comment-parser` doesn't export the `Options`.
- *
- * @returns {ParsedLeadingComments} The parsed leading comments.
- */
-declare function parseLeadingComments(node: ts.Node, sourceFile: ts.SourceFile, options?: any): ParsedLeadingComments;
-/**
- * Defines all leading JSDoc comments for a Typescript compiler node.
- */
-type ParsedLeadingComments = {
-  /**
-   * - All raw JSDoc comment blocks.
-   */
-  comments: string[];
-  /**
-   * - All parsed JSDoc comment blocks.
-   */
-  parsed: comment_parser.Block[];
-  /**
-   * - Last raw JSDoc comment block before node.
-   */
-  lastComment: string;
-  /**
-   * - Last parsed leading JSDoc comment block before node.
-   */
-  lastParsed: comment_parser.Block;
-};
 
 /**
  * Provides a convenient "meta-transformer" that invokes a handler function for each Node reducing the boilerplate
@@ -136,12 +91,4 @@ declare function transformer(
   postHandler?: (sourceFile: ts.SourceFile) => ts.SourceFile | undefined,
 ): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
 
-export {
-  type ParsedLeadingComments,
-  getLeadingComments,
-  jsdocRemoveNodeByTags,
-  jsdocTransformer,
-  logTSNode,
-  parseLeadingComments,
-  transformer,
-};
+export { jsdocRemoveNodeByTags, jsdocTransformer, logTSNode, transformer };

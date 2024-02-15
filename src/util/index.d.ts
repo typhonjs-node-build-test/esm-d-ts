@@ -1,6 +1,53 @@
+import * as comment_parser from 'comment-parser';
+import ts from 'typescript';
 import * as _es_joy_jsdoccomment from '@es-joy/jsdoccomment';
 import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
-import * as comment_parser from 'comment-parser';
+
+/**
+ * Returns the leading comment strings for a Node.
+ *
+ * @param {ts.Node}  node - Node being processed.
+ *
+ * @param {string}  sourceFileText - The complete source file text.
+ *
+ * @returns {string[]|undefined} All leading comment block strings.
+ */
+declare function getLeadingComments(node: ts.Node, sourceFileText: string): string[] | undefined;
+/**
+ * Parses all leading JSDoc like block comments for the given Node.
+ *
+ * @param {ts.Node}  node - Node being processed.
+ *
+ * @param {string}   sourceFileText - The complete source file text.
+ *
+ * @param {Partial<import('comment-parser').Options>} [options] - Options for `comment-parser`. The default is to
+ *        preserve spacing in comment descriptions. Please refer to the `comment-parser` documentation for options
+ *        available. Currently, `comment-parser` doesn't export the `Options`.
+ *
+ * @returns {ParsedLeadingComments} The parsed leading comments.
+ */
+declare function parseLeadingComments(node: ts.Node, sourceFileText: string, options?: any): ParsedLeadingComments;
+/**
+ * Defines all leading JSDoc comments for a Typescript compiler node.
+ */
+type ParsedLeadingComments = {
+  /**
+   * - All raw JSDoc comment blocks.
+   */
+  comments: string[];
+  /**
+   * - All parsed JSDoc comment blocks.
+   */
+  parsed: comment_parser.Block[];
+  /**
+   * - Last raw JSDoc comment block before node.
+   */
+  lastComment: string;
+  /**
+   * - Last parsed leading JSDoc comment block before node.
+   */
+  lastParsed: comment_parser.Block;
+};
 
 /**
  * Provides a more flexible mechanism to modify JSDoc comment blocks. `comment-parser` is the main parsing mechanism
@@ -40,56 +87,6 @@ declare class ESTreeParsedComment {
   toString(): string;
   #private;
 }
-
-/**
- * Check if the given file path is a TS declaration file.
- *
- * @param {string}   filepath - Path to check.
- *
- * @returns {boolean} Returns if the given path is a TS declaration file.
- */
-declare function isDTSFile(filepath: string): boolean;
-/**
- * Check if the given file path is a standard TS file.
- *
- * @param {string}   filepath - Path to check.
- *
- * @returns {boolean} Returns if the given path is a standard TS file.
- */
-declare function isTSFile(filepath: string): boolean;
-/**
- * Check if the given file path is any supported TS file.
- *
- * @param {string}   filepath - Path to check.
- *
- * @returns {boolean} Returns if the given path is any supported TS file.
- */
-declare function isTSFileExt(filepath: string): boolean;
-/**
- * A regex to test if a file path is a Typescript declaration.
- *
- * @type {RegExp}
- */
-declare const regexIsDTSFile: RegExp;
-/**
- * A regex to test if a file path is a standard Typescript file.
- *
- * @type {RegExp}
- */
-declare const regexIsTSFile: RegExp;
-/**
- * A regex to test if a file path is any supported Typescript file.
- *
- * @type {RegExp}
- */
-declare const regexIsTSFileExt: RegExp;
-
-/**
- * Provides a ColorLogger instance accessible across the package.
- *
- * @type {import('@typhonjs-utils/logger-color').ColorLogger}
- */
-declare const logger: _typhonjs_utils_logger_color.ColorLogger;
 
 /**
  * Parses a string for bare / leading `import types` returning an object with the parts required to perform AST
@@ -155,15 +152,68 @@ type ParsedImportType = {
   module: string;
 };
 
+/**
+ * Check if the given file path is a TS declaration file.
+ *
+ * @param {string}   filepath - Path to check.
+ *
+ * @returns {boolean} Returns if the given path is a TS declaration file.
+ */
+declare function isDTSFile(filepath: string): boolean;
+/**
+ * Check if the given file path is a standard TS file.
+ *
+ * @param {string}   filepath - Path to check.
+ *
+ * @returns {boolean} Returns if the given path is a standard TS file.
+ */
+declare function isTSFile(filepath: string): boolean;
+/**
+ * Check if the given file path is any supported TS file.
+ *
+ * @param {string}   filepath - Path to check.
+ *
+ * @returns {boolean} Returns if the given path is any supported TS file.
+ */
+declare function isTSFileExt(filepath: string): boolean;
+/**
+ * A regex to test if a file path is a Typescript declaration.
+ *
+ * @type {RegExp}
+ */
+declare const regexIsDTSFile: RegExp;
+/**
+ * A regex to test if a file path is a standard Typescript file.
+ *
+ * @type {RegExp}
+ */
+declare const regexIsTSFile: RegExp;
+/**
+ * A regex to test if a file path is any supported Typescript file.
+ *
+ * @type {RegExp}
+ */
+declare const regexIsTSFileExt: RegExp;
+
+/**
+ * Provides a ColorLogger instance accessible across the package.
+ *
+ * @type {import('@typhonjs-utils/logger-color').ColorLogger}
+ */
+declare const logger: _typhonjs_utils_logger_color.ColorLogger;
+
 export {
   ESTreeParsedComment,
   type ParsedImportType,
+  type ParsedLeadingComments,
+  getLeadingComments,
   isDTSFile,
   isTSFile,
   isTSFileExt,
   logger,
   parseImportType,
   parseImportTypesFromBlock,
+  parseLeadingComments,
   regexImportType,
   regexIsDTSFile,
   regexIsTSFile,
