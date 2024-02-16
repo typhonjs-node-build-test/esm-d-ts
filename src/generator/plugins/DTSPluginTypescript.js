@@ -22,7 +22,7 @@ export class DTSPluginTypescript
             allowImportingTsExtensions: true,
             declaration: false
          },
-         jsDocParsingMode: ts.JSDocParsingMode.ParseNone,
+         jsDocParsingMode: ts?.JSDocParsingMode?.ParseNone ?? 1, // `ParseNone` added in `TS 5.3+`.
          reportDiagnostics: false
 
       }).outputText;
