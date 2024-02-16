@@ -5,7 +5,8 @@ import { jsdocTransformer }   from '../index.js';
 /**
  * A custom transformer that copies the first `@param` name for setter accessor declarations to the AST node.
  *
- * Note: Currently in Typescript compilation for ESM the setter accessor declaration parameter name is renamed to `arg`
+ * Note: This is fixed in `TS 5.3+`, but this transformer remains valid until the minimum peer dependency is raised.
+ * Before `TS 5.3` in compilation for ESM the setter accessor declaration parameter name is renamed to `arg`
  * despite possibly being named something else. This can cause downstream issues with tooling like TypeDoc when the
  * JSDoc comment for the parameter name does not match any `@param` tagged setter.
  *
@@ -33,6 +34,7 @@ export function jsdocSetterParamName()
          }
 
          // Copy over first param name from JSDoc tag if the AST node parameter name is defined and different.
+         /* v8 ignore next 5 */
          if (firstParamTagName !== void 0 && typeof node?.parameters[0]?.name?.escapedText === 'string' &&
           firstParamTagName !== node.parameters[0].name.escapedText)
          {
