@@ -56,6 +56,7 @@ export function transformer(handler, postHandler)
 
             return visitedSourceFile;
          }
+         /* v8 ignore next 18 */  // Currently only single source files are processed
          else if (ts.isBundle(sourceFileOrBundle))
          {
             const newSourceFiles = sourceFileOrBundle.sourceFiles.map((sourceFile) =>

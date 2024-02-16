@@ -129,6 +129,7 @@ export function jsdocTransformer(handler, postHandler, nodeTest)
             const visitedSourceFile = ts.visitNode(sourceFileOrBundle, (node) => visit(node, sourceFileOrBundle));
 
             // Allow postprocessing of source file after all nodes visited.
+            /* v8 ignore next 5 */ // Currently there are no meta-transformers with `postHandlers`.
             if (typeof postHandler === 'function')
             {
                const processedSourceFile = postHandler(visitedSourceFile);
@@ -137,6 +138,7 @@ export function jsdocTransformer(handler, postHandler, nodeTest)
 
             return visitedSourceFile;
          }
+         /* v8 ignore next 18 */  // Currently only single source files are processed
          else if (ts.isBundle(sourceFileOrBundle))
          {
             const newSourceFiles = sourceFileOrBundle.sourceFiles.map((sourceFile) =>
