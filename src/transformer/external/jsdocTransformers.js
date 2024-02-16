@@ -61,20 +61,38 @@ export function jsdocRemoveNodeByTags(tags)
  *    comments: string[],
  *    parsed: import('comment-parser').Block[],
  *    lastComment: string,
- *    lastParsed: import('comment-parser').Block
+ *    lastParsed: import('comment-parser').Block,
+ *    context: ts.TransformationContext
  * }) => *)}  handler - A function to process AST nodes with JSDoc comments.
  *
  * @param {(sourceFile: ts.SourceFile) => ts.SourceFile | undefined} [postHandler] - A function to postprocess the
  *        source file after all nodes visited. Return an updated SourceFile node.
  *
+ * @param {(data: { node?: ts.Node, sourceFile?: ts.SourceFile }) => boolean} [nodeTest] - Test the node type before
+ *        parsing comments. Both Node and SourceFile are available for testing. When defined return a `true` to parse
+ *        the node JSDoc comments.
+ *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} JSDoc custom "meta-transformer".
  */
-export function jsdocTransformer(handler, postHandler)
+export function jsdocTransformer(handler, postHandler, nodeTest)
 {
    if (typeof handler !== 'function')
    {
       throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'handler' is not a function.`);
    }
+
+   if (postHandler !== void 0 && typeof postHandler !== 'function')
+   {
+      throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'postHandler' is not a function.`);
+   }
+
+   if (nodeTest !== void 0 && typeof nodeTest !== 'function')
+   {
+      throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'nodeTest' is not a function.`);
+   }
+
+   const nodeTestData = { node: void 0, sourceFile: void 0 };
+   Object.seal(nodeTestData);
 
    return (context) =>
    {
@@ -83,11 +101,23 @@ export function jsdocTransformer(handler, postHandler)
          /** @ignore */
          function visit(node, sourceFile)
          {
+            // Early out from parsing any comment blocks if `nodeTest` is returns a falsy value.
+            if (nodeTest)
+            {
+               nodeTestData.node = node;
+               nodeTestData.sourceFile = sourceFile;
+
+               if (!nodeTest(nodeTestData))
+               {
+                  return ts.visitEachChild(node, (childNode) => visit(childNode, sourceFile), context);
+               }
+            }
+
             const { comments, parsed, lastComment, lastParsed } = parseLeadingComments(node, sourceFile);
 
             if (lastParsed)
             {
-               const result = handler({ node, sourceFile, comments, parsed, lastComment, lastParsed });
+               const result = handler({ node, sourceFile, comments, parsed, lastComment, lastParsed, context });
                if (result !== void 0) { return result === null ? void 0 : result; }
             }
 

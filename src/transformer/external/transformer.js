@@ -10,6 +10,7 @@ import ts   from 'typescript';
  * @param {((data: {
  *    node: ts.Node,
  *    sourceFile: ts.SourceFile,
+ *    context: ts.TransformationContext
  * }) => *)}  handler - A function to process AST nodes.
  *
  * @param {(sourceFile: ts.SourceFile) => ts.SourceFile | undefined} [postHandler] - A function to postprocess the
@@ -24,6 +25,11 @@ export function transformer(handler, postHandler)
       throw new TypeError(`[esm-d-ts] transformer error: 'handler' is not a function.`);
    }
 
+   if (postHandler !== void 0 && typeof postHandler !== 'function')
+   {
+      throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'postHandler' is not a function.`);
+   }
+
    return (context) =>
    {
       return (sourceFileOrBundle) =>
@@ -31,7 +37,7 @@ export function transformer(handler, postHandler)
          /** @ignore */
          function visit(node, sourceFile)
          {
-            const result = handler({ node, sourceFile });
+            const result = handler({ node, sourceFile, context });
             if (result !== void 0) { return result === null ? void 0 : result; }
 
             return ts.visitEachChild(node, (childNode) => visit(childNode, sourceFile), context);
