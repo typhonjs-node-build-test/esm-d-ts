@@ -487,7 +487,7 @@ async function compile(processedConfig, isGenerate)
    const jsTransformers = isTSMode ? [] : [
       jsdocImplementsImportType(),
 
-      // TODO: It is possible TS 5.3+ may have fixed the problem this transformer solves; investigate in the future.
+      // TODO: The problem this transformer solves is fixed in TS 5.3+; Keep until minimum peer dependency is bumped.
       jsdocSetterParamName(),
 
       ...(typeof generateConfig.removePrivateStatic === 'boolean' && generateConfig.removePrivateStatic ?
