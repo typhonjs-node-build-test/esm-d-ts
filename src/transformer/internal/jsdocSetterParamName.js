@@ -16,11 +16,13 @@ import { jsdocTransformer }   from '../index.js';
  */
 export function jsdocSetterParamName()
 {
+   // const nodeTest = (node) => ts.isSetAccessorDeclaration(node);
+
    // Only consider the last parsed comment as that is the active JSDoc comment.
    return jsdocTransformer(({ node, lastParsed }) =>
    {
-      if (ts.isSetAccessorDeclaration(node))
-      {
+      // if (ts.isSetAccessorDeclaration(node))
+      // {
          let firstParamTagName;
 
          // Store the first `@param` name.
@@ -40,6 +42,6 @@ export function jsdocSetterParamName()
          {
             node.parameters[0].name.escapedText = firstParamTagName;
          }
-      }
-   });
+      // }
+   }, void 0, ({ node }) => ts.isSetAccessorDeclaration(node));
 }

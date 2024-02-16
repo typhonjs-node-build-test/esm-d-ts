@@ -18,7 +18,7 @@ export function jsdocPreserveModuleTag(moduleComments, fileName)
    {
       for (const entry of lastParsed.tags)
       {
-         if ((entry.tag === 'module' || entry.tag === 'packageDocumentation') && fileName === sourceFile.fileName)
+         if ((entry.tag === 'module' || entry.tag === 'packageDocumentation'))
          {
             // Only push first encountered comment block.
             if (!moduleComments.length)
@@ -30,5 +30,5 @@ export function jsdocPreserveModuleTag(moduleComments, fileName)
             }
          }
       }
-   });
+   }, void 0, ({ sourceFile }) => fileName === sourceFile.fileName);
 }

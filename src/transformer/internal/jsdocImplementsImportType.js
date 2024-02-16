@@ -27,8 +27,8 @@ export function jsdocImplementsImportType()
    // Only consider the last parsed comment as that is the active JSDoc comment.
    return jsdocTransformer(({ node, lastParsed }) =>
    {
-      if (ts.isClassDeclaration(node) && lastParsed)
-      {
+      // if (ts.isClassDeclaration(node) && lastParsed)
+      // {
          /**
           * Stores all synthetic import identifiers for the class.
           *
@@ -65,7 +65,7 @@ export function jsdocImplementsImportType()
              node.heritageClauses.filter((clause) => clause.token !== ts.SyntaxKind.ImplementsKeyword).concat(
               implementClauses), node.members);
          }
-      }
+      // }
    },
 
     /**
@@ -101,5 +101,5 @@ export function jsdocImplementsImportType()
          return ts.factory.updateSourceFile(sourceFile, ts.factory.createNodeArray(
           [...importDeclarations, ...sourceFile.statements]));
       }
-   });
+   }, ({ node }) => ts.isClassDeclaration(node));
 }
