@@ -4,22 +4,8 @@
  * @module
  */
 
-import ts from 'typescript';
 import * as comment_parser from 'comment-parser';
-
-/**
- * A convenience function to post a debug log message via the `logger` for a Typescript AST node. You may select other
- * valid log levels. This is handy when debugging AST transformer development.
- *
- * @param {ts.Node}  node - Typescript AST node to log.
- *
- * @param {'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'trace'} [logLevel='debug'] Optional alternate
- *        logging level.
- */
-declare function logTSNode(
-  node: ts.Node,
-  logLevel?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'trace',
-): void;
+import ts from 'typescript';
 
 /**
  * Removes all nodes with the matching JSDoc tags provided. This is useful for handling the `@internal` tag removing
@@ -49,11 +35,16 @@ declare function jsdocRemoveNodeByTags(
  *    comments: string[],
  *    parsed: import('comment-parser').Block[],
  *    lastComment: string,
- *    lastParsed: import('comment-parser').Block
+ *    lastParsed: import('comment-parser').Block,
+ *    context: ts.TransformationContext
  * }) => *)}  handler - A function to process AST nodes with JSDoc comments.
  *
  * @param {(sourceFile: ts.SourceFile) => ts.SourceFile | undefined} [postHandler] - A function to postprocess the
  *        source file after all nodes visited. Return an updated SourceFile node.
+ *
+ * @param {(data: { node?: ts.Node, sourceFile?: ts.SourceFile }) => boolean} [nodeTest] - Test the node type before
+ *        parsing comments. Both Node and SourceFile are available for testing. When defined return a `true` to parse
+ *        the node JSDoc comments.
  *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} JSDoc custom "meta-transformer".
  */
@@ -65,8 +56,10 @@ declare function jsdocTransformer(
     parsed: comment_parser.Block[];
     lastComment: string;
     lastParsed: comment_parser.Block;
+    context: ts.TransformationContext;
   }) => any,
   postHandler?: (sourceFile: ts.SourceFile) => ts.SourceFile | undefined,
+  nodeTest?: (data: { node?: ts.Node; sourceFile?: ts.SourceFile }) => boolean,
 ): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
 
 /**
@@ -79,6 +72,7 @@ declare function jsdocTransformer(
  * @param {((data: {
  *    node: ts.Node,
  *    sourceFile: ts.SourceFile,
+ *    context: ts.TransformationContext
  * }) => *)}  handler - A function to process AST nodes.
  *
  * @param {(sourceFile: ts.SourceFile) => ts.SourceFile | undefined} [postHandler] - A function to postprocess the
@@ -87,8 +81,8 @@ declare function jsdocTransformer(
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} JSDoc custom "meta-transformer".
  */
 declare function transformer(
-  handler: (data: { node: ts.Node; sourceFile: ts.SourceFile }) => any,
+  handler: (data: { node: ts.Node; sourceFile: ts.SourceFile; context: ts.TransformationContext }) => any,
   postHandler?: (sourceFile: ts.SourceFile) => ts.SourceFile | undefined,
 ): ts.TransformerFactory<ts.Bundle | ts.SourceFile>;
 
-export { jsdocRemoveNodeByTags, jsdocTransformer, logTSNode, transformer };
+export { jsdocRemoveNodeByTags, jsdocTransformer, transformer };

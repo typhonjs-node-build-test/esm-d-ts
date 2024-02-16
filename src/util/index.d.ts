@@ -1,8 +1,29 @@
+import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
+import ts from 'typescript';
 import * as comment_parser from 'comment-parser';
 import * as ts_morph from 'ts-morph';
-import ts from 'typescript';
 import * as _es_joy_jsdoccomment from '@es-joy/jsdoccomment';
-import * as _typhonjs_utils_logger_color from '@typhonjs-utils/logger-color';
+
+/**
+ * Provides a ColorLogger instance accessible across the package.
+ *
+ * @type {import('@typhonjs-utils/logger-color').ColorLogger}
+ */
+declare const logger: _typhonjs_utils_logger_color.ColorLogger;
+
+/**
+ * A convenience function to post a debug log message via the `logger` for a Typescript AST node. You may select other
+ * valid log levels. This is handy when debugging AST transformer development.
+ *
+ * @param {ts.Node}  node - Typescript AST node to log.
+ *
+ * @param {'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'trace'} [logLevel='debug'] Optional alternate
+ *        logging level.
+ */
+declare function logTSNode(
+  node: ts.Node,
+  logLevel?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'trace',
+): void;
 
 /**
  * Returns the leading comment strings for a Node.
@@ -203,13 +224,6 @@ declare const regexIsTSFile: RegExp;
  */
 declare const regexIsTSFileExt: RegExp;
 
-/**
- * Provides a ColorLogger instance accessible across the package.
- *
- * @type {import('@typhonjs-utils/logger-color').ColorLogger}
- */
-declare const logger: _typhonjs_utils_logger_color.ColorLogger;
-
 export {
   ESTreeParsedComment,
   type ParsedImportType,
@@ -218,6 +232,7 @@ export {
   isDTSFile,
   isTSFile,
   isTSFileExt,
+  logTSNode,
   logger,
   parseImportType,
   parseImportTypesFromBlock,
