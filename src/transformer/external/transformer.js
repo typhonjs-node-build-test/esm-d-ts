@@ -48,6 +48,7 @@ export function transformer(handler, postHandler)
             const visitedSourceFile = ts.visitNode(sourceFileOrBundle, (node) => visit(node, sourceFileOrBundle));
 
             // Allow postprocessing of source file after all nodes visited.
+            /* v8 ignore next 5 */  // Currently, no transformer performs postprocessing for source files.
             if (typeof postHandler === 'function')
             {
                const processedSourceFile = postHandler(visitedSourceFile);
