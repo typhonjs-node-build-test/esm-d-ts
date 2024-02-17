@@ -95,21 +95,21 @@ declare class ESTreeParsedComment {
   /**
    * Removes the JSDoc tags specified from the AST.
    *
-   * @param {string | Set<string> | undefined} [tagNames] - A string or Set of strings defining tag names to remove
-   *        from the AST. When undefined _all_ tags are removed.
+   * @param {string | Iterable<string> | undefined} [tagNames] - A string or Set of strings defining tag names to
+   *        remove from the AST. When undefined _all_ tags are removed.
    *
    * @returns {this} This instance.
    */
-  removeTags(tagNames?: string | Set<string> | undefined): this;
+  removeTags(tagNames?: string | Iterable<string> | undefined): this;
   /**
    * Provides an iterator over all tags or a subset from the given tag names.
    *
-   * @param {string | Set<string>} [tagNames] - A string or Set of strings defining tag names to iterate.
+   * @param {string | Iterable<string>} [tagNames] - A string or Set of strings defining tag names to iterate.
    *
    * @returns {IterableIterator<import('@es-joy/jsdoccomment').JsdocTag>} Tag iterator.
    * @yields {import('@es-joy/jsdoccomment').JsdocTag}
    */
-  tags(tagNames?: string | Set<string>): IterableIterator<_es_joy_jsdoccomment.JsdocTag>;
+  tags(tagNames?: string | Iterable<string>): IterableIterator<_es_joy_jsdoccomment.JsdocTag>;
   /**
    * @returns {string} Returns the comment block with current AST converted back to a string.
    */
