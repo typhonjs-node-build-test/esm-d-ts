@@ -34,7 +34,7 @@ import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
 import upath                     from 'upath';
 
-import { pluginManager }         from './plugins/pluginManager.js';
+import { DTSPluginManager }      from './plugins/DTSPluginManager.js';
 import * as rollupPlugins        from './plugins/rollupPlugins.js';
 
 import {
@@ -57,8 +57,6 @@ import {
 import {
    isTSFile,
    logger }                      from '#util';
-
-const eventbus = pluginManager.getEventbus();
 
 /**
  * Invokes TS compiler in `checkJS` mode without processing DTS.
@@ -120,7 +118,7 @@ async function checkDTS(config)
  */
 async function checkDTSImpl(processedConfig)
 {
-   const { generateConfig } = processedConfig;
+   const { eventbus, generateConfig } = processedConfig;
 
    // Always ensure `tsCheckJs` is set to true.
    generateConfig.tsCheckJs = true;
@@ -210,7 +208,7 @@ async function generateDTS(config)
  */
 async function generateDTSImpl(processedConfig)
 {
-   const { dtsDirectoryPath, generateConfig } = processedConfig;
+   const { dtsDirectoryPath, eventbus, generateConfig } = processedConfig;
 
    logger.debug(`Intermediate declarations output path: ${upath.relative(process.cwd(), dtsDirectoryPath)}`);
 
@@ -229,9 +227,9 @@ async function generateDTSImpl(processedConfig)
    if (isDirectory(dtsDirectoryPath)) { fs.emptyDirSync(dtsDirectoryPath); }
 
    // Log emit diagnostics as warnings.
-   const jsdocModuleComments = await compile(processedConfig, true);
+   const { dtsEntryPathActual, jsdocModuleComments } = await compile(processedConfig, true);
 
-   await bundleDTS(processedConfig, jsdocModuleComments);
+   await bundleDTS(processedConfig, dtsEntryPathActual, jsdocModuleComments);
 
    // Run prettier on the bundled output file.
    if (generateConfig.prettier !== void 0)
@@ -283,13 +281,15 @@ export { checkDTS, generateDTS };
 /**
  * @param {ProcessedConfig}   processedConfig - Processed config.
  *
+ * @param {string} dtsEntryPathActual - The actual processed DTS entry path.
+ *
  * @param {{ comment: string, filepath: string}[]} [jsdocModuleComments] - Any comments with the `@module` tag.
  *
  * @returns {Promise<void>}
  */
-async function bundleDTS(processedConfig, jsdocModuleComments = [])
+async function bundleDTS(processedConfig, dtsEntryPathActual, jsdocModuleComments = [])
 {
-   const { compilerOptions, dtsEntryPath, generateConfig, packages } = processedConfig;
+   const { compilerOptions, generateConfig, packages } = processedConfig;
 
    const packageAlias = typeof generateConfig.bundlePackageExports === 'boolean' &&
     generateConfig.bundlePackageExports ? resolvePackageExports(packages, generateConfig, compilerOptions.outDir) : [];
@@ -351,7 +351,7 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
 
    const rollupConfig = {
       input: {
-         input: dtsEntryPath,
+         input: dtsEntryPathActual,
          plugins
       },
       output: {
@@ -409,7 +409,10 @@ async function bundleDTS(processedConfig, jsdocModuleComments = [])
  *
  * @param {boolean}  isGenerate - Indicates compilation is from DTS generation vs just `checkJs`.
  *
- * @returns {Promise<{ comment: string, filepath: string }[]>} Any parsed JSDoc comments with the `@module` tag.
+ * @returns {(Promise<{
+ *    dtsEntryPathActual: string,
+ *    jsdocModuleComments: { comment: string, filepath: string }[]
+ * }>)} The actual processed DTS entry path and any parsed JSDoc comments with the `@module` tag.
  */
 async function compile(processedConfig, isGenerate)
 {
@@ -417,6 +420,7 @@ async function compile(processedConfig, isGenerate)
       compilerOptions,
       compileFilepaths,
       dtsEntryPath,
+      eventbus,
       generateConfig,
       inputRelativeDir,
       isTSMode,
@@ -600,22 +604,23 @@ async function compile(processedConfig, isGenerate)
       }
    }
 
+   let dtsEntryPathActual;
+
    if (isGenerate)
    {
       // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
-      let dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.ts');
+      dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.ts');
 
       // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
       if (!isFile(dtsEntryPathActual)) { dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.mts'); }
 
       if (!isFile(dtsEntryPathActual))
       {
-         logger.fatal(`compile error: could not locate DTS entry point file in './dts' output.'`);
+         logger.fatal(`compile error: could not locate DTS entry point file in output directory: ${
+          compilerOptions.outDir}`);
+
          process.exit(1);
       }
-
-      // Update processed config for the actual DTS entry path after compilation.
-      processedConfig.dtsEntryPath = dtsEntryPathActual;
    }
 
    try
@@ -630,12 +635,14 @@ async function compile(processedConfig, isGenerate)
       throw err;
    }
 
-   return jsdocModuleComments;
+   return { dtsEntryPathActual, jsdocModuleComments };
 }
 
 /**
  * Lexically parses all files connected to the entry point. Additional data includes top level "re-exported" packages
  * in `packages` data.
+ *
+ * @param {import('@typhonjs-plugin/manager/eventbus').EventbusSecure} eventbus - Plugin manager eventbus.
  *
  * @param {GenerateConfig} generateConfig - Generate config.
  *
@@ -646,7 +653,7 @@ async function compile(processedConfig, isGenerate)
  * @returns {Promise<{lexerFilepaths: string[], packages: string[]}>} Lexically parsed files and top level
  *          packages exported.
  */
-async function parseFiles(generateConfig, compilerOptions, isTSMode)
+async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 {
    await init;
 
@@ -1044,8 +1051,12 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    const isTSMode = isTSFile(generateConfig.input);
 
+   const pluginManager = new DTSPluginManager();
+
    // Initialize plugin manager after logger log level set. Initialization only occurs once per entire invocation.
    await pluginManager.initialize(generateConfig.plugins, isTSMode);
+
+   const eventbus = pluginManager.createEventbusSecure('esm-d-ts-eventbus');
 
    // Load default or configured `tsconfig.json` file to configure `compilerOptions`. --------------------------------
 
@@ -1122,7 +1133,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
    }
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { lexerFilepaths, packages } = await parseFiles(generateConfig, compilerOptions, isTSMode);
+   const { lexerFilepaths, packages } = await parseFiles(eventbus, generateConfig, compilerOptions, isTSMode);
 
    // Parsed input source files and any TS files found from input root.
    const compileFilepaths = [...lexerFilepaths, ...tsFilepaths];
@@ -1156,11 +1167,12 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    // ----------------------------------------------------------------------------------------------------------------
 
-   return {
+   const processedConfig = {
       compileFilepaths,
       compilerOptions,
       dtsDirectoryPath,
       dtsEntryPath,
+      eventbus,
       generateConfig,
       inputRelativeDir,
       isTSMode,
@@ -1168,6 +1180,10 @@ async function processConfig(origConfig, defaultCompilerOptions)
       packages,
       tsFilepaths
    };
+
+   Object.freeze(processedConfig);
+
+   return processedConfig;
 }
 
 /**
