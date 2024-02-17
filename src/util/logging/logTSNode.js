@@ -23,7 +23,7 @@ export function logTSNode(node, logLevel = 'debug')
 
    if (!logger.isValidLevel(logLevel))
    {
-      logger.error(`[logTSNode] logLevel 'debug' is not a valid log level`);
+      logger.error(`[logTSNode] logLevel '${logLevel}' is not a valid log level.`);
       return;
    }
 
