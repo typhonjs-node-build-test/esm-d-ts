@@ -27,7 +27,7 @@ export function transformer(handler, postHandler)
 
    if (postHandler !== void 0 && typeof postHandler !== 'function')
    {
-      throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'postHandler' is not a function.`);
+      throw new TypeError(`[esm-d-ts] transformer error: 'postHandler' is not a function.`);
    }
 
    return (context) =>
