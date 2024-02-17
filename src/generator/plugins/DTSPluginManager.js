@@ -12,8 +12,8 @@ import { logger }                from "#util";
 import { DTSPluginTypescript }   from './DTSPluginTypescript.js';
 
 /**
- * Provides custom initialization of plugins located in `node_modules/@typhonjs-build-test` organization. Presently,
- * only official first party plugins are supported.
+ * Provides custom initialization of 1st party plugins located in `node_modules/@typhonjs-build-test` organization
+ * along with loading 3rd party plugins.
  *
  * `esm-d-ts` plugins receive the following event callbacks in the order that they are fired:
  *
@@ -31,7 +31,7 @@ import { DTSPluginTypescript }   from './DTSPluginTypescript.js';
  *
  * - `lifecycle:end` - After the work flow has completed.
  */
-class DTSPluginManager extends PluginManager
+export class DTSPluginManager extends PluginManager
 {
    #initialized = false;
 
@@ -92,7 +92,3 @@ class DTSPluginManager extends PluginManager
       if (pluginNames.length) { logger.verbose(`Loading plugins: ${pluginNames.join(', ')}`); }
    }
 }
-
-const pluginManager = new DTSPluginManager();
-
-export { pluginManager };
