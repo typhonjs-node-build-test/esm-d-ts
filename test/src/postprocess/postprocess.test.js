@@ -4,7 +4,7 @@ import fs         from 'fs-extra';
 
 import {
    processInheritDoc,
-   PostProcess }  from '../src/postprocess/index.js';
+   PostProcess }  from '../../../src/postprocess/index.js';
 
 describe('PostProcess', () =>
 {
@@ -22,6 +22,6 @@ describe('PostProcess', () =>
 
       const result = fs.readFileSync('./test/fixture/output/postprocess/index.d.ts', 'utf-8');
 
-      expect(result).toMatchFileSnapshot('./fixture/snapshot/postprocess/index.d.ts');
+      expect(result).toMatchFileSnapshot('../../fixture/snapshot/postprocess/index.d.ts');
    });
 });
