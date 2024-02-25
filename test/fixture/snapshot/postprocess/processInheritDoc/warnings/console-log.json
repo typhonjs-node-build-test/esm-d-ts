@@ -1,0 +1,17 @@
+[
+  [
+    "\u001b[33m[esm-d-ts] [processInheritDoc] Parent class does not define a constructor.\u001b[0m"
+  ],
+  [
+    "\u001b[33m[esm-d-ts] [processInheritDoc] Parent class method parameter lengths do not match.\u001b[0m"
+  ],
+  [
+    "\u001b[33m[esm-d-ts] [processInheritDoc] Failed to find parent implementations for methods: foo, bar\u001b[0m"
+  ],
+  [
+    "\u001b[33m[esm-d-ts] [processInheritDoc] Parent class constructor parameter lengths do not match.\u001b[0m"
+  ],
+  [
+    "\u001b[33m[esm-d-ts] [processInheritDoc] Parent class does not define a constructor.\u001b[0m"
+  ]
+]
