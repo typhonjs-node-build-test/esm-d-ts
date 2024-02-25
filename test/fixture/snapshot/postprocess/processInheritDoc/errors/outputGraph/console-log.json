@@ -1,0 +1,5 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] [outputGraph] Failed to write file for dependencies graph:\nENOENT: no such file or directory, open 'S:\\program\\Javascript\\projects\\TyphonJS\\typhonjs-node-build-test\\esm-d-ts\\test\\fixture\\output\\postprocess\\processInheritDoc\\errors\\bad-path\\error.json'\u001b[0m"
+  ]
+]

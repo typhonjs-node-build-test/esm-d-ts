@@ -1,0 +1,5 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] PostProcess.process error: Failed to write postprocessing output to './test/fixture/output/postprocess/processInheritDoc/errors/bad-path/error.d.ts':\nENOENT: no such file or directory, open 'S:\\program\\Javascript\\projects\\TyphonJS\\typhonjs-node-build-test\\esm-d-ts\\test\\fixture\\output\\postprocess\\processInheritDoc\\errors\\bad-path\\error.d.ts'\u001b[0m"
+  ]
+]
