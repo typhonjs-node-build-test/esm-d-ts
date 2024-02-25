@@ -41,13 +41,27 @@ describe('`util` exports', () =>
          expect(parsed.ast.tags.length).toEqual(0);
       });
 
-      it('removeTags() - remove specific tags (list)', () =>
+      it('removeTags() - remove specific tags (array)', () =>
       {
          const parsed = new ESTreeParsedComment(comment);
 
          expect(parsed.ast.tags.length).toEqual(3);
 
          parsed.removeTags(['hidden', 'internal']);
+
+         expect(parsed.ast.tags.length).toEqual(1);
+
+         expect([...parsed.tags()].map((entry) => entry.tag)).toEqual(['ignore']);
+      });
+
+
+      it('removeTags() - remove specific tags (Set)', () =>
+      {
+         const parsed = new ESTreeParsedComment(comment);
+
+         expect(parsed.ast.tags.length).toEqual(3);
+
+         parsed.removeTags(new Set(['hidden', 'internal']));
 
          expect(parsed.ast.tags.length).toEqual(1);
 
@@ -67,13 +81,24 @@ describe('`util` exports', () =>
          expect([...parsed.tags()].map((entry) => entry.tag)).toEqual(['ignore', 'internal']);
       });
 
-      it('tags() - iterate specific tags (list)', () =>
+      it('tags() - iterate specific tags (array)', () =>
       {
          const parsed = new ESTreeParsedComment(comment);
 
          expect(parsed.ast.tags.length).toEqual(3);
 
          const result = [...parsed.tags(['ignore', 'internal'])];
+
+         expect(result.map((entry) => entry.tag)).toEqual(['ignore', 'internal']);
+      });
+
+      it('tags() - iterate specific tags (Set)', () =>
+      {
+         const parsed = new ESTreeParsedComment(comment);
+
+         expect(parsed.ast.tags.length).toEqual(3);
+
+         const result = [...parsed.tags(new Set(['ignore', 'internal']))];
 
          expect(result.map((entry) => entry.tag)).toEqual(['ignore', 'internal']);
       });
