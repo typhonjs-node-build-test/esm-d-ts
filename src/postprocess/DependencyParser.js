@@ -82,6 +82,7 @@ export class DependencyParser
          for (const node of sourceFile.getTypeAliases())
          {
             const nodeName = node.getName();
+            /* v8 ignore next 1 */ // Type alias may already be added so not reached in tests.
             if (!nodes.has(nodeName)) { nodes.set(nodeName, node); }
             graph.push({ data: { id: nodeName, type: node.getKindName() } });
          }
@@ -140,6 +141,7 @@ export class DependencyParser
             {
                const baseInterfaceName = baseInterface.getName();
 
+               /* v8 ignore next 1 */ // Interface may already be added so not reached in tests.
                if (!nodes.has(baseInterfaceName)) { nodes.set(baseInterfaceName, baseInterface); }
 
                data.push({ child: nodeName, parent: baseInterfaceName, type: node.getKindName() });
