@@ -27,7 +27,7 @@ export function outputGraph(filepath, indentation)
       }
       catch (err)
       {
-         logger.error(`[outputDependencyGraph] Failed to write file for dependencies graph:\n${err.message}`);
+         logger.error(`[outputGraph] Failed to write file for dependencies graph:\n${err.message}`);
       }
    }
 
