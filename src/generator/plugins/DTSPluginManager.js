@@ -46,6 +46,7 @@ export class DTSPluginManager extends PluginManager
     */
    async initialize(externalPlugins, isTSMode)
    {
+      /* v8 ignore next 1 */
       if (this.#initialized) { return; }
 
       this.#initialized = true;
@@ -62,6 +63,7 @@ export class DTSPluginManager extends PluginManager
       const dir = upath.resolve(fileURLToPath(import.meta.url), '../../../../');
 
       // Only load 1st party plugins when `esm-d-ts` is installed from `node_modules/@typhonjs-build-test`.
+      /* v8 ignore next 10 */
       if (upath.dirname(dir) === '@typhonjs-build-test')
       {
          const firstPartyPlugins = await getDirList({ dir, includeDir: /^esm-d-ts-plugin/ });
