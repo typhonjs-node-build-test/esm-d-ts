@@ -8,7 +8,9 @@ import fs                     from 'fs-extra';
 
 import { generateDTS }        from '../../../src/generator/index.js';
 
-import {PostProcess, processInheritDoc} from '../../../src/postprocess/index.js';
+import {
+   PostProcess,
+   processInheritDoc }        from '../../../src/postprocess/index.js';
 
 import { logger }             from '#util';
 
