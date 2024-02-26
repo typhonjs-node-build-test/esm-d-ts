@@ -1,0 +1,101 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.input' file does not exist.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.bundlePackageExports' must be a boolean.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.checkDefaultPath' must be a boolean.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.conditionExports' must be an object.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.conditionImports' must be an object.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.dtsReplace' must be an object.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.filterTags' must be a string, iterable list of strings, or falsy value.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.importsExternal' must be a boolean or an object.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.importsResolve' must be a boolean or an object.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.logLevel' must be 'off', 'fatal', 'error', 'warn', 'info', 'verbose', 'debug', 'trace', or 'all'; received: 'null'\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.output' must be a string.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.outputGraph' must be a string.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.outputGraphIndentation' must be a number.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.outputPostprocess' must be a string.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.postprocess' must be an iterable list of functions.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.plugins' must be an iterable list of 3rd party NPM packages to load as plugins.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.prependFiles' must be an iterable list of strings.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.prependString' must be an iterable list of strings.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.prettier' must be a boolean or 'prettier' configuration object.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.removePrivateStatic' must be a boolean.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.compilerOptions' must be an object.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.tsCheckJs' must be a boolean.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.tsconfig' must be a string.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.tsconfig' file does not exist.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.tsDiagnosticExternal' must be a boolean.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.tsDiagnosticFilter' must be a function.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.tsDiagnosticLog' must be a boolean.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.tsFileWalk' must be a boolean.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.tsTransformers' must be a function or iterable list of functions.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.rollupExternal' must be a string, RegExp, array of string / RegExp, or function.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.rollupPaths' must be an object or function.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.rollupOnwarn' must be a function.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config' failed validation. Entry point 'bad-path.js'\u001b[0m"
+  ]
+]
