@@ -51,12 +51,6 @@ export function validateConfig(config)
 {
    let result = true;
 
-   if (typeof config.input !== 'string')
-   {
-      logger.error(`validateConfig error: 'config.input' must be a string.`);
-      result = false;
-   }
-
    if (!isFile(config.input))
    {
       logger.error(`validateConfig error: 'config.input' file does not exist.`);
@@ -130,12 +124,6 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.outputExt !== void 0 && typeof config.outputExt !== 'string')
-   {
-      logger.error(`validateConfig error: 'config.outputExt' must be a string.`);
-      result = false;
-   }
-
    if (config.outputGraph !== void 0 && typeof config.outputGraph !== 'string')
    {
       logger.error(`validateConfig error: 'config.outputGraph' must be a string.`);
@@ -183,7 +171,7 @@ export function validateConfig(config)
    {
       logger.error(`validateConfig error: 'config.prettier' must be a boolean or 'prettier' configuration object.`);
       result = false;
-  }
+   }
 
    if (typeof config.removePrivateStatic !== 'boolean')
    {
@@ -192,6 +180,11 @@ export function validateConfig(config)
    }
 
    // Typescript related configuration options -----------------------------------------------------------------------
+
+   if (config.compilerOptions !== void 0 && !isObject(config.compilerOptions))
+   {
+      logger.error(`validateConfig error: 'config.compilerOptions' must be an object.`);
+   }
 
    if (config.tsCheckJs !== void 0 && typeof config.tsCheckJs !== 'boolean')
    {
@@ -202,6 +195,12 @@ export function validateConfig(config)
    if (config.tsconfig !== void 0 && typeof config.tsconfig !== 'string')
    {
       logger.error(`validateConfig error: 'config.tsconfig' must be a string.`);
+      result = false;
+   }
+
+   if (config.tsconfig !== void 0 && !isFile(config.tsconfig))
+   {
+      logger.error(`validateConfig error: 'config.tsconfig' file does not exist.`);
       result = false;
    }
 

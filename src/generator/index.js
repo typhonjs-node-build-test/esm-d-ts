@@ -63,10 +63,19 @@ import {
  *
  * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} All operations successful.
  */
 async function checkDTS(config)
 {
+   let result = true;
+
+   // Initial sanity checks.
+   if (!isObject(config) && !isIterable(config))
+   {
+      logger.error(`error: Aborting as 'config' must be an object or iterable list of objects.`);
+      return false;
+   }
+
    try
    {
       if (isIterable(config))
@@ -78,6 +87,7 @@ async function checkDTS(config)
             if (typeof processedConfigOrError === 'string')
             {
                logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+               result = false;
                continue;
             }
 
@@ -93,20 +103,24 @@ async function checkDTS(config)
          if (typeof processedConfigOrError === 'string')
          {
             logger.error(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
-            return;
+            result = false;
          }
+         else
+         {
+            logger.info(`Checking DTS bundle for: ${config.input}`);
 
-         logger.info(`Checking DTS bundle for: ${config.input}`);
-
-         await checkDTSImpl(processedConfigOrError);
+            await checkDTSImpl(processedConfigOrError);
+         }
       }
    }
    catch (err)
    {
       logger.fatal(`A fatal uncaught exception has been raised. Terminating processing.`);
       logger.debug(err);
-      process.exit(1);
+      result = false;
    }
+
+   return result;
 }
 
 /**
@@ -153,10 +167,19 @@ async function checkDTSImpl(processedConfig)
  *
  * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} All Operations successful.
  */
 async function generateDTS(config)
 {
+   let result = true;
+
+   // Initial sanity checks.
+   if (!isObject(config) && !isIterable(config))
+   {
+      logger.error(`error: Aborting as 'config' must be an object or iterable list of objects.`);
+      return false;
+   }
+
    try
    {
       if (isIterable(config))
@@ -168,6 +191,7 @@ async function generateDTS(config)
             if (typeof processedConfigOrError === 'string')
             {
                logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+               result = false;
                continue;
             }
 
@@ -183,20 +207,24 @@ async function generateDTS(config)
          if (typeof processedConfigOrError === 'string')
          {
             logger.error(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
-            return;
+            result = false;
          }
+         else
+         {
+            logger.info(`Generating DTS bundle for: ${config.input}`);
 
-         logger.info(`Generating DTS bundle for: ${config.input}`);
-
-         await generateDTSImpl(processedConfigOrError);
+            await generateDTSImpl(processedConfigOrError);
+         }
       }
    }
    catch (err)
    {
       logger.fatal(`A fatal uncaught exception has been raised. Terminating processing.`);
       logger.debug(err);
-      process.exit(1);
+      result = false;
    }
+
+   return result;
 }
 
 /**
@@ -619,7 +647,8 @@ async function compile(processedConfig, isGenerate)
          logger.fatal(`compile error: could not locate DTS entry point file in output directory: ${
           compilerOptions.outDir}`);
 
-         process.exit(1);
+         throw new Error(`compile error: could not locate DTS entry point file in output directory: ${
+          compilerOptions.outDir}`);
       }
    }
 
@@ -1008,11 +1037,6 @@ async function processConfig(origConfig, defaultCompilerOptions)
       return `error: Aborting as 'config' must be an object.`;
    }
 
-   if (origConfig?.compilerOptions !== void 0 && !isObject(origConfig.compilerOptions))
-   {
-      return `error: Aborting as 'config.compilerOptions' must be an object.`;
-   }
-
    /**
     * A shallow copy of the original configuration w/ default values for , `filterTags`,`logLevel`,
     * `removePrivateStatic`, `tsDiagnosticExternal`, and `tsDiagnosticLog`.
@@ -1032,6 +1056,25 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    // Set default output extension and output file if not defined.
    if (generateConfig.outputExt === void 0) { generateConfig.outputExt = '.d.ts'; }
+
+   let validationResult = true;
+
+   if (typeof generateConfig.input !== 'string')
+   {
+      logger.error(`validateConfig error: 'config.input' must be a string.`);
+      validationResult = false;
+   }
+
+   if (typeof generateConfig.outputExt !== 'string')
+   {
+      logger.error(`validateConfig error: 'config.outputExt' must be a string.`);
+      validationResult = false;
+   }
+
+   if (!validationResult)
+   {
+      return `error: Aborting as 'config' failed validation.`;
+   }
 
    // If not defined change extension of input to DTS extension and use as output.
    if (generateConfig.output === void 0)
@@ -1060,38 +1103,22 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    // Load default or configured `tsconfig.json` file to configure `compilerOptions`. --------------------------------
 
-   let tsconfigPath;
-
-   // Verify any tsconfig provided path.
-   if (generateConfig.tsconfig)
-   {
-      if (isFile(generateConfig.tsconfig))
-      {
-         tsconfigPath = generateConfig.tsconfig;
-      }
-      else
-      {
-         return `error: Aborting as 'tsconfig' path is specified, but file does not exist; '${
-          generateConfig.tsconfig}'`;
-      }
-   }
-
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
    let tsconfigCompilerOptions = {};
 
-   if (tsconfigPath)
+   if (generateConfig.tsconfig)
    {
-      logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${tsconfigPath}`);
+      logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${generateConfig.tsconfig}`);
 
       try
       {
-         const configJSON = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8').toString());
+         const configJSON = JSON.parse(fs.readFileSync(generateConfig.tsconfig, 'utf-8').toString());
          if (isObject(configJSON?.compilerOptions)) { tsconfigCompilerOptions = configJSON.compilerOptions; }
       }
       catch (err)
       {
          return `error: Aborting as 'tsconfig' path is specified, but failed to load; '${
-          err.message}'\ntsconfig path: ${tsconfigPath};`;
+          err.message}'\ntsconfig path: ${generateConfig.tsconfig};`;
       }
    }
 
