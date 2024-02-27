@@ -38,13 +38,13 @@ export class DTSPluginManager extends PluginManager
    /**
     * Handles deferred plugin loading until after the logger log level has been set for programmatic API.
     *
-    * @param {Iterable<string>} externalPlugins - Iterable list of 3rd party plugins to load.
+    * @param {import('..').GenerateConfig} generateConfig - Iterable list of 3rd party plugins to load.
     *
     * @param {boolean} isTSMode - Is Typescript mode enabled.
     *
     * @returns {Promise<void>}
     */
-   async initialize(externalPlugins, isTSMode)
+   async initialize(generateConfig, isTSMode)
    {
       /* v8 ignore next 1 */
       if (this.#initialized) { return; }
@@ -71,21 +71,22 @@ export class DTSPluginManager extends PluginManager
          for (const plugin of firstPartyPlugins)
          {
             const name = `@typhonjs-build-test/${plugin}`;
-            await super.add({ name });
+            await super.add({ name, options: generateConfig });
          }
       }
 
-      for (const plugin of externalPlugins)
+      for (const plugin of generateConfig.plugins)
       {
          // Load from local file.
          if (isFile(plugin))
          {
             const name = upath.basename(plugin);
-            await super.add({ name, target: plugin });
+            await super.add({ name, target: plugin, options: generateConfig });
          }
+         /* v8 ignore next 4 */ // Not tested locally.
          else // Load as NPM package.
          {
-            await super.add({ name: plugin });
+            await super.add({ name: plugin, options: generateConfig });
          }
       }
 
