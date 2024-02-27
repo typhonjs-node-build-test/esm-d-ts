@@ -21,6 +21,7 @@ import {
    isFile }                      from '@typhonjs-utils/file-util';
 
 import {
+   deepFreeze,
    isIterable,
    isObject }                    from '@typhonjs-utils/object';
 
@@ -82,7 +83,8 @@ async function checkDTS(config)
       {
          for (const entry of config)
          {
-            const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
+            const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS,
+             { tsCheckJs: true });
 
             if (typeof processedConfigOrError === 'string')
             {
@@ -98,7 +100,8 @@ async function checkDTS(config)
       }
       else
       {
-         const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
+         const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS,
+          { tsCheckJs: true });
 
          if (typeof processedConfigOrError === 'string')
          {
@@ -132,10 +135,7 @@ async function checkDTS(config)
  */
 async function checkDTSImpl(processedConfig)
 {
-   const { eventbus, generateConfig } = processedConfig;
-
-   // Always ensure `tsCheckJs` is set to true.
-   generateConfig.tsCheckJs = true;
+   const { eventbus } = processedConfig;
 
    try
    {
@@ -1027,9 +1027,11 @@ function parsePackage(packageName, generateConfig)
  *
  * @param {import('type-fest').TsConfigJson.CompilerOptions} defaultCompilerOptions - Default compiler options.
  *
+ * @param {Partial<GenerateConfig>} extraConfig - Additional config parameters to override user supplied config.
+ *
  * @returns {Promise<ProcessedConfig | string>} Processed config or error string.
  */
-async function processConfig(origConfig, defaultCompilerOptions)
+async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {})
 {
    // Initial sanity checks.
    if (!isObject(origConfig))
@@ -1052,7 +1054,7 @@ async function processConfig(origConfig, defaultCompilerOptions)
       tsDiagnosticExternal: false,
       tsDiagnosticLog: true,
       tsFileWalk: true
-   }, origConfig);
+   }, origConfig, extraConfig);
 
    // Set default output extension and output file if not defined.
    if (generateConfig.outputExt === void 0) { generateConfig.outputExt = '.d.ts'; }
@@ -1094,10 +1096,12 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    const isTSMode = isTSFile(generateConfig.input);
 
+   deepFreeze(generateConfig);
+
    const pluginManager = new DTSPluginManager();
 
    // Initialize plugin manager after logger log level set. Initialization only occurs once per entire invocation.
-   await pluginManager.initialize(generateConfig.plugins, isTSMode);
+   await pluginManager.initialize(generateConfig, isTSMode);
 
    const eventbus = pluginManager.createEventbusSecure('esm-d-ts-eventbus');
 
@@ -1208,7 +1212,8 @@ async function processConfig(origConfig, defaultCompilerOptions)
       tsFilepaths
    };
 
-   Object.freeze(processedConfig);
+   // Don't deep freeze `eventbus`.
+   deepFreeze(processedConfig, new Set(['eventbus']));
 
    return processedConfig;
 }
