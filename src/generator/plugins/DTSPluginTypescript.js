@@ -38,7 +38,7 @@ export class DTSPluginTypescript
    {
       const eventbus = ev.eventbus;
 
-      const options = { async: true };
+      const options = { async: true, guard: true };
 
       // Event registration in the order which the events are fired.
       eventbus.on('lexer:transform:.cts', this.lexerTransform, this, options);
