@@ -1,0 +1,11 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] Lexer failed to transform: S:/program/Javascript/projects/TyphonJS/typhonjs-node-build-test/esm-d-ts/test/fixture/src/generate/plugin/errors/lexer.ts\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] External plugin error for event 'lexer:transform:.ts': Test Plugin Event Failure\u001b[0m"
+  ],
+  [
+    "\u001b[1;31m[esm-d-ts] A fatal uncaught exception has been raised. Terminating processing.\u001b[0m"
+  ]
+]
