@@ -46,7 +46,7 @@ export function generateDTSPlugin(generateDTS)
 
             if (typeof rollupOptionInput !== 'string')
             {
-               console.error(`esm-d-ts generateDTS.plugin error: Rollup 'input' option is not a string.`);
+               console.error(`[esm-d-ts] generateDTS.plugin error: Rollup 'input' option is not a string.`);
                validRollupOptions = false;
             }
 
@@ -90,7 +90,7 @@ export function generateDTSPlugin(generateDTS)
 
                if (typeof rollupOptionFile !== 'string')
                {
-                  console.error(`esm-d-ts generateDTS.plugin error: Rollup 'file' option is not a string.`);
+                  console.error(`[esm-d-ts] generateDTS.plugin error: Rollup 'file' option is not a string.`);
                   validRollupOptions = false;
                }
             }
