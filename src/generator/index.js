@@ -942,9 +942,11 @@ function parsePackage(packageName, generateConfig)
          packageJSON = packageObj;
          packagePath = filepath;
       }
+      /* v8 ignore next 1 */ // No-op
       catch (err) { /**/ }
    }
 
+   /* v8 ignore next 7 */ // Not common; unless a package is malformed.
    if (typeof packageJSON !== 'object')
    {
       logger.warn(
