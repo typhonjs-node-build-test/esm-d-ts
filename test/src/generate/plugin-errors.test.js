@@ -1,11 +1,14 @@
 // /* eslint no-undef: "off" */
 import {
+   beforeAll,
    expect,
-   vi }                    from 'vitest';
+   vi
+} from 'vitest';
 
 import {
    checkDTS,
    generateDTS }           from '../../../src/generator/index.js';
+import fs from "fs-extra";
 
 const pluginEvents = [
    'lifecycle:start',
@@ -18,6 +21,12 @@ const pluginEvents = [
 
 describe('Plugin Errors (generate)', () =>
 {
+   beforeAll(() =>
+   {
+      fs.ensureDirSync('./test/fixture/output/plugin/errors');
+      fs.emptyDirSync('./test/fixture/output/plugin/errors');
+   });
+
    describe('checkDTS()', () =>
    {
       describe('event callback errors', () =>

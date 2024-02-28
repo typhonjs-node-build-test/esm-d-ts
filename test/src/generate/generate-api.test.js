@@ -12,8 +12,10 @@ describe('generateDTS()', () =>
 {
    beforeAll(() =>
    {
-      fs.ensureDirSync('./test/fixture/output/generate');
-      fs.emptyDirSync('./test/fixture/output/generate');
+      fs.ensureDirSync('./test/fixture/output/generate/javascript');
+      fs.emptyDirSync('./test/fixture/output/generate/javascript');
+      fs.ensureDirSync('./test/fixture/output/generate/typescript');
+      fs.emptyDirSync('./test/fixture/output/generate/typescript');
    });
 
    describe('Javascript', () =>
