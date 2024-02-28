@@ -1,0 +1,6 @@
+{
+  "name": "esm-d-ts-test-basic",
+  "version" : "0.0.0",
+  "types": "./types.d.ts",
+  "main": "./index.js"
+}
