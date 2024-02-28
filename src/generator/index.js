@@ -956,7 +956,7 @@ function parsePackage(packageName, generateConfig)
    const packageDir = `./${upath.relative('.', upath.dirname(packagePath))}`;
 
    // Handle parsing package exports.
-   if (typeof packageJSON.exports === 'object')
+   if (isObject(packageJSON.exports))
    {
       // The export path is the last match. This may not be defined which in this case '.' is used to match
       // the default export path.
@@ -978,51 +978,23 @@ function parsePackage(packageName, generateConfig)
          // If a declaration is found and the file exists return now.
          if (resolvePath.match(s_REGEX_DTS_EXTENSIONS) && isFile(resolvePath)) { return `./${resolvePath}`; }
       }
-
-      const exportConditionPath = resolvePkg.exports(packageJSON, exportPath, generateConfig.conditionExports);
-
-      if (exportConditionPath)
-      {
-         // Now resolve any provided export condition configuration option or default to `imports`.
-         resolvePath = upath.join(packageDir, ...exportConditionPath);
-
-         // In the chance case that the user provided export condition matches `types` check again for declaration file
-         // before changing the extension and resolving further.
-         const resolveDTS = resolvePath.match(s_REGEX_DTS_EXTENSIONS) ? `./${resolvePath}` :
-          `./${upath.changeExt(resolvePath, '.d.ts')}`;
-
-         // Found a TS declaration directly associated with the export then return it.
-         if (isFile(resolveDTS)) { return resolveDTS; }
-      }
-
-      // Now attempt to find the nearest `package.json` that isn't the root `package.json`.
-      const { packageObj, filepath } = getPackageWithPath({ filepath: resolvePath });
-
-      // A specific subpackage export was specified, but no associated declaration found and the package.json found
-      // is the root package, so a specific declaration for the subpackage is not resolved.
-      if (upath.relative('.', filepath) === packagePath) { return void 0; }
-
+   }
+   else // Handle older fallback methods for defining default package types.
+   {
       // Now check `package.json` `types` as last fallback.
-      if (packageObj && typeof packageObj.types === 'string')
+      if (typeof packageJSON.types === 'string')
       {
-         const lastResolveDTS = `./${upath.join(packageDir, packageObj.types)}`;
+         const lastResolveDTS = `./${upath.join(packageDir, packageJSON.types)}`;
          if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && isFile(lastResolveDTS)) { return lastResolveDTS; }
       }
-   }
 
-   // Now check `package.json` `types` as last fallback.
-   if (typeof packageJSON.types === 'string')
-   {
-      const lastResolveDTS = `./${upath.join(packageDir, packageJSON.types)}`;
-      if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && isFile(lastResolveDTS)) { return lastResolveDTS; }
-   }
-
-   // The reason this is gated behind a config option is that typically a package without an `exports` / `types` field
-   // in `package.json` is indicative of an older package that might not have compliant types.
-   if (generateConfig.checkDefaultPath)
-   {
-      const lastResolveDTS = `./${packageDir}/index.d.ts`;
-      if (isFile(lastResolveDTS)) { return lastResolveDTS; }
+      // The reason this is gated behind a config option is that typically a package without an `exports` / `types` field
+      // in `package.json` is indicative of an older package that might not have compliant types.
+      if (generateConfig.checkDefaultPath)
+      {
+         const lastResolveDTS = `./${packageDir}/index.d.ts`;
+         if (isFile(lastResolveDTS)) { return lastResolveDTS; }
+      }
    }
 
    return void 0;
@@ -1318,9 +1290,6 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}              [checkDefaultPath=false] When true and bundling top level package exports via
  * `bundlePackageExports` check for `index.d.ts` in package root; this is off by default as usually this is indicative
  * of and older package not updated for `exports` in `package.json`.
- *
- * @property {import('resolve.exports').Options}   [conditionExports] `resolve.exports` conditional options for
- * `package.json` exports field type.
  *
  * @property {import('resolve.exports').Options}   [conditionImports] `resolve.exports` conditional options for
  * `package.json` imports field type.
