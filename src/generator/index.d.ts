@@ -112,11 +112,6 @@ type GenerateConfig = {
   checkDefaultPath?: boolean;
   /**
    * `resolve.exports` conditional options for
-   * `package.json` exports field type.
-   */
-  conditionExports?: resolve_exports.Options;
-  /**
-   * `resolve.exports` conditional options for
    * `package.json` imports field type.
    */
   conditionImports?: resolve_exports.Options;
@@ -317,17 +312,17 @@ type ProcessedConfig = {
  *
  * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} All operations successful.
  */
-declare function checkDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<void>;
+declare function checkDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<boolean>;
 /**
  * Generates TS declarations from ESM source.
  *
  * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} All Operations successful.
  */
-declare function generateDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<void>;
+declare function generateDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<boolean>;
 declare namespace generateDTS {
   let plugin: (options?: Partial<GenerateConfig>) => rollup.Plugin<any>;
 }
