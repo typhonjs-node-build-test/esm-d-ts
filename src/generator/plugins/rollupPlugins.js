@@ -88,6 +88,7 @@ export function generateDTSPlugin(generateDTS)
                rollupOptionFile = options.file;
                rollupOptionPaths = options.paths;
 
+               /* v8 ignore next 5 */ // Rollup throws an error when `options.file` is bad before reaching this point.
                if (typeof rollupOptionFile !== 'string')
                {
                   console.error(`[esm-d-ts] generateDTS.plugin error: Rollup 'file' option is not a string.`);
