@@ -409,11 +409,13 @@ async function bundleDTS(processedConfig, dtsEntryPathActual, jsdocModuleComment
    await bundle.close();
 
    // Collect the postprocessor functions.
+   const processors = [...(isIterable(generateConfig.postprocess) ? generateConfig.postprocess : [])];
+
    // Add the internal `outputGraph` post processor if `config.outputGraph` is defined.
-   const processors = typeof generateConfig.outputGraph === 'string' ? [
-      ...(isIterable(generateConfig.postprocess) ? generateConfig.postprocess : []),
-      outputGraph(generateConfig.outputGraph, generateConfig.outputGraphIndentation)
-   ] : [...(isIterable(generateConfig.postprocess) ? generateConfig.postprocess : [])];
+   if (typeof generateConfig.outputGraph === 'string')
+   {
+      processors.push(outputGraph(generateConfig.outputGraph, generateConfig.outputGraphIndentation));
+   }
 
    // Handle any postprocessing of the bundled declarations.
    if (processors.length)
@@ -546,6 +548,7 @@ async function compile(processedConfig, isGenerate)
          afterDeclarations: transformers,
       });
    }
+   /* v8 ignore next 4 */ // Currently there are always transformers.
    else
    {
       emitResult = program.emit();
@@ -579,9 +582,11 @@ async function compile(processedConfig, isGenerate)
     */
    const diagnosticLog = (diagnostic, logLevel = 'warn') =>
    {
+      /* v8 ignore next 5 */ // Any invalid log level is set to `warn`.
       if (!logger.isValidLevel(logLevel))
       {
          logger.warn(`[diagnosticLog] Unknown log level: ${logLevel}`);
+         logLevel = 'warn';
       }
 
       const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
@@ -592,6 +597,7 @@ async function compile(processedConfig, isGenerate)
          const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
          logger.ext[`${logLevel}Raw`](`${fileName} (${line + 1},${character + 1})[33m: [TS] ${message}[0m`);
       }
+      /* v8 ignore next 4 */ // All diagnostic messages should have an associated file.
       else
       {
          logger[logLevel](`[TS] ${message}`);
@@ -642,6 +648,7 @@ async function compile(processedConfig, isGenerate)
       // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
       if (!isFile(dtsEntryPathActual)) { dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.mts'); }
 
+      /* v8 ignore next 8 */ // Only occurs if there is a s fatal error; not common.
       if (!isFile(dtsEntryPathActual))
       {
          logger.fatal(`compile error: could not locate DTS entry point file in output directory: ${
@@ -780,10 +787,10 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
                const transformed = await eventbus.triggerAsync(event,
                 { compilerOptions, fileData, logger, resolvedPath });
 
+               /* v8 ignore next 4 */ // Not common fatal error.
                if (typeof transformed !== 'string')
                {
-                  logger.warn(`Lexer failed to transform: ${resolvedPath}`);
-                  continue;
+                  throw new Error(`External plugin failed to return a 'string'.`);
                }
 
                fileData = transformed;
@@ -860,6 +867,7 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
                if (importpath) { data.n = importpath; }
             }
 
+            /* v8 ignore next 5 */ // Not common - Hard to automate absolute path tests.
             if (upath.isAbsolute(data.n))
             {
                toParseFiles.add(data.n);
