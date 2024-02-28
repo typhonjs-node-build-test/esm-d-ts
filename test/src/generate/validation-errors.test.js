@@ -51,7 +51,6 @@ describe('Validation Errors (generate)', () =>
             input: 'bad-path.js',
             bundlePackageExports: null,
             checkDefaultPath: null,
-            conditionExports: null,
             conditionImports: null,
             dtsReplace: null,
             filterTags: Number.NaN,

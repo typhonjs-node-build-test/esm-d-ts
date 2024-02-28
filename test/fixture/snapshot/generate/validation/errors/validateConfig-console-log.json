@@ -9,9 +9,6 @@
     "\u001b[31m[esm-d-ts] validateConfig error: 'config.checkDefaultPath' must be a boolean.\u001b[0m"
   ],
   [
-    "\u001b[31m[esm-d-ts] validateConfig error: 'config.conditionExports' must be an object.\u001b[0m"
-  ],
-  [
     "\u001b[31m[esm-d-ts] validateConfig error: 'config.conditionImports' must be an object.\u001b[0m"
   ],
   [

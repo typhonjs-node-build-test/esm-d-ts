@@ -69,12 +69,6 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.conditionExports !== void 0 && !isObject(config.conditionExports))
-   {
-      logger.error(`validateConfig error: 'config.conditionExports' must be an object.`);
-      result = false;
-   }
-
    if (config.conditionImports !== void 0 && !isObject(config.conditionImports))
    {
       logger.error(`validateConfig error: 'config.conditionImports' must be an object.`);
