@@ -21,7 +21,7 @@ describe('generateDTS()', () =>
    {
       it(`'bundlePackageExports' w/ 'checkDefaultPath'`, async () =>
       {
-         await generateDTS({
+         const success = await generateDTS({
             bundlePackageExports: true,
             checkDefaultPath: true,
             input: './test/fixture/src/generate/javascript/bundlePackageExports/index.js',
@@ -30,19 +30,42 @@ describe('generateDTS()', () =>
             compilerOptions: { outDir: './test/fixture/output/generate/javascript/bundlePackageExports/.dts' },
          });
 
+         expect(success).toBe(true);
+
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/bundlePackageExports/index.d.ts', 'utf-8');
 
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/bundlePackageExports/index.d.ts');
       });
 
+      it('dir-resolve', async () =>
+      {
+         // Note this test attempts to re-export `./dir2` which is backed by an `index.mjs` file instead of `index.js`.
+         // Typescript / TSC ~5.3.3 doesn't correctly emit in the `index.d.ts` file a re-export of `./dir2`.
+
+         const success = await generateDTS({
+            input: './test/fixture/src/generate/javascript/dir-resolve/index.js',
+            output: './test/fixture/output/generate/javascript/dir-resolve/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: { outDir: './test/fixture/output/generate/javascript/dir-resolve/.dts' },
+         });
+
+         expect(success).toBe(true);
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/dir-resolve/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/dir-resolve/index.d.ts');
+      });
+
       it('valid', async () =>
       {
-         await generateDTS({
+         const success = await generateDTS({
             input: './test/fixture/src/generate/javascript/valid/index.js',
             output: './test/fixture/output/generate/javascript/valid/index.d.ts',
             logLevel: 'debug',
             compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid/.dts' },
          });
+
+         expect(success).toBe(true);
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid/index.d.ts', 'utf-8');
 
@@ -51,7 +74,7 @@ describe('generateDTS()', () =>
 
       it(`valid w/ 'prependFiles' / 'prependString' comments`, async () =>
       {
-         await generateDTS({
+         const success = await generateDTS({
             input: './test/fixture/src/generate/javascript/valid/index.js',
             output: './test/fixture/output/generate/javascript/valid-prepend/index.d.ts',
             logLevel: 'debug',
@@ -60,6 +83,8 @@ describe('generateDTS()', () =>
             prependString: [`/**\n * A comment from 'prependString'.\n */\n`]
          });
 
+         expect(success).toBe(true);
+
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-prepend/index.d.ts', 'utf-8');
 
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid-prepend/index.d.ts');
@@ -67,13 +92,15 @@ describe('generateDTS()', () =>
 
       it(`valid w/ 'prettier' options`, async () =>
       {
-         await generateDTS({
+         const success = await generateDTS({
             input: './test/fixture/src/generate/javascript/valid/index.js',
             output: './test/fixture/output/generate/javascript/valid-prettier/index.d.ts',
             logLevel: 'debug',
             compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid-prettier/.dts' },
             prettier: { printWidth: 80, tabWidth: 4, useTabs: true }
          });
+
+         expect(success).toBe(true);
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-prettier/index.d.ts', 'utf-8');
 
@@ -83,9 +110,9 @@ describe('generateDTS()', () =>
 
    describe('Typescript', () =>
    {
-      it('valid', async () =>
+      it('basic (valid)', async () =>
       {
-         await generateDTS({
+         const success = await generateDTS({
             input: './test/fixture/src/generate/typescript/valid/index.ts',
             output: './test/fixture/output/generate/typescript/valid/index.d.ts',
             compilerOptions: {
@@ -95,9 +122,37 @@ describe('generateDTS()', () =>
             logLevel: 'debug'
          });
 
+         expect(success).toBe(true);
+
          const result = fs.readFileSync('./test/fixture/output/generate/typescript/valid/index.d.ts', 'utf-8');
 
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/typescript/valid/index.d.ts');
+      });
+
+      it('dir-resolve', async () =>
+      {
+         // Note this test attempts to re-export `./dir2` which is backed by an `index.mts` file instead of `index.ts`.
+         // Typescript / TSC ~5.3.3 does emit in the `index.d.ts` file a re-export of `./dir2`, but can't handle the
+         // the backing `index.d.mts` file.
+
+         const success = await generateDTS({
+            input: './test/fixture/src/generate/typescript/dir-resolve/index.ts',
+            output: './test/fixture/output/generate/typescript/dir-resolve/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: { outDir: './test/fixture/output/generate/typescript/dir-resolve/.dts' },
+         });
+
+         expect(success).toBe(false);
+
+         let result;
+
+         try
+         {
+            result = fs.readFileSync('./test/fixture/output/generate/typescript/dir-resolve/index.d.ts', 'utf-8');
+         }
+         catch (err) { /**/ }
+
+         expect(result).toBeUndefined();
       });
    });
 });

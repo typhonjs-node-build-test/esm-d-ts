@@ -1,4 +1,6 @@
 // /* eslint no-undef: "off" */
+import resolve          from "@rollup/plugin-node-resolve";
+
 import fs               from 'fs-extra';
 import { rollup }       from 'rollup';
 import {
@@ -17,14 +19,16 @@ describe('Rollup Plugin (generate)', () =>
 
    describe('generateDTS.plugin()', () =>
    {
-      it('basic rollup', async () =>
+      it('basic rollup (valid)', async () =>
       {
          const rollupConfig = {
             input: {
                input: './test/fixture/src/generate/javascript/valid/index.js',
-               plugins: [generateDTS.plugin({
-                  compilerOptions: { outDir: './test/fixture/output/generate/rollup/basic/.dts' }
-               })]
+               plugins: [
+                  generateDTS.plugin({
+                     compilerOptions: { outDir: './test/fixture/output/generate/rollup/basic/.dts' }
+                  })
+               ]
             },
             output: {
                file: './test/fixture/output/generate/rollup/basic/index.js',
@@ -39,6 +43,33 @@ describe('Rollup Plugin (generate)', () =>
          const result = fs.readFileSync('./test/fixture/output/generate/rollup/basic/index.d.ts', 'utf-8');
 
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+      });
+
+      it(`dir-resolve w/ resolve Rollup plugin`, async () =>
+      {
+         const rollupConfig = {
+            input: {
+               input: './test/fixture/src/generate/javascript/dir-resolve/index.js',
+               plugins: [
+                  resolve(), // Need to use `@rollup/plugin-node-resolve` for directory imports.
+                  generateDTS.plugin({
+                     compilerOptions: { outDir: './test/fixture/output/generate/rollup/dir-resolve/.dts' }
+                  })
+               ]
+            },
+            output: {
+               file: './test/fixture/output/generate/rollup/dir-resolve/index.js',
+               format: 'es',
+            }
+         };
+
+         const bundle = await rollup(rollupConfig.input);
+         await bundle.write(rollupConfig.output);
+         await bundle.close();
+
+         const result = fs.readFileSync('./test/fixture/output/generate/rollup/dir-resolve/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/dir-resolve/index.d.ts');
       });
 
       it(`'dtsReplace' plugin / option`, async () =>
