@@ -48,6 +48,37 @@ describe('generateDTS()', () =>
 
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
+
+      it(`valid w/ 'prependFiles' / 'prependString' comments`, async () =>
+      {
+         await generateDTS({
+            input: './test/fixture/src/generate/javascript/valid/index.js',
+            output: './test/fixture/output/generate/javascript/valid-prepend/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid-prepend/.dts' },
+            prependFiles: ['./prependLocal.txt', './test/fixture/data/prependRoot.txt', './test/NON_EXISTENT_FILE'],
+            prependString: [`/**\n * A comment from 'prependString'.\n */\n`]
+         });
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-prepend/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid-prepend/index.d.ts');
+      });
+
+      it(`valid w/ 'prettier' options`, async () =>
+      {
+         await generateDTS({
+            input: './test/fixture/src/generate/javascript/valid/index.js',
+            output: './test/fixture/output/generate/javascript/valid-prettier/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid-prettier/.dts' },
+            prettier: { printWidth: 80, tabWidth: 4, useTabs: true }
+         });
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-prettier/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid-prettier/index.d.ts');
+      });
    });
 
    describe('Typescript', () =>
