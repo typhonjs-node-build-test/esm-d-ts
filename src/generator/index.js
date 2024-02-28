@@ -763,13 +763,8 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 
          if (!isFile(resolvedPath))
          {
-            if (isFile(`${resolvedPath}.js`)) { resolvedPath = `${resolvedPath}.js`; }
-            else if (isFile(`${resolvedPath}.mjs`)) { resolvedPath = `${resolvedPath}.mjs`; }
-            else
-            {
-               logger.warn(`parseFiles warning: could not resolve; '${resolvedPath}'`);
-               continue;
-            }
+            logger.warn(`parseFiles warning: could not resolve; '${resolvedPath}'`);
+            continue;
          }
 
          let fileData = fs.readFileSync(resolvedPath, 'utf-8').toString();
