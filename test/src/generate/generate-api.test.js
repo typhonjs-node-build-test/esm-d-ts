@@ -1,10 +1,9 @@
 /* eslint no-undef: "off" */
+import fs               from 'fs-extra';
+
 import {
    beforeAll,
-   expect,
-   vi }                 from 'vitest';
-
-import fs               from 'fs-extra';
+   expect }             from 'vitest';
 
 import { generateDTS }  from '../../../src/generator/index.js';
 
@@ -20,6 +19,22 @@ describe('generateDTS()', () =>
 
    describe('Javascript', () =>
    {
+      it(`'bundlePackageExports' w/ 'checkDefaultPath'`, async () =>
+      {
+         await generateDTS({
+            bundlePackageExports: true,
+            checkDefaultPath: true,
+            input: './test/fixture/src/generate/javascript/bundlePackageExports/index.js',
+            output: './test/fixture/output/generate/javascript/bundlePackageExports/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: { outDir: './test/fixture/output/generate/javascript/bundlePackageExports/.dts' },
+         });
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/bundlePackageExports/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/bundlePackageExports/index.d.ts');
+      });
+
       it('valid', async () =>
       {
          await generateDTS({
