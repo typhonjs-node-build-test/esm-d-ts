@@ -1,14 +1,16 @@
 /* eslint no-undef: "off" */
+import fs               from 'fs-extra';
+
 import {
    beforeAll,
+   beforeEach,
    expect,
    vi }                 from 'vitest';
-
-import fs               from 'fs-extra';
 
 import { generateDTS }  from '../../../src/generator/index.js';
 
 import {
+   GraphAnalysis,
    PostProcess,
    processInheritDoc }  from '../../../src/postprocess/index.js';
 
@@ -20,6 +22,61 @@ describe('API Errors (postprocess)', () =>
    {
       fs.ensureDirSync('./test/fixture/output/postprocess/errors');
       fs.emptyDirSync('./test/fixture/output/postprocess/errors');
+   });
+
+   describe('GraphAnalysis', () =>
+   {
+      let graphAnalysis;
+
+      beforeEach(() =>
+      {
+         graphAnalysis = new GraphAnalysis({ graph: [], nodes: new Map() });
+      });
+
+      describe('thrown errors', () =>
+      {
+         describe('bfs()', () =>
+         {
+            it(`'visit' is not function`, () =>
+            {
+               expect(() => graphAnalysis.bfs(null)).toThrowError(
+                new TypeError(`'GraphAnalysis.bfs error: 'visit' is not a function.`));
+            });
+
+            it(`'direct' not boolean`, () =>
+            {
+               expect(() => graphAnalysis.bfs(() => null, { directed: null })).toThrowError(
+                new TypeError(`'GraphAnalysis.bfs error: 'directed' is not a boolean.`));
+            });
+
+            it(`'type' not Set or string`, () =>
+            {
+               expect(() => graphAnalysis.bfs(() => null, { type: null })).toThrowError(
+                new TypeError(`'GraphAnalysis.bfs error: 'type' is not a string or set of strings.`));
+            });
+         });
+
+         describe('dfs()', () =>
+         {
+            it(`'visit' is not function`, () =>
+            {
+               expect(() => graphAnalysis.dfs(null)).toThrowError(
+                new TypeError(`'GraphAnalysis.dfs error: 'visit' is not a function.`));
+            });
+
+            it(`'direct' not boolean`, () =>
+            {
+               expect(() => graphAnalysis.dfs(() => null, { directed: null })).toThrowError(
+                new TypeError(`'GraphAnalysis.dfs error: 'directed' is not a boolean.`));
+            });
+
+            it(`'type' not Set or string`, () =>
+            {
+               expect(() => graphAnalysis.dfs(() => null, { type: null })).toThrowError(
+                new TypeError(`'GraphAnalysis.dfs error: 'type' is not a string or set of strings.`));
+            });
+         });
+      });
    });
 
    describe('PostProcess', () =>

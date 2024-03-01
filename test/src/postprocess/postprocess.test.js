@@ -1,15 +1,17 @@
 /* eslint no-undef: "off" */
+import fs               from 'fs-extra';
+
 import {
    beforeAll,
+   beforeEach,
    expect }             from 'vitest';
-
-import fs               from 'fs-extra';
 
 import { generateDTS }  from '../../../src/generator/index.js';
 
 import {
-   processInheritDoc,
-   PostProcess }        from '../../../src/postprocess/index.js';
+   GraphAnalysis,
+   PostProcess,
+   processInheritDoc }  from '../../../src/postprocess/index.js';
 
 describe('PostProcess', () =>
 {
@@ -18,6 +20,84 @@ describe('PostProcess', () =>
       fs.ensureDirSync('./test/fixture/output/postprocess/processInheritDoc/valid');
       fs.emptyDirSync('./test/fixture/output/postprocess/processInheritDoc/valid');
       fs.ensureDirSync('./test/fixture/output/postprocess/processInheritDoc/valid/direct');
+   });
+
+   describe('GraphAnalysis', () =>
+   {
+      let graphAnalysis;
+
+      /** @type {import('cytoscape').ElementDefinition[]} */
+      const graph = [
+         { data: { id: 'A', type: 'ClassDeclaration' } },
+         { data: { id: 'B', type: 'ClassDeclaration' } },
+         { data: { id: 'C', type: 'ClassDeclaration' } },
+         { data: { source: 'A', target: 'B' } },
+         { data: { source: 'B', target: 'C' } }
+      ];
+
+      const searchResults = ['A', 'B', 'C'];
+
+      beforeEach(() =>
+      {
+         graphAnalysis = new GraphAnalysis({ graph, nodes: new Map() });
+      });
+
+      describe('accessors', () =>
+      {
+         it('get cytoscape', () =>
+         {
+            expect(graphAnalysis.cytoscape).toBeDefined();
+         });
+
+         it('get nodes', () =>
+         {
+            expect(graphAnalysis.nodes).toBeInstanceOf(Map);
+         });
+      });
+
+      describe('bfs() - type (string)', () =>
+      {
+         it('type (string)', () =>
+         {
+            const results = [];
+
+            graphAnalysis.bfs((v) => results.push(v.data('id')), { directed: true, type: 'ClassDeclaration' });
+
+            expect(results).to.deep.equal(searchResults);
+         });
+
+         it('type (Set)', () =>
+         {
+            const results = [];
+
+            graphAnalysis.bfs((v) => results.push(v.data('id')),
+             { directed: true, type: new Set(['ClassDeclaration']) });
+
+            expect(results).to.deep.equal(searchResults);
+         });
+      });
+
+      describe('dfs() - type (string)', () =>
+      {
+         it('type (string)', () =>
+         {
+            const results = [];
+
+            graphAnalysis.dfs((v) => results.push(v.data('id')), { directed: true, type: 'ClassDeclaration' });
+
+            expect(results).to.deep.equal(searchResults);
+         });
+
+         it('type (Set)', () =>
+         {
+            const results = [];
+
+            graphAnalysis.dfs((v) => results.push(v.data('id')),
+             { directed: true, type: new Set(['ClassDeclaration']) });
+
+            expect(results).to.deep.equal(searchResults);
+         });
+      });
    });
 
    describe('processInheritDoc', () =>
