@@ -123,7 +123,7 @@
   "apidocs": "https://typhonjs-node-build-test.github.io/esm-d-ts/",
   "scripts": {
     "eslint": "eslint .",
-    "docs": "typedoc-pkg --api-link es --loglevel debug",
+    "docs": "typedoc-pkg --api-link esm --loglevel debug",
     "types": "node ./src/cli/index.js gen -c --loglevel debug",
     "test": "vitest --coverage",
     "test-ui": "vitest --ui --coverage",
