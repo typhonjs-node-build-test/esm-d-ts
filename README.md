@@ -7,6 +7,9 @@
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
+This is a beta test version of the next mainline release (`0.3.0-next.1`). There are many new features to describe
+(updated README soon)!
+
 Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate
 bundled Typescript declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to build
 types for a primary export and one or more sub-path [exports](https://nodejs.org/api/packages.html#exports) creating
@@ -24,20 +27,19 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 ```json
 {
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": "^0.3.0"
+    "@typhonjs-build-test/esm-d-ts": "^0.3.0-next.1"
   }
 }
 ```
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
 ## What's New:
-### (0.3.0):
-- Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
-ESM Svelte components (`.svelte` files). For more information on ESM Svelte component support please see:
-[@typhonjs-build-test/esm-d-ts-plugin-svelte](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts-plugin-svelte).
-Eventually, the plugin system may be opened to 3rd party extensions along with additional 1st party support for
-alternate file formats / frameworks that are ESM compatible. Presently, compatible 1st party plugins simply need to be
-installed as additional developer dependencies and load automatically.
+### (0.3.0-next.1 / partial list):
+- Support for Typescript projects; easily generate bundled type declarations for TS projects including all file types
+TS supports.
+
+- (soon) Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
+ESM Svelte components (`.svelte` files).
 
 ## Overview:
 
