@@ -97,6 +97,7 @@ async function checkDTS(config)
 
             await checkDTSImpl(processedConfigOrError);
          }
+         /* v8 ignore next 1 */ // `}` / line below is reached, but left out of coverage.
       }
       else
       {
@@ -199,6 +200,7 @@ async function generateDTS(config)
 
             await generateDTSImpl(processedConfigOrError);
          }
+         /* v8 ignore next 1 */ // `}` / line below is reached, but left out of coverage.
       }
       else
       {
@@ -484,6 +486,7 @@ async function compile(processedConfig, isGenerate)
    const origReadFile = host.readFile;
    host.readFile = (fileName) =>
    {
+      /* v8 ignore next 1 */ // Covered in plugin package tests.
       if (memoryFiles.has(fileName)) { return memoryFiles.get(fileName); }
 
       return origReadFile(fileName);
@@ -716,6 +719,7 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 
       for (const file of fileList)
       {
+         /* v8 ignore next 1 */ // `file` should always be the absolute path by this point.
          let resolvedPath = upath.isAbsolute(file) ? file : upath.resolve(file);
 
          // Must indicate warnings for the case when an `index.js` / `index.mjs` file is referenced by directory.
