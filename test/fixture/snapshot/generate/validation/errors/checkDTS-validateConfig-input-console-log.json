@@ -1,0 +1,8 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.input' must be a string.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] checkDTS error: Aborting as 'config' failed validation. Entry point 'null'\u001b[0m"
+  ]
+]

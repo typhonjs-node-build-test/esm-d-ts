@@ -1,15 +1,49 @@
 // /* eslint no-undef: "off" */
 import {
    expect,
-   vi }                       from 'vitest';
+   vi }           from 'vitest';
 
-import { generateDTS }        from '../../../src/generator/index.js';
+import {
+   checkDTS,
+   generateDTS }  from '../../../src/generator/index.js';
 
 describe('Validation Errors (generate)', () =>
 {
    describe('validateConfig()', () =>
    {
-      it(`verifies 'config' is object`, async () =>
+      it(`checkDTS() - verifies 'config' is object`, async () =>
+      {
+         const consoleLog = [];
+         vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+         const result = await checkDTS(null);
+
+         expect(result).toBe(false);
+
+         vi.restoreAllMocks();
+
+         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+          '../../fixture/snapshot/generate/validation/errors/checkDTS-validateConfig-config-null-console-log.json');
+      });
+
+      it(`checkDTS() - verifies initial 'input' is a string`, async () =>
+      {
+         const consoleLog = [];
+         vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+         const result = await checkDTS({
+            input: null,
+         });
+
+         expect(result).toBe(false);
+
+         vi.restoreAllMocks();
+
+         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+          '../../fixture/snapshot/generate/validation/errors/checkDTS-validateConfig-input-console-log.json');
+      });
+
+      it(`generateDTS() - verifies 'config' is object`, async () =>
       {
          const consoleLog = [];
          vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
@@ -21,10 +55,10 @@ describe('Validation Errors (generate)', () =>
          vi.restoreAllMocks();
 
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
-          '../../fixture/snapshot/generate/validation/errors/validateConfig-config-null-console-log.json');
+          '../../fixture/snapshot/generate/validation/errors/generateDTS-validateConfig-config-null-console-log.json');
       });
 
-      it(`verifies initial 'input' / 'outputExt' are strings`, async () =>
+      it(`generateDTS() - verifies initial 'input' / 'outputExt' are strings`, async () =>
       {
          const consoleLog = [];
          vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
@@ -39,7 +73,7 @@ describe('Validation Errors (generate)', () =>
          vi.restoreAllMocks();
 
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
-          '../../fixture/snapshot/generate/validation/errors/validateConfig-input-outputExt-console-log.json');
+          '../../fixture/snapshot/generate/validation/errors/generateDTS-validateConfig-input-console-log.json');
       });
 
       it(`verifies all remaining options`, async () =>
