@@ -18,9 +18,9 @@ describe('Validation Errors (generate)', () =>
 
          const result = await checkDTS(null);
 
-         expect(result).toBe(false);
-
          vi.restoreAllMocks();
+
+         expect(result).toBe(false);
 
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/checkDTS-validateConfig-config-null-console-log.json');
@@ -35,9 +35,9 @@ describe('Validation Errors (generate)', () =>
             input: null,
          });
 
-         expect(result).toBe(false);
-
          vi.restoreAllMocks();
+
+         expect(result).toBe(false);
 
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/checkDTS-validateConfig-input-console-log.json');
@@ -50,9 +50,9 @@ describe('Validation Errors (generate)', () =>
 
          const result = await generateDTS(null);
 
-         expect(result).toBe(false);
-
          vi.restoreAllMocks();
+
+         expect(result).toBe(false);
 
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/generateDTS-validateConfig-config-null-console-log.json');
@@ -68,9 +68,9 @@ describe('Validation Errors (generate)', () =>
             outputExt: null,
          });
 
-         expect(result).toBe(false);
-
          vi.restoreAllMocks();
+
+         expect(result).toBe(false);
 
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/generateDTS-validateConfig-input-console-log.json');
@@ -114,9 +114,9 @@ describe('Validation Errors (generate)', () =>
             rollupOnwarn: null
          });
 
-         expect(result).toBe(false);
-
          vi.restoreAllMocks();
+
+         expect(result).toBe(false);
 
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/validateConfig-console-log.json');
@@ -138,9 +138,9 @@ describe('Validation Errors (generate)', () =>
             }
          });
 
-         expect(result).toBe(false);
-
          vi.restoreAllMocks();
+
+         expect(result).toBe(false);
 
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-console-log.json');
