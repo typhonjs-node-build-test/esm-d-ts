@@ -88,12 +88,12 @@ async function checkDTS(config)
 
             if (typeof processedConfigOrError === 'string')
             {
-               logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+               logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry?.input}'`);
                result = false;
                continue;
             }
 
-            logger.info(`Checking DTS bundle for: ${entry.input}`);
+            logger.info(`Checking DTS bundle for: ${entry?.input}`);
 
             await checkDTSImpl(processedConfigOrError);
          }
@@ -106,12 +106,12 @@ async function checkDTS(config)
 
          if (typeof processedConfigOrError === 'string')
          {
-            logger.error(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
+            logger.error(`checkDTS ${processedConfigOrError} Entry point '${config?.input}'`);
             result = false;
          }
          else
          {
-            logger.info(`Checking DTS bundle for: ${config.input}`);
+            logger.info(`Checking DTS bundle for: ${config?.input}`);
 
             await checkDTSImpl(processedConfigOrError);
          }
@@ -191,12 +191,12 @@ async function generateDTS(config)
 
             if (typeof processedConfigOrError === 'string')
             {
-               logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
+               logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry?.input}'`);
                result = false;
                continue;
             }
 
-            logger.info(`Generating DTS bundle for: ${entry.input}`);
+            logger.info(`Generating DTS bundle for: ${entry?.input}`);
 
             await generateDTSImpl(processedConfigOrError);
          }
@@ -208,12 +208,12 @@ async function generateDTS(config)
 
          if (typeof processedConfigOrError === 'string')
          {
-            logger.error(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
+            logger.error(`generateDTS ${processedConfigOrError} Entry point '${config?.input}'`);
             result = false;
          }
          else
          {
-            logger.info(`Generating DTS bundle for: ${config.input}`);
+            logger.info(`Generating DTS bundle for: ${config?.input}`);
 
             await generateDTSImpl(processedConfigOrError);
          }
