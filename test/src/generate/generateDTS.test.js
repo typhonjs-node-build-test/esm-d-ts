@@ -72,6 +72,27 @@ describe('generateDTS()', () =>
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
+      it('valid w/ iterable config (error)', async () =>
+      {
+         const config = [
+            {
+               input: './test/fixture/src/generate/javascript/valid/index.js',
+               output: './test/fixture/output/generate/javascript/valid-iterable/index.d.ts',
+               compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid-iterable/.dts' },
+            },
+            null // This will produce an error in `processConfig`.
+         ];
+
+         const success = await generateDTS(config);
+
+         // `null` config above will cause false to return indicating not all configs ran.
+         expect(success).toBe(false);
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-iterable/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+      });
+
       it(`valid w/ 'prependFiles' / 'prependString' comments`, async () =>
       {
          const success = await generateDTS({
