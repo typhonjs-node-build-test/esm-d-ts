@@ -1,14 +1,14 @@
 // /* eslint no-undef: "off" */
+import fs         from 'fs-extra';
+
 import {
    beforeAll,
    expect,
-   vi
-} from 'vitest';
+   vi }           from 'vitest';
 
 import {
    checkDTS,
-   generateDTS }           from '../../../src/generator/index.js';
-import fs from "fs-extra";
+   generateDTS }  from '../../../src/generator/index.js';
 
 const pluginEvents = [
    'lifecycle:start',
