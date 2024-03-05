@@ -1,6 +1,7 @@
 {
   "name": "@esm-d-ts-test/org",
   "version" : "0.0.0",
+  "type" : "module",
   "exports": {
     ".": {
       "types": "./types.d.ts",

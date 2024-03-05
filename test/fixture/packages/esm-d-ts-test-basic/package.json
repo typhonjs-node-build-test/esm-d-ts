@@ -1,6 +1,8 @@
 {
   "name": "esm-d-ts-test-basic",
   "version" : "0.0.0",
+  "type" : "module",
   "types": "./types.d.ts",
-  "main": "./index.js"
+  "main": "./index.js",
+  "module": "./index.js"
 }
