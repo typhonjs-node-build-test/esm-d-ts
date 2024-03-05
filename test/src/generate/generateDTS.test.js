@@ -19,24 +19,6 @@ describe('generateDTS()', () =>
 
    describe('Javascript', () =>
    {
-      it(`'bundlePackageExports' w/ 'checkDefaultPath'`, async () =>
-      {
-         const success = await generateDTS({
-            bundlePackageExports: true,
-            checkDefaultPath: true,
-            input: './test/fixture/src/generate/javascript/bundlePackageExports/index.js',
-            output: './test/fixture/output/generate/javascript/bundlePackageExports/index.d.ts',
-            logLevel: 'debug',
-            compilerOptions: { outDir: './test/fixture/output/generate/javascript/bundlePackageExports/.dts' },
-         });
-
-         expect(success).toBe(true);
-
-         const result = fs.readFileSync('./test/fixture/output/generate/javascript/bundlePackageExports/index.d.ts', 'utf-8');
-
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/bundlePackageExports/index.d.ts');
-      });
-
       it('dir-resolve', async () =>
       {
          // Note this test attempts to re-export `./dir2` which is backed by an `index.mjs` file instead of `index.js`.
@@ -126,6 +108,75 @@ describe('generateDTS()', () =>
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-prettier/index.d.ts', 'utf-8');
 
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid-prettier/index.d.ts');
+      });
+   });
+
+   describe('Javascript - GenerateConfig options', () =>
+   {
+      it(`'bundlePackageExports' w/ 'checkDefaultPath'`, async () =>
+      {
+         const success = await generateDTS({
+            bundlePackageExports: true,
+            checkDefaultPath: true,
+            input: './test/fixture/src/generate/javascript/bundlePackageExports/index.js',
+            output: './test/fixture/output/generate/javascript/bundlePackageExports/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: { outDir: './test/fixture/output/generate/javascript/bundlePackageExports/.dts' },
+         });
+
+         expect(success).toBe(true);
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/bundlePackageExports/index.d.ts',
+          'utf-8');
+
+         expect(result).toMatchFileSnapshot(
+          '../../fixture/snapshot/generate/javascript/bundlePackageExports/index.d.ts');
+      });
+
+      it(`'bundlePackageExports' w/ '#imports / importsResolve'`, async () =>
+      {
+         const success = await generateDTS({
+            bundlePackageExports: true,
+            checkDefaultPath: true,
+            input: './test/fixture/src/generate/javascript/bundlePackageExports-#imports/index.js',
+            output: './test/fixture/output/generate/javascript/bundlePackageExports-importsResolve/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: {
+               outDir: './test/fixture/output/generate/javascript/bundlePackageExports-importsResolve/.dts'
+            },
+            importsResolve: true
+         });
+
+         expect(success).toBe(true);
+
+         const result = fs.readFileSync(
+          './test/fixture/output/generate/javascript/bundlePackageExports-importsResolve/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot(
+          '../../fixture/snapshot/generate/javascript/bundlePackageExports-importsResolve/index.d.ts');
+      });
+
+      it(`'bundlePackageExports' w/ '#imports / importsResolve / options'`, async () =>
+      {
+         const success = await generateDTS({
+            bundlePackageExports: true,
+            checkDefaultPath: true,
+            input: './test/fixture/src/generate/javascript/bundlePackageExports-#imports/index.js',
+            output: './test/fixture/output/generate/javascript/bundlePackageExports-importsResolve-options/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: {
+               outDir: './test/fixture/output/generate/javascript/bundlePackageExports-importsResolve-options/.dts'
+            },
+            importsResolve: { exportConditions: ['types'] }
+         });
+
+         expect(success).toBe(true);
+
+         const result = fs.readFileSync(
+          './test/fixture/output/generate/javascript/bundlePackageExports-importsResolve-options/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot(
+          '../../fixture/snapshot/generate/javascript/bundlePackageExports-importsResolve/index.d.ts');
       });
    });
 
