@@ -299,9 +299,10 @@ type ProcessedConfig = {
    */
   lexerFilepaths: string[];
   /**
-   * Top level packages exported from entry point.
+   * Top level packages exported from entry point. Key is the identifier in
+   * source code / may be an `imports` alias / value is the actual package identifier.
    */
-  packages: string[];
+  packages: Map<string, string>;
   /**
    * A list of all TS files to add synthetic exports.
    */
