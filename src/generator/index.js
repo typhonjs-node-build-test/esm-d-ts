@@ -6,13 +6,8 @@
 
 import { fileURLToPath }         from 'node:url';
 
-import fs                        from 'fs-extra';
-
 import alias                     from '@rollup/plugin-alias';
-
-import {
-   importsExternal,
-   importsResolve }              from '@typhonjs-build-test/rollup-plugin-pkg-imports';
+import { importsExternal }       from '@typhonjs-build-test/rollup-plugin-pkg-imports';
 
 import {
    commonPath,
@@ -27,6 +22,7 @@ import {
 
 import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
+import fs                        from 'fs-extra';
 import { resolve }               from 'import-meta-resolve';
 import * as prettier             from 'prettier';
 import * as resolvePkg           from 'resolve.exports';
@@ -56,6 +52,7 @@ import {
    removePrivateStatic }         from '../transformer/internal/index.js';
 
 import {
+   isDTSFile,
    isTSFile,
    logger }                      from '#util';
 
@@ -319,10 +316,7 @@ export { checkDTS, generateDTS };
  */
 async function bundleDTS(processedConfig, dtsEntryPathActual, jsdocModuleComments = [])
 {
-   const { compilerOptions, generateConfig, packages } = processedConfig;
-
-   const packageAlias = typeof generateConfig.bundlePackageExports === 'boolean' &&
-    generateConfig.bundlePackageExports ? resolvePackageExports(packages, generateConfig, compilerOptions.outDir) : [];
+   const { generateConfig } = processedConfig;
 
    // Prepend any comment with the `@module` tag preserving it in the bundled DTS file.
 
@@ -368,14 +362,8 @@ async function bundleDTS(processedConfig, dtsEntryPathActual, jsdocModuleComment
       plugins.push(importsExternal(isObject(generateConfig.importsExternal) ? generateConfig.importsExternal : void 0));
    }
 
-   // Add `importsResolve` plugin if configured.
-   if (generateConfig.importsResolve)
-   {
-      plugins.push(importsResolve(isObject(generateConfig.importsResolve) ? generateConfig.importsResolve : void 0));
-   }
-
    plugins.push(...[
-      alias({ entries: packageAlias }),
+      alias({ entries: resolvePackageExports(processedConfig) }),
       dts()
    ]);
 
@@ -678,6 +666,18 @@ async function compile(processedConfig, isGenerate)
 }
 
 /**
+ * Convenience function to test whether an identifier string is formatted as a NPM package.
+ *
+ * @param {string}   identifier - Identifier to test.
+ *
+ * @returns {boolean} Is the value a NPM package identifier.
+ */
+function isPackage(identifier)
+{
+   return s_REGEX_PACKAGE.test(identifier) || s_REGEX_PACKAGE_SCOPED.test(identifier);
+}
+
+/**
  * Lexically parses all files connected to the entry point. Additional data includes top level "re-exported" packages
  * in `packages` data.
  *
@@ -689,7 +689,7 @@ async function compile(processedConfig, isGenerate)
  *
  * @param {boolean} isTSMode - Is Typescript mode enabled.
  *
- * @returns {Promise<{lexerFilepaths: string[], packages: string[]}>} Lexically parsed files and top level
+ * @returns {Promise<{lexerFilepaths: string[], packages: Map<string, string>}>} Lexically parsed files and top level
  *          packages exported.
  */
 async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
@@ -703,7 +703,13 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
    const parsedFiles = new Set();
 
    const lexerFilepaths = new Set();
-   const packages = new Set();
+
+   /**
+    * Stores any top level exported packages.
+    *
+    * @type {Map<string, string>}
+    */
+   const packages = new Map();
 
    /**
     * Stores any unresolved imports from the closest `package.json` from `config.input`. The key is the import symbol
@@ -811,6 +817,9 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
          {
             if (data.n === void 0 || data.d === -2) { continue; }
 
+            // Stores original `imports` package alias if any.
+            let packageAlias;
+
             // There is a local `imports` specifier so lookup and attempt to resolve via `resolve.exports` package.
             if (data.n.startsWith('#'))
             {
@@ -822,12 +831,11 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 
                   if (Array.isArray(result) && result.length)
                   {
+                     const resultValue = result[0];
+
                      // Examine the first result returned and process if it starts with `.` indicating a local file.
                      // `config.conditionImports` should be provided for a more specific lookup as necessary.
-                     //
-                     // Note: Local imports specifiers that resolve to packages are handled separately via
-                     // `importsExternal` & `importsResolve` config options.
-                     if (result[0]?.startsWith?.('.'))
+                     if (resultValue?.startsWith?.('.'))
                      {
                         const fullpath = upath.resolve(result[0]);
                         if (isFile(fullpath))
@@ -843,6 +851,12 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
                                 result[0]}.`);
                            }
                         }
+                     }
+                     else if (isPackage(resultValue))
+                     {
+                        // Store the original identifier in case it is an `imports` package alias.
+                        packageAlias = data.n;
+                        importpath = resultValue;
                      }
                   }
                   else
@@ -881,7 +895,11 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
             const substring = fileData.substring(data.ss, data.se);
 
             // Only add packages exported from the top level as part of the public contract.
-            if (topLevel && s_REGEX_EXPORT.exec(substring)) { packages.add(data.n); }
+            if (topLevel && s_REGEX_EXPORT.exec(substring) && isPackage(data.n))
+            {
+               // Save any package imports alias as the key / value is resolved package name.
+               packages.set(packageAlias ?? data.n, data.n);
+            }
          }
       }
 
@@ -897,7 +915,7 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
       for (const key of keys) { logger.warn(unresolvedImports.get(key)); }
    }
 
-   return { lexerFilepaths: [...lexerFilepaths], packages: [...packages] };
+   return { lexerFilepaths: [...lexerFilepaths], packages };
 }
 
 /**
@@ -946,7 +964,7 @@ function parsePackage(packageName, generateConfig)
    }
 
    /* v8 ignore next 7 */ // Not common; unless a package is malformed.
-   if (typeof packageJSON !== 'object')
+   if (!isObject(packageJSON))
    {
       logger.warn(
        `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`);
@@ -977,24 +995,31 @@ function parsePackage(packageName, generateConfig)
          resolvePath = upath.join(packageDir, ...exportTypesPath);
 
          // If a declaration is found and the file exists return now.
-         if (resolvePath.match(s_REGEX_DTS_EXTENSIONS) && isFile(resolvePath)) { return `./${resolvePath}`; }
+         if (isDTSFile(resolvePath)) { return `./${resolvePath}`; }
       }
    }
    else // Handle older fallback methods for defining default package types.
    {
-      // Now check `package.json` `types` as last fallback.
+      // Now check `package.json` `types`.
       if (typeof packageJSON.types === 'string')
       {
          const lastResolveDTS = `./${upath.join(packageDir, packageJSON.types)}`;
-         if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && isFile(lastResolveDTS)) { return lastResolveDTS; }
+         if (isDTSFile(lastResolveDTS)) { return lastResolveDTS; }
       }
 
-      // The reason this is gated behind a config option is that typically a package without an `exports` / `types` field
-      // in `package.json` is indicative of an older package that might not have compliant types.
+      // Now check `package.json` `typings`.
+      if (typeof packageJSON.typings === 'string')
+      {
+         const lastResolveDTS = `./${upath.join(packageDir, packageJSON.typings)}`;
+         if (isDTSFile(lastResolveDTS)) { return lastResolveDTS; }
+      }
+
+      // The reason this is gated behind a config option is that typically a package without an `exports` / `types`
+      // field in `package.json` is indicative of an older package that might not have compliant types.
       if (generateConfig.checkDefaultPath)
       {
          const lastResolveDTS = `./${packageDir}/index.d.ts`;
-         if (isFile(lastResolveDTS)) { return lastResolveDTS; }
+         if (isDTSFile(lastResolveDTS)) { return lastResolveDTS; }
       }
    }
 
@@ -1190,7 +1215,7 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
       isTSMode,
       lexerFilepaths,
       packages,
-      tsFilepaths
+      tsFilepaths,
    };
 
    // Don't deep freeze `eventbus`.
@@ -1200,46 +1225,55 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
 }
 
 /**
- * Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
- * outDir; default: `./.dts`. As of Typescript v5 it is necessary to copy the external NPM package types to the local
- * output directory.
+ * Attempt to resolve Typescript declarations for any top level exported packages providing a correct alias for Rollup
+ * depending on `bundlePackageExports` and `importsResolve` options.
  *
  * Note: This is useful for libraries that re-bundle NPM modules.
  *
- * @param {Set<string>} packages - List of top level exported packages.
+ * @param {ProcessedConfig}   processedConfig - Processed config.
  *
- * @param {GenerateConfig} generateConfig - The generate configuration.
- *
- * @param {string}   outDir - The DTS output directory path.
- *
- * @returns {{}[]} Resolved local package types.
+ * @returns {import('@rollup/plugin-alias').Alias[]} Resolved local package types for Rollup plugin alias.
  */
-function resolvePackageExports(packages, generateConfig, outDir)
+function resolvePackageExports(processedConfig)
 {
+   const { generateConfig, packages } = processedConfig;
+
+   // Is `importsResolve` active.
+   const hasImportsResolve = typeof generateConfig.importsResolve === 'boolean' && generateConfig.importsResolve;
+
+   const importsResolveKeys = Array.isArray(generateConfig.importsResolve?.importKeys) ?
+    new Set(generateConfig.importsResolve.importKeys) : void 0;
+
    const packageAlias = [];
 
-   for (const packageName of packages)
+   for (const [packageNameOrAlias, packageName] of packages)
    {
-      const resolveDTS = parsePackage(packageName, generateConfig);
-      if (!resolveDTS)
-      {
-         logger.warn(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`);
+      let resolved = packageNameOrAlias;
 
-         continue;
+      if (hasImportsResolve || (importsResolveKeys?.size && importsResolveKeys.has(packageNameOrAlias)))
+      {
+         resolved = packageName;
       }
 
-      const dtsBasename = upath.basename(resolveDTS);
+      if (generateConfig.bundlePackageExports)
+      {
+         resolved = parsePackage(resolved, generateConfig);
 
-      const dtsFileData = fs.readFileSync(resolveDTS, 'utf-8');
-      const outputDir = `${outDir}${upath.sep}._node_modules${upath.sep}${packageName}`;
-      const outputFilepath = `${outputDir}${upath.sep}${dtsBasename}`;
+         if (!resolved)
+         {
+            logger.warn(
+             `resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`);
 
-      fs.ensureDirSync(outputDir);
-      fs.writeFileSync(outputFilepath, dtsFileData, 'utf-8');
+            continue;
+         }
+      }
+
+      // If the resolved package is the same as original package name / alias then skip adding to Rollup plugin alias.
+      if (packageNameOrAlias === resolved) { continue; }
 
       packageAlias.push({
-         find: packageName,
-         replacement: outputFilepath
+         find: packageNameOrAlias,
+         replacement: resolved
       });
    }
 
@@ -1275,7 +1309,6 @@ const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
    outDir: './.dts'
 };
 
-const s_REGEX_DTS_EXTENSIONS = /\.d\.m?ts$/;
 const s_REGEX_EXPORT = /^\s*export/;
 const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
@@ -1414,7 +1447,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * @property {string[]}    lexerFilepaths The lexically parsed original file paths connected with the entry point.
  *
- * @property {string[]}    packages Top level packages exported from entry point.
+ * @property {Map<string, string>} packages Top level packages exported from entry point. Key is the identifier in
+ * source code / may be an `imports` alias / value is the actual package identifier.
  *
  * @property {string[]}    tsFilepaths A list of all TS files to add synthetic exports.
  */
