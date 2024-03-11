@@ -200,7 +200,7 @@ describe('generateDTS()', () =>
                      compilerOptions: {
                         outDir: './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/resolve/partial/.dts'
                      },
-                     importsResolve: { importKeys: ['#importsForTesting/org'] }
+                     importsResolve: { importKeys: ['#importsForTesting/*'] }
                   });
 
                   expect(success).toBe(true);
@@ -318,7 +318,7 @@ describe('generateDTS()', () =>
                      compilerOptions: {
                         outDir: './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/resolve/partial/.dts'
                      },
-                     importsResolve: { importKeys: ['#importsForTesting/org'] }
+                     importsResolve: { importKeys: ['#importsForTesting/*'] }
                   });
 
                   expect(success).toBe(true);
