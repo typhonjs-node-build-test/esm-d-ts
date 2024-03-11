@@ -304,6 +304,10 @@ type ProcessedConfig = {
    */
   packages: Map<string, string>;
   /**
+   * - Closest `package.json` object from input source file.
+   */
+  packageObj: type_fest.PackageJson;
+  /**
    * A list of all TS files to add synthetic exports.
    */
   tsFilepaths: string[];
