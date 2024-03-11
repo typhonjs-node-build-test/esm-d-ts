@@ -11,7 +11,7 @@ import {
 
 import { generateDTS }  from '../../../src/generator/index.js';
 
-describe.skip('Rollup Plugin Imports (generate)', () =>
+describe('Rollup Plugin Imports (generate)', () =>
 {
    beforeAll(() =>
    {
@@ -19,73 +19,234 @@ describe.skip('Rollup Plugin Imports (generate)', () =>
       fs.emptyDirSync('./test/fixture/output/generate/rollup/imports');
    });
 
-   describe('generateDTS.plugin()', () =>
+   describe('importsResolve', () =>
    {
-      describe('external plugin', () =>
+      describe('w/ generateDTS() options', () =>
       {
-         describe('no options', () =>
+         it(`(direct / imports) w/ 'checkDefaultPath'`, async () =>
          {
-            it(`'importsExternal'`, async () =>
-            {
-               const rollupConfig = {
-                  input: {
-                     input: './test/fixture/src/generate/rollup/imports/index.js',
-                     plugins: [
-                        importsExternal(),
-                        resolve(),
-                        generateDTS.plugin({
-                           bundlePackageExports: true,
-                           compilerOptions: { outDir: './test/fixture/output/generate/rollup/imports/external/plugin/.dts' },
-                     })]
-                  },
-                  output: {
-                     file: './test/fixture/output/generate/rollup/imports/external/plugin/index.js',
-                     format: 'es',
-                  }
-               };
+            const generateConfig = {
+               bundlePackageExports: true,
+               checkDefaultPath: true,
+               compilerOptions: {
+                  outDir:
+                   './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/.dts'
+               },
+               importsResolve: true
+            };
 
-               const bundle = await rollup(rollupConfig.input);
-               await bundle.write(rollupConfig.output);
-               await bundle.close();
+            const rollupConfig = {
+               input: {
+                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/index.js',
+                  plugins: [
+                     resolve(),
+                     generateDTS.plugin(generateConfig)
+                  ]
+               },
+               output: {
+                  file: './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/index.js',
+                  format: 'es',
+               }
+            };
 
-               const result = fs.readFileSync('./test/fixture/output/generate/rollup/imports/external/plugin/index.d.ts', 'utf-8');
+            const bundle = await rollup(rollupConfig.input);
+            await bundle.write(rollupConfig.output);
+            await bundle.close();
 
-               // expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/rollup/imports/external/plugin/index.d.ts');
-            });
+            const result = fs.readFileSync(
+             './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/index.d.ts',
+             'utf-8');
 
-            it(`'importsResolve'`, async () =>
-            {
-               const rollupConfig = {
-                  input: {
-                     input: './test/fixture/src/generate/rollup/imports/index.js',
-                     plugins: [
-                        importsResolve(),
-                        resolve(),
-                        generateDTS.plugin({
-                           bundlePackageExports: true,
-                           compilerOptions: { outDir: './test/fixture/output/generate/rollup/imports/resolve/plugin/.dts' },
-                     })]
-                  },
-                  output: {
-                     file: './test/fixture/output/generate/rollup/imports/resolve/plugin/index.js',
-                     format: 'es',
-                  }
-               };
-
-               const bundle = await rollup(rollupConfig.input);
-               await bundle.write(rollupConfig.output);
-               await bundle.close();
-
-               const result = fs.readFileSync('./test/fixture/output/generate/rollup/imports/resolve/plugin/index.d.ts', 'utf-8');
-
-               // expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/rollup/imports/resolve/index-plugin.d.ts');
-            });
+            expect(result).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/index.d.ts');
          });
 
-         // describe('with options', () =>
-         // {
-         //
-         // });
+         it(`(direct / imports partial) w/ 'importKeys option'`, async () =>
+         {
+            const generateConfig = {
+               bundlePackageExports: true,
+               checkDefaultPath: true,
+               compilerOptions: {
+                  outDir: './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/partial/.dts'
+               },
+               importsResolve: { importKeys: ['#importsForTesting/*'] }
+            };
+
+            const rollupConfig = {
+               input: {
+                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/index.js',
+                  plugins: [
+                     resolve(),
+                     generateDTS.plugin(generateConfig)
+                  ]
+               },
+               output: {
+                  file: './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/partial/index.js',
+                  format: 'es',
+               }
+            };
+
+            const bundle = await rollup(rollupConfig.input);
+            await bundle.write(rollupConfig.output);
+            await bundle.close();
+
+            const result = fs.readFileSync(
+             './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/partial/index.d.ts',
+             'utf-8');
+
+            expect(result).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/partial/index.d.ts');
+         });
+
+         it(`(imports / installed)`, async () =>
+         {
+            const generateConfig = {
+               bundlePackageExports: true,
+               compilerOptions: {
+                  outDir: './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/installed/.dts'
+               },
+               importsResolve: true
+            };
+
+            const rollupConfig = {
+               input: {
+                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/installed/index.js',
+                  plugins: [
+                     resolve(),
+                     generateDTS.plugin(generateConfig)
+                  ]
+               },
+               output: {
+                  file: './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/installed/index.js',
+                  format: 'es',
+               }
+            };
+
+            const bundle = await rollup(rollupConfig.input);
+            await bundle.write(rollupConfig.output);
+            await bundle.close();
+
+            const result = fs.readFileSync(
+             './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/installed/index.d.ts',
+             'utf-8');
+
+            expect(result).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/installed/index.d.ts');
+         });
+      });
+
+      describe('w/ external plugins', () =>
+      {
+         it(`(direct / imports) w/ 'checkDefaultPath'`, async () =>
+         {
+            const generateConfig = {
+               bundlePackageExports: true,
+               checkDefaultPath: true,
+               compilerOptions: {
+                  outDir:
+                   './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/.dts'
+               }
+            };
+
+            const rollupConfig = {
+               input: {
+                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/index.js',
+                  plugins: [
+                     importsResolve(),
+                     resolve(),
+                     generateDTS.plugin(generateConfig)
+                  ]
+               },
+               output: {
+                  file: './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/index.js',
+                  format: 'es',
+               }
+            };
+
+            const bundle = await rollup(rollupConfig.input);
+            await bundle.write(rollupConfig.output);
+            await bundle.close();
+
+            const result = fs.readFileSync(
+             './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/index.d.ts',
+              'utf-8');
+
+            expect(result).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/index.d.ts');
+         });
+
+         it(`(direct / imports partial) w/ 'importKeys option'`, async () =>
+         {
+            const generateConfig = {
+               bundlePackageExports: true,
+               checkDefaultPath: true,
+               compilerOptions: {
+                  outDir: './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/partial/.dts'
+               }
+            };
+
+            const rollupConfig = {
+               input: {
+                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/index.js',
+                  plugins: [
+                     importsResolve({ importKeys: ['#importsForTesting/*'] }),
+                     resolve(),
+                     generateDTS.plugin(generateConfig)
+                  ]
+               },
+               output: {
+                  file: './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/partial/index.js',
+                  format: 'es',
+               }
+            };
+
+            const bundle = await rollup(rollupConfig.input);
+            await bundle.write(rollupConfig.output);
+            await bundle.close();
+
+            const result = fs.readFileSync(
+             './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/partial/index.d.ts',
+              'utf-8');
+
+            expect(result).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/partial/index.d.ts');
+         });
+
+         it(`(imports / installed)`, async () =>
+         {
+            const generateConfig = {
+               bundlePackageExports: true,
+               compilerOptions: {
+                  outDir: './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/installed/.dts'
+               }
+            };
+
+            const rollupConfig = {
+               input: {
+                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/installed/index.js',
+                  plugins: [
+                     importsResolve(),
+                     resolve(),
+                     generateDTS.plugin(generateConfig)
+                  ]
+               },
+               output: {
+                  file: './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/installed/index.js',
+                  format: 'es',
+               }
+            };
+
+            const bundle = await rollup(rollupConfig.input);
+            await bundle.write(rollupConfig.output);
+            await bundle.close();
+
+            const result = fs.readFileSync(
+             './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/resolve/installed/index.d.ts',
+              'utf-8');
+
+            expect(result).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/installed/index.d.ts');
+         });
       });
    });
 });
