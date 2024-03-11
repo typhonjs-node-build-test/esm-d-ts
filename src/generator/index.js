@@ -23,6 +23,7 @@ import {
 import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
 import fs                        from 'fs-extra';
+import globToRegExp              from 'glob-to-regexp';
 import { resolve }               from 'import-meta-resolve';
 import * as prettier             from 'prettier';
 import * as resolvePkg           from 'resolve.exports';
@@ -1245,11 +1246,7 @@ function resolvePackageExports(processedConfig)
 {
    const { generateConfig, packages } = processedConfig;
 
-   // Is `importsResolve` active.
-   const hasImportsResolve = typeof generateConfig.importsResolve === 'boolean' && generateConfig.importsResolve;
-
-   const importsResolveKeys = Array.isArray(generateConfig.importsResolve?.importKeys) ?
-    new Set(generateConfig.importsResolve.importKeys) : void 0;
+   const regexImportKeys = resolvePackageImportsKeys(processedConfig);
 
    const packageAlias = [];
 
@@ -1257,9 +1254,17 @@ function resolvePackageExports(processedConfig)
    {
       let resolved = packageNameOrAlias;
 
-      if (hasImportsResolve || (importsResolveKeys?.size && importsResolveKeys.has(packageNameOrAlias)))
+      if (resolved.startsWith('#'))
       {
-         resolved = packageName;
+         // Match against any imports key regexes. If a match is found then substitute for `packageName`.
+         for (const regex of regexImportKeys)
+         {
+            if (regex.test(resolved))
+            {
+               resolved = packageName;
+               break;
+            }
+         }
       }
 
       if (generateConfig.bundlePackageExports)
@@ -1269,7 +1274,7 @@ function resolvePackageExports(processedConfig)
          if (!resolved)
          {
             logger.warn(
-             `resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`);
+             `[resolvePackageExports]: Could not locate TS declaration for package; '${packageName}'.`);
 
             continue;
          }
@@ -1285,6 +1290,66 @@ function resolvePackageExports(processedConfig)
    }
 
    return packageAlias;
+}
+
+/**
+ * Parses the `imports` field of the closest `package.json` from the input source file for import specifier keys that
+ * map to packages.
+ *
+ * @param {ProcessedConfig}   processedConfig - Processed config.
+ *
+ * @returns {RegExp[]} Regexes for any package imports specifier keys.
+ */
+function resolvePackageImportsKeys(processedConfig)
+{
+   const { generateConfig, packageObj } = processedConfig;
+
+   if (generateConfig.importsResolve === void 0 ||
+    (typeof generateConfig.importsResolve === 'boolean' && !generateConfig.importsResolve))
+   {
+      return [];
+   }
+
+   if (!isObject(packageObj?.imports))
+   {
+      logger.warn(`[resolvePackageImportsKeys]: Closest 'package.json' to input source file doesn't have 'imports'.`);
+      return [];
+   }
+
+   const importKeys = Array.isArray(generateConfig.importsResolve?.importKeys) ?
+    new Set(generateConfig.importsResolve.importKeys) : Object.keys(packageObj.imports);
+
+   const regexImportKeys = [];
+
+   for (const key of importKeys)
+   {
+      if (packageObj.imports[key] === void 0)
+      {
+         logger.warn(`[resolvePackageImportsKeys]: Failure to find imports specifier '${key}'.`);
+         continue;
+      }
+
+      try
+      {
+         const importPackage = resolvePkg.imports(packageObj, key)?.[0];
+         if (!importPackage)
+         {
+            logger.warn(`[resolvePackageImportsKeys]: Failure to find imports specifier '${key}'.`);
+         }
+
+         // Skip all local path mappings for imports.
+         if (importPackage.startsWith('.')) { continue; }
+
+         regexImportKeys.push(globToRegExp(key));
+      }
+      catch (err)
+      {
+         logger.warn(
+          `[resolvePackageImportsKeys]: Failure to find imports specifier '${key}'.`);
+      }
+   }
+
+   return regexImportKeys;
 }
 
 /**
