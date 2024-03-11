@@ -689,14 +689,19 @@ function isPackage(identifier)
  *
  * @param {boolean} isTSMode - Is Typescript mode enabled.
  *
- * @returns {Promise<{lexerFilepaths: string[], packages: Map<string, string>}>} Lexically parsed files and top level
- *          packages exported.
+ * @returns {Promise<{
+ *    lexerFilepaths: string[],
+ *    packages: Map<string, string>,
+ *    packageObj: import('type-fest').PackageJson
+ * }>} Lexically parsed files, top level packages exported, and closest `package.json` object from input source file.
  */
 async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 {
    await init;
 
    const { packageObj } = getPackageWithPath({ filepath: generateConfig.input });
+
+   deepFreeze(packageObj);
 
    const entrypoint = [generateConfig.input];
 
@@ -915,7 +920,7 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
       for (const key of keys) { logger.warn(unresolvedImports.get(key)); }
    }
 
-   return { lexerFilepaths: [...lexerFilepaths], packages };
+   return { lexerFilepaths: [...lexerFilepaths], packages, packageObj };
 }
 
 /**
@@ -1170,7 +1175,8 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
    }
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { lexerFilepaths, packages } = await parseFiles(eventbus, generateConfig, compilerOptions, isTSMode);
+   const { lexerFilepaths, packages, packageObj } = await parseFiles(eventbus, generateConfig, compilerOptions,
+    isTSMode);
 
    // Parsed input source files and any TS files found from input root.
    const compileFilepaths = [...lexerFilepaths, ...tsFilepaths];
@@ -1215,6 +1221,7 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
       isTSMode,
       lexerFilepaths,
       packages,
+      packageObj,
       tsFilepaths,
    };
 
@@ -1449,6 +1456,8 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  *
  * @property {Map<string, string>} packages Top level packages exported from entry point. Key is the identifier in
  * source code / may be an `imports` alias / value is the actual package identifier.
+ *
+ * @property {import('type-fest').PackageJson} packageObj - Closest `package.json` object from input source file.
  *
  * @property {string[]}    tsFilepaths A list of all TS files to add synthetic exports.
  */
