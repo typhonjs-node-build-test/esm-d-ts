@@ -162,6 +162,80 @@ describe('generateDTS()', () =>
                 '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/direct/installed/index.d.ts');
             });
 
+            describe('importsExternal', () =>
+            {
+               it(`(direct / imports) w/ 'checkDefaultPath'`, async () =>
+               {
+                  const success = await generateDTS({
+                     bundlePackageExports: true,
+                     checkDefaultPath: true,
+                     input: './test/fixture/src/generate/javascript/packages/imports/external/index.js',
+                     output:
+                      './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/index.d.ts',
+                     logLevel: 'debug',
+                     compilerOptions: {
+                        outDir: './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/.dts'
+                     },
+                     importsExternal: true
+                  });
+
+                  expect(success).toBe(true);
+
+                  const result = fs.readFileSync(
+                   './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/index.d.ts',
+                    'utf-8');
+
+                  expect(result).toMatchFileSnapshot(
+                   '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/index.d.ts');
+               });
+
+               it(`(direct / imports partial) w/ 'importKeys option'`, async () =>
+               {
+                  const success = await generateDTS({
+                     bundlePackageExports: true,
+                     checkDefaultPath: true,
+                     input: './test/fixture/src/generate/javascript/packages/imports/external/index.js',
+                     output: './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/partial/index.d.ts',
+                     logLevel: 'debug',
+                     compilerOptions: {
+                        outDir: './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/partial/.dts'
+                     },
+                     importsExternal: { importKeys: ['#importsForTesting/*'] }
+                  });
+
+                  expect(success).toBe(true);
+
+                  const result = fs.readFileSync(
+                   './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/partial/index.d.ts',
+                    'utf-8');
+
+                  expect(result).toMatchFileSnapshot(
+                   '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/partial/index.d.ts');
+               });
+
+               it(`(imports / installed)`, async () =>
+               {
+                  const success = await generateDTS({
+                     bundlePackageExports: true,
+                     input: './test/fixture/src/generate/javascript/packages/imports/external/installed/index.js',
+                     output: './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/installed/index.d.ts',
+                     logLevel: 'debug',
+                     compilerOptions: {
+                        outDir: './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/installed/.dts'
+                     },
+                     importsExternal: true
+                  });
+
+                  expect(success).toBe(true);
+
+                  const result = fs.readFileSync(
+                   './test/fixture/output/generate/javascript/packages/bundlePackageExports/imports/external/installed/index.d.ts', 'utf-8');
+
+                  expect(result).toMatchFileSnapshot(
+                   '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/installed/index.d.ts');
+               });
+            });
+
             describe('importsResolve', () =>
             {
                it(`(direct / imports) w/ 'checkDefaultPath'`, async () =>
@@ -280,6 +354,77 @@ describe('generateDTS()', () =>
 
                expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/javascript/packages/no-bundlePackageExports/direct/installed/index.d.ts');
+            });
+
+            describe('importsExternal', () =>
+            {
+               it(`(direct / imports) w/ 'checkDefaultPath'`, async () =>
+               {
+                  const success = await generateDTS({
+                     checkDefaultPath: true,
+                     input: './test/fixture/src/generate/javascript/packages/imports/external/index.js',
+                     output:
+                      './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/index.d.ts',
+                     logLevel: 'debug',
+                     compilerOptions: {
+                        outDir: './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/.dts'
+                     },
+                     importsExternal: true
+                  });
+
+                  expect(success).toBe(true);
+
+                  const result = fs.readFileSync(
+                   './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/index.d.ts',
+                    'utf-8');
+
+                  expect(result).toMatchFileSnapshot(
+                   '../../fixture/snapshot/generate/javascript/packages/no-bundlePackageExports/imports/external/index.d.ts');
+               });
+
+               it(`(direct / imports) w/ 'importKeys option'`, async () =>
+               {
+                  const success = await generateDTS({
+                     checkDefaultPath: true,
+                     input: './test/fixture/src/generate/javascript/packages/imports/external/index.js',
+                     output: './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/partial/index.d.ts',
+                     logLevel: 'debug',
+                     compilerOptions: {
+                        outDir: './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/partial/.dts'
+                     },
+                     importsExternal: { importKeys: ['#importsForTesting/*'] }
+                  });
+
+                  expect(success).toBe(true);
+
+                  const result = fs.readFileSync(
+                   './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/partial/index.d.ts',
+                    'utf-8');
+
+                  expect(result).toMatchFileSnapshot(
+                   '../../fixture/snapshot/generate/javascript/packages/no-bundlePackageExports/imports/external/partial/index.d.ts');
+               });
+
+               it(`(imports / installed)`, async () =>
+               {
+                  const success = await generateDTS({
+                     input: './test/fixture/src/generate/javascript/packages/imports/external/installed/index.js',
+                     output: './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/installed/index.d.ts',
+                     logLevel: 'debug',
+                     compilerOptions: {
+                        outDir: './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/installed/.dts'
+                     },
+                     importsExternal: true
+                  });
+
+                  expect(success).toBe(true);
+
+                  const result = fs.readFileSync(
+                   './test/fixture/output/generate/javascript/packages/no-bundlePackageExports/imports/external/installed/index.d.ts', 'utf-8');
+
+                  expect(result).toMatchFileSnapshot(
+                   '../../fixture/snapshot/generate/javascript/packages/no-bundlePackageExports/imports/external/installed/index.d.ts');
+               });
             });
 
             describe('importsResolve', () =>
