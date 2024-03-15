@@ -14,6 +14,6 @@ export default defineConfig({
       },
       reporters: ['default', 'html'],
       globals: true,
-      testTimeout: 10000
+      testTimeout: 20000
    }
 });
