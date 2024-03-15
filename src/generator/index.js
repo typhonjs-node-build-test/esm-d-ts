@@ -86,7 +86,8 @@ async function checkDTS(config)
 
             if (typeof processedConfigOrError === 'string')
             {
-               logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry?.input}'`);
+               logger.error(`checkDTS ${processedConfigOrError}`);
+               logger.error(`Entry point: ${entry?.input}`);
                result = false;
                continue;
             }
@@ -104,7 +105,8 @@ async function checkDTS(config)
 
          if (typeof processedConfigOrError === 'string')
          {
-            logger.error(`checkDTS ${processedConfigOrError} Entry point '${config?.input}'`);
+            logger.error(`checkDTS ${processedConfigOrError}`);
+            logger.error(`Entry point: ${config?.input}`);
             result = false;
          }
          else
@@ -189,7 +191,8 @@ async function generateDTS(config)
 
             if (typeof processedConfigOrError === 'string')
             {
-               logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry?.input}'`);
+               logger.error(`generateDTS ${processedConfigOrError}`);
+               logger.error(`Entry point: ${entry?.input}`);
                result = false;
                continue;
             }
@@ -206,7 +209,8 @@ async function generateDTS(config)
 
          if (typeof processedConfigOrError === 'string')
          {
-            logger.error(`generateDTS ${processedConfigOrError} Entry point '${config?.input}'`);
+            logger.error(`generateDTS ${processedConfigOrError}`);
+            logger.error(`Entry point: ${config?.input}`);
             result = false;
          }
          else
@@ -694,8 +698,10 @@ function isPackage(identifier)
  * @returns {Promise<{
  *    lexerFilepaths: string[],
  *    packages: Map<string, string>,
- *    packageObj: import('type-fest').PackageJson
+ *    packageObj: import('type-fest').PackageJson,
+ *    success: boolean
  * }>} Lexically parsed files, top level packages exported, and closest `package.json` object from input source file.
+ * When `success` is false this indicates there was an error encountered in parsing.
  */
 async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 {
@@ -704,6 +710,8 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
    const { packageObj } = getPackageWithPath({ filepath: generateConfig.input });
 
    deepFreeze(packageObj);
+
+   let success = true;
 
    const entrypoint = [generateConfig.input];
 
@@ -738,6 +746,12 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
          // Must indicate warnings for the case when an `index.js` / `index.mjs` file is referenced by directory.
          if (isDirectory(resolvedPath))
          {
+
+            /* v8 ignore start */
+            // TS will not transpile malformed imports that don't have a proper `index.(m)ts` and diagnostic warnings
+            // are ignored in `DTSPluginTypescript.lexerTransform`, diagnostic logs are not checked in `lexerTransform`.
+            // The following code is never reached, but kept just in case for now.
+            // TODO: Consider removing the if conditional code below.
             if (isTSMode)
             {
                const hasIndexTs = isFile(`${resolvedPath}/index.ts`);
@@ -746,14 +760,18 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
                if (!hasIndexTs && !hasIndexMts)
                {
                   // Could not resolve index reference so skip file.
-                  logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)ts'`);
+                  logger.error(
+                   `Parse files error: detected bare directory import without expected '/index.(m)ts'\ntarget: ${
+                    resolvedPath}`);
 
+                  success = false;
                   continue;
                }
 
                if (hasIndexTs) { resolvedPath = `${resolvedPath}/index.ts`; }
                else if (hasIndexMts) { resolvedPath = `${resolvedPath}/index.mts`; }
             }
+            /* v8 ignore stop */
             else
             {
                const hasIndexJs = isFile(`${resolvedPath}/index.js`);
@@ -762,8 +780,11 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
                if (!hasIndexJs && !hasIndexMjs)
                {
                   // Could not resolve index reference so skip file.
-                  logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
+                  logger.error(
+                   `Parse files error: detected bare directory import without expected '/index.(m)js'\ntarget: ${
+                     resolvedPath}`);
 
+                  success = false;
                   continue;
                }
 
@@ -780,7 +801,8 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 
          if (!isFile(resolvedPath))
          {
-            logger.warn(`parseFiles warning: could not resolve; '${resolvedPath}'`);
+            logger.error(`Parse files error: could not resolve; '${resolvedPath}'`);
+            success = false;
             continue;
          }
 
@@ -918,11 +940,13 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
    // Produce any warnings about unresolved imports specifiers.
    if (unresolvedImports.size > 0)
    {
+      success = false;
+
       const keys = [...unresolvedImports.keys()].sort();
-      for (const key of keys) { logger.warn(unresolvedImports.get(key)); }
+      for (const key of keys) { logger.error(unresolvedImports.get(key)); }
    }
 
-   return { lexerFilepaths: [...lexerFilepaths], packages, packageObj };
+   return { lexerFilepaths: [...lexerFilepaths], packages, packageObj, success };
 }
 
 /**
@@ -1177,8 +1201,13 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
    }
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { lexerFilepaths, packages, packageObj } = await parseFiles(eventbus, generateConfig, compilerOptions,
+   const { lexerFilepaths, packages, packageObj, success } = await parseFiles(eventbus, generateConfig, compilerOptions,
     isTSMode);
+
+   if (!success)
+   {
+      return `error: One or more file parsing errors occurred.`;
+   }
 
    // Parsed input source files and any TS files found from input root.
    const compileFilepaths = [...lexerFilepaths, ...tsFilepaths];
