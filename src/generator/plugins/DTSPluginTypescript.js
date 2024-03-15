@@ -16,7 +16,10 @@ export class DTSPluginTypescript
     */
    lexerTransform({ compilerOptions, fileData })
    {
-      return ts.transpileModule(fileData, {
+      // TODO: Perhaps handle any `diagnostics` warnings here? Typescript when transpiling will remove symbols & imports
+      // that are malformed, but otherwise succeed.
+
+      const { outputText } = ts.transpileModule(fileData, {
          compilerOptions: {
             ...compilerOptions,
             allowImportingTsExtensions: true,
@@ -25,8 +28,9 @@ export class DTSPluginTypescript
          /* v8 ignore next 1 */
          jsDocParsingMode: ts?.JSDocParsingMode?.ParseNone ?? 1, // `ParseNone` added in `TS 5.3+`.
          reportDiagnostics: false
+      });
 
-      }).outputText;
+      return outputText;
    }
 
    // Plugin manager registration ------------------------------------------------------------------------------------
