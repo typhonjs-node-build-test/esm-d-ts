@@ -1,0 +1,14 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] Parse files error: detected bare directory import without expected '/index.(m)js'\ntarget: S:/program/Javascript/projects/TyphonJS/typhonjs-node-build-test/esm-d-ts/test/fixture/src/generate/javascript/errors/parseFile/dir-missing-index/empty\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Parse files error: could not resolve; 'S:/program/Javascript/projects/TyphonJS/typhonjs-node-build-test/esm-d-ts/test/fixture/src/generate/javascript/errors/parseFile/dir-missing-index/missing.js'\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] generateDTS error: One or more file parsing errors occurred.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: ./test/fixture/src/generate/javascript/errors/parseFile/dir-missing-index/index.js\u001b[0m"
+  ]
+]
