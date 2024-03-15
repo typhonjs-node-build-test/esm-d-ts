@@ -6,6 +6,9 @@
     "test/fixture/src/generate/javascript/type-warning/index.js (8,1)\u001b[33m: [TS] Type 'string' is not assignable to type 'number'.\u001b[0m"
   ],
   [
-    "\u001b[31m[esm-d-ts] checkDTS error: Aborting as 'config' must be an object. Entry point 'undefined'\u001b[0m"
+    "\u001b[31m[esm-d-ts] checkDTS error: Aborting as 'config' must be an object.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: undefined\u001b[0m"
   ]
 ]

@@ -93,6 +93,9 @@
     "\u001b[31m[esm-d-ts] validateConfig error: 'config.rollupOnwarn' must be a function.\u001b[0m"
   ],
   [
-    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config' failed validation. Entry point 'bad-path.js'\u001b[0m"
+    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config' failed validation.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: bad-path.js\u001b[0m"
   ]
 ]

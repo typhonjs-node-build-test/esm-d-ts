@@ -3,6 +3,9 @@
     "\u001b[31m[esm-d-ts] [TS] Argument for '--module' option must be: 'none', 'commonjs', 'amd', 'system', 'umd', 'es6', 'es2015', 'es2020', 'es2022', 'esnext', 'node16', 'nodenext'.\u001b[0m"
   ],
   [
-    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config.compilerOptions' failed validation. Entry point './test/fixture/src/generate/javascript/valid/index.js'\u001b[0m"
+    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config.compilerOptions' failed validation.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: ./test/fixture/src/generate/javascript/valid/index.js\u001b[0m"
   ]
 ]

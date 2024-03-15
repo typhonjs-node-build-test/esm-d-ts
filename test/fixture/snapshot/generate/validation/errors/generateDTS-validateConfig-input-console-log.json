@@ -6,6 +6,9 @@
     "\u001b[31m[esm-d-ts] validateConfig error: 'config.outputExt' must be a string.\u001b[0m"
   ],
   [
-    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config' failed validation. Entry point 'null'\u001b[0m"
+    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config' failed validation.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: null\u001b[0m"
   ]
 ]
