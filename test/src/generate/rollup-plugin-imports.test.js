@@ -37,7 +37,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/external/index.js',
+                  input: './test/fixture/src/generate/packages/imports/external/index.js',
                   plugins: [
                      resolve(),
                      generateDTS.plugin(generateConfig)
@@ -58,7 +58,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/index.d.ts');
          });
 
          it(`(direct / imports partial) w/ 'importKeys option'`, async () =>
@@ -74,7 +74,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/external/index.js',
+                  input: './test/fixture/src/generate/packages/imports/external/index.js',
                   plugins: [
                      resolve(),
                      generateDTS.plugin(generateConfig)
@@ -95,7 +95,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/partial/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/partial/index.d.ts');
          });
 
          it(`(imports / installed)`, async () =>
@@ -110,7 +110,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/external/installed/index.js',
+                  input: './test/fixture/src/generate/packages/imports/external/installed/index.js',
                   plugins: [
                      resolve(),
                      generateDTS.plugin(generateConfig)
@@ -131,7 +131,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/installed/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/installed/index.d.ts');
          });
       });
 
@@ -150,7 +150,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/external/index.js',
+                  input: './test/fixture/src/generate/packages/imports/external/index.js',
                   plugins: [
                      importsExternal(),
                      resolve(),
@@ -172,7 +172,7 @@ describe('Rollup Plugin Imports (generate)', () =>
               'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/index.d.ts');
          });
 
          it(`(direct / imports partial) w/ 'importKeys option'`, async () =>
@@ -187,7 +187,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/external/index.js',
+                  input: './test/fixture/src/generate/packages/imports/external/index.js',
                   plugins: [
                      importsExternal({ importKeys: ['#importsForTesting/*'] }),
                      resolve(),
@@ -209,7 +209,7 @@ describe('Rollup Plugin Imports (generate)', () =>
               'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/partial/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/partial/index.d.ts');
          });
 
          it(`(imports / installed)`, async () =>
@@ -223,7 +223,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/external/installed/index.js',
+                  input: './test/fixture/src/generate/packages/imports/external/installed/index.js',
                   plugins: [
                      importsExternal(),
                      resolve(),
@@ -245,7 +245,7 @@ describe('Rollup Plugin Imports (generate)', () =>
               'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/external/installed/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/installed/index.d.ts');
          });
       });
    });
@@ -268,7 +268,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/index.js',
+                  input: './test/fixture/src/generate/packages/imports/resolve/index.js',
                   plugins: [
                      resolve(),
                      generateDTS.plugin(generateConfig)
@@ -289,7 +289,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/index.d.ts');
          });
 
          it(`(direct / imports partial) w/ 'importKeys option'`, async () =>
@@ -305,7 +305,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/index.js',
+                  input: './test/fixture/src/generate/packages/imports/resolve/index.js',
                   plugins: [
                      resolve(),
                      generateDTS.plugin(generateConfig)
@@ -326,7 +326,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/partial/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/partial/index.d.ts');
          });
 
          it(`(imports / installed)`, async () =>
@@ -341,7 +341,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/installed/index.js',
+                  input: './test/fixture/src/generate/packages/imports/resolve/installed/index.js',
                   plugins: [
                      resolve(),
                      generateDTS.plugin(generateConfig)
@@ -362,7 +362,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/installed/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/installed/index.d.ts');
          });
       });
 
@@ -381,7 +381,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/index.js',
+                  input: './test/fixture/src/generate/packages/imports/resolve/index.js',
                   plugins: [
                      importsResolve(),
                      resolve(),
@@ -403,7 +403,7 @@ describe('Rollup Plugin Imports (generate)', () =>
               'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/index.d.ts');
          });
 
          it(`(direct / imports partial) w/ 'importKeys option'`, async () =>
@@ -418,7 +418,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/index.js',
+                  input: './test/fixture/src/generate/packages/imports/resolve/index.js',
                   plugins: [
                      importsResolve({ importKeys: ['#importsForTesting/*'] }),
                      resolve(),
@@ -440,7 +440,7 @@ describe('Rollup Plugin Imports (generate)', () =>
               'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/partial/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/partial/index.d.ts');
          });
 
          it(`(imports / installed)`, async () =>
@@ -454,7 +454,7 @@ describe('Rollup Plugin Imports (generate)', () =>
 
             const rollupConfig = {
                input: {
-                  input: './test/fixture/src/generate/javascript/packages/imports/resolve/installed/index.js',
+                  input: './test/fixture/src/generate/packages/imports/resolve/installed/index.js',
                   plugins: [
                      importsResolve(),
                      resolve(),
@@ -476,7 +476,7 @@ describe('Rollup Plugin Imports (generate)', () =>
               'utf-8');
 
             expect(result).toMatchFileSnapshot(
-             '../../fixture/snapshot/generate/javascript/packages/bundlePackageExports/imports/resolve/installed/index.d.ts');
+             '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/installed/index.d.ts');
          });
       });
    });
