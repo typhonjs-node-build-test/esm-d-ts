@@ -524,9 +524,6 @@ async function compile(processedConfig, isGenerate)
       ...(typeof generateConfig.removePrivateStatic === 'boolean' && generateConfig.removePrivateStatic ?
        [removePrivateStatic()] : []),
 
-      ...(typeof generateConfig.filterTags === 'string' || isIterable(generateConfig.filterTags) ?
-       [jsdocRemoveNodeByTags(generateConfig.filterTags)] : []),
-
       ...(tsFilepaths.length ? [addSyntheticExports(generateConfig.input, tsFilepaths)] : []),
    ];
 
