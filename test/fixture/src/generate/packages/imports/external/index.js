@@ -4,4 +4,5 @@
 
 export * from '#importsForTesting/org';
 export * from 'esm-d-ts-test-basic';
+export * from 'esm-d-ts-test-basic-typings';
 export * from '#importsForTesting2';
