@@ -3,7 +3,8 @@ import fs               from 'fs-extra';
 
 import {
    beforeAll,
-   expect }             from 'vitest';
+   expect,
+   vi }                 from 'vitest';
 
 import { generateDTS }  from '../../../src/generator/index.js';
 
@@ -142,6 +143,37 @@ describe('generateDTS() package options', () =>
 
             describe('importsResolve', () =>
             {
+               it(`(direct / warning no types)'`, async () =>
+               {
+                  const consoleLog = [];
+                  vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+                  const success = await generateDTS({
+                     bundlePackageExports: true,
+                     input: './test/fixture/src/generate/packages/imports/resolve-warning/index.js',
+                     output:
+                      './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/index.d.ts',
+                     compilerOptions: {
+                        outDir: './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/.dts'
+                     },
+                     importsResolve: true
+                  });
+
+                  vi.restoreAllMocks();
+
+                  expect(success).toBe(true);
+
+                  const result = fs.readFileSync(
+                   './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/index.d.ts',
+                    'utf-8');
+
+                  expect(result).toMatchFileSnapshot(
+                   '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/index.d.ts');
+
+                  expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+                   '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/console-log.json');
+               });
+
                it(`(direct / imports) w/ 'checkDefaultPath'`, async () =>
                {
                   const success = await generateDTS({
