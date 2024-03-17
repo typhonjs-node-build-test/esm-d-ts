@@ -1306,7 +1306,7 @@ function resolveLocalImports(processedConfig)
       importsAlias.push({
          find: importKey,
          replacement: upath.join(dtsDirectoryPath, upath.trimExt(importPath))
-      })
+      });
    }
 
    return importsAlias;
@@ -1326,7 +1326,7 @@ function resolvePackageExports(processedConfig)
 {
    const { generateConfig, packages } = processedConfig;
 
-   const { isImportsExternalKey, isImportsResolveKey } = resolvePackageImportsKeys(processedConfig);
+   const { isImportsExternalKey, isImportsResolveKey } = resolvePackageImportKeys(processedConfig);
 
    const packageAlias = [];
 
@@ -1380,7 +1380,7 @@ function resolvePackageExports(processedConfig)
  * })} Respective functions to test if a given package name / alias is an `imports` key for resolution or marked as
  *     external.
  */
-function resolvePackageImportsKeys(processedConfig)
+function resolvePackageImportKeys(processedConfig)
 {
    const { generateConfig, packageObj } = processedConfig;
 
@@ -1432,16 +1432,14 @@ function resolvePackageImportsKeys(processedConfig)
    }
 
    // Collect all relevant `importsExternal` keys.
-   if (generateConfig.importsExternal !== void 0 ||
-    (typeof generateConfig.importsExternal === 'boolean' && generateConfig.importsExternal))
+   if (generateConfig.importsExternal !== void 0)
    {
       importsExternalKeys = new Set(Array.isArray(generateConfig.importsExternal?.importKeys) ?
        generateConfig.importsExternal.importKeys : Object.keys(packageObj.imports));
    }
 
    // Collect all relevant `importsResolve` keys.
-   if (generateConfig.importsResolve !== void 0 ||
-    (typeof generateConfig.importsResolve === 'boolean' && generateConfig.importsResolve))
+   if (generateConfig.importsResolve !== void 0)
    {
       importsResolveKeys = new Set(Array.isArray(generateConfig.importsResolve?.importKeys) ?
        generateConfig.importsResolve.importKeys : Object.keys(packageObj.imports));
@@ -1455,20 +1453,16 @@ function resolvePackageImportsKeys(processedConfig)
 
    for (const key of allImportsKeys)
    {
-      // The given `package.json` does not have an entry for the given key.
-      if (packageObj.imports[key] === void 0)
-      {
-         lookupFailureKeys.add(key);
-         continue;
-      }
-
       try
       {
          const importPackage = resolvePkg.imports(packageObj, key)?.[0];
-         if (!importPackage) { lookupFailureKeys.add(key); }
 
          // Skip all local path mappings for imports and anything that isn't a package.
-         if (importPackage.startsWith('.') || !isPackage(importPackage)) { continue; }
+         if (!isPackage(importPackage))
+         {
+            logger.warn(`[resolvePackageImportKeys]: Imports specifier does not reference a package '${key}'.`);
+            continue;
+         }
 
          const regex = globToRegExp(key);
 
@@ -1483,7 +1477,7 @@ function resolvePackageImportsKeys(processedConfig)
 
    for (const key of lookupFailureKeys)
    {
-      logger.warn(`[resolvePackageImportsKeys]: Failure to find imports specifier '${key}'.`);
+      logger.warn(`[resolvePackageImportKeys]: Failure to find imports specifier '${key}'.`);
    }
 
    return { isImportsExternalKey, isImportsResolveKey };
