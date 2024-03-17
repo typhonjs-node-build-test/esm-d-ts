@@ -8,4 +8,11 @@ export * from 'esm-d-ts-test-default';
  */
 declare const testBasic: string;
 
-export { testBasic };
+/**
+ * A basic named export to test `package.json` `typings` property.
+ *
+ * @type {string}
+ */
+declare const testTypings: string;
+
+export { testBasic, testTypings };
