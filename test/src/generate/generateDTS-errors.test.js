@@ -66,6 +66,28 @@ describe('generateDTS() warnings / errors', () =>
              '../../fixture/snapshot/generate/javascript/errors/parseFile/generateDTS-dir-missing-index.json');
          });
       });
+
+      describe('Malformed tsconfig.json referenced', () =>
+      {
+         it('valid w/ tsconfig', async () =>
+         {
+            const consoleLog = [];
+            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+            const success = await generateDTS({
+               input: './test/fixture/src/generate/javascript/valid/index.js',
+               output: './test/fixture/output/generate/javascript/errors/missing-tsconfig/index.d.ts',
+               tsconfig: './test/fixture/data/tsconfig-malformed.json'
+            });
+
+            vi.restoreAllMocks();
+
+            expect(success).toBe(false);
+
+            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/errors/tsconfig/malformed-tsconfig.json');
+         });
+      });
    });
 
    describe('Typescript', () =>

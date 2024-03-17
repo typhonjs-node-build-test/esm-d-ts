@@ -1,0 +1,8 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'tsconfig' path is specified, but failed to load; 'Unexpected end of JSON input'\ntsconfig path: ./test/fixture/data/tsconfig-malformed.json;\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: ./test/fixture/src/generate/javascript/valid/index.js\u001b[0m"
+  ]
+]

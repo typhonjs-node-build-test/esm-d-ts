@@ -1,0 +1,5 @@
+{
+  "compilerOptions" : {
+    "outDir" : "./test/fixture/output/generate/javascript/valid-tsconfig/.dts"
+  }
+}

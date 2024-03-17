@@ -74,6 +74,21 @@ describe('generateDTS()', () =>
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
+      it('valid w/ tsconfig', async () =>
+      {
+         const success = await generateDTS({
+            input: './test/fixture/src/generate/javascript/valid/index.js',
+            output: './test/fixture/output/generate/javascript/valid-tsconfig/index.d.ts',
+            tsconfig: './test/fixture/data/tsconfig-valid.json'
+         });
+
+         expect(success).toBe(true);
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-tsconfig/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+      });
+
       it('valid w/ iterable config (error)', async () =>
       {
          const config = [
