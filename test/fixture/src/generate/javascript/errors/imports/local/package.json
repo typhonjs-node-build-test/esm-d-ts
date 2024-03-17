@@ -1,0 +1,6 @@
+{
+  "description" : "Provides `imports` lookup for testing; note: missing #importsForLocal2",
+  "imports": {
+    "#importsForLocal": "./src/local-bad-path.js"
+  }
+}

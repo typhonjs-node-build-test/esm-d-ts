@@ -1,0 +1,14 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] Imports specifier '#importsForLocal' in package imports did not resolve to an existing file: ./src/local-bad-path.js.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Missing '#importsForLocal2' specifier in package imports.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] generateDTS error: One or more file parsing errors occurred.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: ./test/fixture/src/generate/javascript/errors/imports/local/src/index.js\u001b[0m"
+  ]
+]

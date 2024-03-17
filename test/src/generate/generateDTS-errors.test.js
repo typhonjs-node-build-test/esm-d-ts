@@ -18,6 +18,31 @@ describe('generateDTS() warnings / errors', () =>
 
    describe('Javascript', () =>
    {
+      describe(`Bad 'imports' from 'package.json'`, () =>
+      {
+         it(`Bad path / missing import`, async () =>
+         {
+            const consoleLog = [];
+            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+            const success = await generateDTS({
+               input: './test/fixture/src/generate/javascript/errors/imports/local/src/index.js',
+               output: './test/fixture/output/generate/javascript/errors/imports/local/index.d.ts',
+               logLevel: 'debug',
+               compilerOptions: {
+                  outDir: './test/fixture/output/generate/javascript/errors/imports/local/.dts'
+               },
+            });
+
+            vi.restoreAllMocks();
+
+            expect(success).toBe(false);
+
+            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/errors/imports/local/bad-path-missing-import.json');
+         });
+      });
+
       describe('parseFiles()', () =>
       {
          // Tests when a directory is referenced in an import, but without a corresponding `index.(m)js` file.
