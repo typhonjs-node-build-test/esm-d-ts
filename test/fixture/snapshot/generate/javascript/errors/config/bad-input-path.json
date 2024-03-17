@@ -1,0 +1,14 @@
+[
+  [
+    "\u001b[32m[esm-d-ts] Generating DTS bundle for: ./test/fixture/src/generate/javascript/valid/index.js\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.input' file does not exist.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config' failed validation.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: ./a-bad-path.js\u001b[0m"
+  ]
+]

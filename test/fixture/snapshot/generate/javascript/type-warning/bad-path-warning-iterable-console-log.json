@@ -1,0 +1,17 @@
+[
+  [
+    "\u001b[32m[esm-d-ts] Checking DTS bundle for: ./test/fixture/src/generate/javascript/type-warning/index.js\u001b[0m"
+  ],
+  [
+    "test/fixture/src/generate/javascript/type-warning/index.js (8,1)\u001b[33m: [TS] Type 'string' is not assignable to type 'number'.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.input' file does not exist.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] checkDTS error: Aborting as 'config' failed validation.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: ./a-bad-path.js\u001b[0m"
+  ]
+]

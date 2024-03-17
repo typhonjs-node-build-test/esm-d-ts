@@ -18,9 +18,54 @@ describe('generateDTS() warnings / errors', () =>
 
    describe('Javascript', () =>
    {
-      describe(`Bad 'imports' from 'package.json'`, () =>
+      describe('Errors', () =>
       {
-         it(`Bad path / missing import`, async () =>
+         it('iterable config (error)', async () =>
+         {
+            const config = [
+               {
+                  input: './test/fixture/src/generate/javascript/valid/index.js',
+                  output: './test/fixture/output/generate/javascript/valid-iterable/index.d.ts',
+                  compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid-iterable/.dts' },
+               },
+               null // This will produce an error in `processConfig`.
+            ];
+
+            const success = await generateDTS(config);
+
+            // `null` config above will cause false to return indicating not all configs ran.
+            expect(success).toBe(false);
+         });
+
+         it('iterable config w/ bad path (error)', async () =>
+         {
+            const consoleLog = [];
+            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+            const config = [
+               {
+                  input: './test/fixture/src/generate/javascript/valid/index.js',
+                  output: './test/fixture/output/generate/javascript/valid-iterable/index.d.ts',
+                  compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid-iterable/.dts' },
+               },
+               {
+                  input: './a-bad-path.js',
+                  compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid-iterable/.dts' },
+               }
+            ];
+
+            const success = await generateDTS(config);
+
+            vi.restoreAllMocks();
+
+            // `null` config above will cause false to return indicating not all configs ran.
+            expect(success).toBe(false);
+
+            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+             '../../fixture/snapshot/generate/javascript/errors/config/bad-input-path.json');
+         });
+
+         it(`Bad path / missing 'import' from 'package.json'`, async () =>
          {
             const consoleLog = [];
             vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));

@@ -44,5 +44,26 @@ describe('checkDTS()', () =>
          expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           `../../fixture/snapshot/generate/javascript/type-warning/warning-iterable-console-log.json`);
       });
+
+      it('type warning w/ iterable config (error)', async () =>
+      {
+         const consoleLog = [];
+         vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+         const config = [
+            { input: './test/fixture/src/generate/javascript/type-warning/index.js' },
+            { input: './a-bad-path.js' }
+         ];
+
+         const success = await checkDTS(config);
+
+         vi.restoreAllMocks();
+
+         // `null` config above will cause false to return indicating not all configs ran.
+         expect(success).toBe(false);
+
+         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+          `../../fixture/snapshot/generate/javascript/type-warning/bad-path-warning-iterable-console-log.json`);
+      });
    });
 });
