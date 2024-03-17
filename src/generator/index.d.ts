@@ -299,6 +299,11 @@ type ProcessedConfig = {
    */
   lexerFilepaths: string[];
   /**
+   * Contains local files referenced by `package.json` `imports`
+   * field.
+   */
+  localPackageImports: Map<string, string>;
+  /**
    * Top level packages exported from entry point. Key is the identifier in
    * source code / may be an `imports` alias / value is the actual package identifier.
    */
