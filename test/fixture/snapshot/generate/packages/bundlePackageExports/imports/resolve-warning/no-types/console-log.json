@@ -1,6 +1,6 @@
 [
   [
-    "\u001b[32m[esm-d-ts] Generating DTS bundle for: ./test/fixture/src/generate/packages/imports/resolve-warning/index.js\u001b[0m"
+    "\u001b[32m[esm-d-ts] Generating DTS bundle for: ./test/fixture/src/generate/packages/imports/resolve-warning/no-types/index.js\u001b[0m"
   ],
   [
     "\u001b[33m[esm-d-ts] [resolvePackageExports]: Could not locate TS declaration for package; 'esm-d-ts-test-no-types'.\u001b[0m"

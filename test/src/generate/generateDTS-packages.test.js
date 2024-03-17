@@ -143,35 +143,100 @@ describe('generateDTS() package options', () =>
 
             describe('importsResolve', () =>
             {
-               it(`(direct / warning no types)'`, async () =>
+               describe('warnings', () =>
                {
-                  const consoleLog = [];
-                  vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+                  it(`(direct / no types)`, async () =>
+                  {
+                     const consoleLog = [];
+                     vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
 
-                  const success = await generateDTS({
-                     bundlePackageExports: true,
-                     input: './test/fixture/src/generate/packages/imports/resolve-warning/index.js',
-                     output:
-                      './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/index.d.ts',
-                     compilerOptions: {
-                        outDir: './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/.dts'
-                     },
-                     importsResolve: true
+                     const success = await generateDTS({
+                        bundlePackageExports: true,
+                        input: './test/fixture/src/generate/packages/imports/resolve-warning/no-types/index.js',
+                        output:
+                         './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index.d.ts',
+                        compilerOptions: {
+                           outDir: './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/.dts'
+                        },
+                        importsResolve: true
+                     });
+
+                     vi.restoreAllMocks();
+
+                     expect(success).toBe(true);
+
+                     const result = fs.readFileSync(
+                      './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index.d.ts',
+                       'utf-8');
+
+                     expect(result).toMatchFileSnapshot(
+                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index.d.ts');
+
+                     expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/console-log.json');
                   });
 
-                  vi.restoreAllMocks();
+                  it(`(importKeys not package)`, async () =>
+                  {
+                     const consoleLog = [];
+                     vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
 
-                  expect(success).toBe(true);
+                     const success = await generateDTS({
+                        bundlePackageExports: true,
+                        input: './test/fixture/src/generate/packages/imports/resolve-warning/not-package/index.js',
+                        output:
+                         './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/not-package/index.d.ts',
+                        compilerOptions: {
+                           outDir: './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/not-package/.dts'
+                        },
+                        importsResolve: { importKeys: ['#importsNotPackage', '#importsForTesting/*'] }
+                     });
 
-                  const result = fs.readFileSync(
-                   './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/index.d.ts',
-                    'utf-8');
+                     vi.restoreAllMocks();
 
-                  expect(result).toMatchFileSnapshot(
-                   '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/index.d.ts');
+                     expect(success).toBe(true);
 
-                  expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
-                   '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/console-log.json');
+                     const result = fs.readFileSync(
+                      './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/not-package/index.d.ts',
+                       'utf-8');
+
+                     expect(result).toMatchFileSnapshot(
+                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/not-package/index.d.ts');
+
+                     expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/not-package/console-log.json');
+                  });
+
+                  it(`(imports / bad importKeys)`, async () =>
+                  {
+                     const consoleLog = [];
+                     vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+                     const success = await generateDTS({
+                        bundlePackageExports: true,
+                        input: './test/fixture/src/generate/packages/imports/resolve/index.js',
+                        output:
+                         './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/bad-importKey/index.d.ts',
+                        compilerOptions: {
+                           outDir: './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/bad-importKey/.dts'
+                        },
+                        importsResolve: { importKeys: ['BAD_KEY', '#importsForTesting/*', '#importsForTesting2'] }
+                     });
+
+                     vi.restoreAllMocks();
+
+                     expect(success).toBe(true);
+
+                     const result = fs.readFileSync(
+                      './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/bad-importKey/index.d.ts',
+                       'utf-8');
+
+                     expect(result).toMatchFileSnapshot(
+                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/bad-importKey/index.d.ts');
+
+                     expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/bad-importKey/console-log.json');
+                  });
                });
 
                it(`(direct / imports) w/ 'checkDefaultPath'`, async () =>

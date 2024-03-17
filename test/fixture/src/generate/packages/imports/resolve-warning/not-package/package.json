@@ -1,0 +1,7 @@
+{
+  "description" : "Provides `imports` lookup for testing.",
+  "imports": {
+    "#importsForTesting/*": "@esm-d-ts-test/*",
+    "#importsNotPackage": "./not-package.js"
+  }
+}
