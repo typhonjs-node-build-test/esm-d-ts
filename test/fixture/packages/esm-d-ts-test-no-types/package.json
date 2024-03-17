@@ -1,0 +1,7 @@
+{
+  "name": "esm-d-ts-test-no-types",
+  "version" : "0.0.0",
+  "type" : "module",
+  "main": "./index.js",
+  "module": "./index.js"
+}

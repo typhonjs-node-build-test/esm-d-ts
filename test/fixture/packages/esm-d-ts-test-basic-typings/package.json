@@ -1,0 +1,8 @@
+{
+  "name": "esm-d-ts-test-basic-typings",
+  "version" : "0.0.0",
+  "type" : "module",
+  "typings": "./types.d.ts",
+  "main": "./index.js",
+  "module": "./index.js"
+}
