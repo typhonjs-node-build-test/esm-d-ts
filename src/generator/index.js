@@ -370,6 +370,7 @@ async function bundleDTS(processedConfig, dtsEntryPathActual, jsdocModuleComment
 
    plugins.push(...[
       alias({ entries: resolvePackageExports(processedConfig) }),
+      alias({ entries: resolveLocalImports(processedConfig) }),
       dts()
    ]);
 
@@ -694,6 +695,7 @@ function isPackage(identifier)
  *
  * @returns {Promise<{
  *    lexerFilepaths: string[],
+ *    localPackageImports: Map<string, string>,
  *    packages: Map<string, string>,
  *    packageObj: import('type-fest').PackageJson,
  *    success: boolean
@@ -704,7 +706,9 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 {
    await init;
 
-   const { packageObj } = getPackageWithPath({ filepath: generateConfig.input });
+   const { packageObj, filepathUnix } = getPackageWithPath({ filepath: generateConfig.input });
+
+   const packageDir = upath.dirname(filepathUnix);
 
    deepFreeze(packageObj);
 
@@ -722,6 +726,13 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
     * @type {Map<string, string>}
     */
    const packages = new Map();
+
+   /**
+    * Stores any local files referenced by `imports` in `package.json`.
+    *
+    * @type {Map<any, any>}
+    */
+   const localPackageImports = new Map();
 
    /**
     * Stores any unresolved imports from the closest `package.json` from `config.input`. The key is the import symbol
@@ -863,10 +874,15 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
                      // `config.conditionImports` should be provided for a more specific lookup as necessary.
                      if (resultValue?.startsWith?.('.'))
                      {
-                        const fullpath = upath.resolve(result[0]);
+                        // Join `package.json` directory with local file path as there may be an intermediate
+                        // `package.json` above the project root.
+                        const fullpath = upath.resolve(upath.join(packageDir, resultValue));
+
                         if (isFile(fullpath))
                         {
                            importpath = fullpath;
+
+                           if (!localPackageImports.has(data.n)) { localPackageImports.set(data.n, fullpath); }
                         }
                         else
                         {
@@ -874,7 +890,7 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
                            {
                               unresolvedImports.set(data.n,
                                `Imports specifier '${data.n}' in package imports did not resolve to an existing file: ${
-                                result[0]}.`);
+                                resultValue}.`);
                            }
                         }
                      }
@@ -943,7 +959,7 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
       for (const key of keys) { logger.error(unresolvedImports.get(key)); }
    }
 
-   return { lexerFilepaths: [...lexerFilepaths], packages, packageObj, success };
+   return { lexerFilepaths: [...lexerFilepaths], localPackageImports, packages, packageObj, success };
 }
 
 /**
@@ -1198,8 +1214,12 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
    }
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { lexerFilepaths, packages, packageObj, success } = await parseFiles(eventbus, generateConfig, compilerOptions,
-    isTSMode);
+   const {
+      lexerFilepaths,
+      localPackageImports,
+      packages,
+      packageObj,
+      success } = await parseFiles(eventbus, generateConfig, compilerOptions, isTSMode);
 
    if (!success)
    {
@@ -1227,6 +1247,12 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
    const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, generateConfig.input) :
     upath.basename(generateConfig.input);
 
+   // Rewrite `#imports` referenced file paths with the relative path from commonPathFiles.
+   for (const [importKey, importPath] of localPackageImports)
+   {
+      localPackageImports.set(importKey, upath.relative(commonPathFiles, importPath));
+   }
+
    // Get the input DTS entry point; this is without DTS extension change which occurs after compilation.
    const dtsEntryPath = `${compilerOptions.outDir}/${localRelativePath}`;
    const dtsDirectoryPath = compilerOptions.outDir;
@@ -1248,6 +1274,7 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
       inputRelativeDir,
       isTSMode,
       lexerFilepaths,
+      localPackageImports,
       packages,
       packageObj,
       tsFilepaths,
@@ -1257,6 +1284,31 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
    deepFreeze(processedConfig, new Set(['eventbus']));
 
    return processedConfig;
+}
+
+/**
+ * Resolve local `imports` files from `package.json` substituting the `#imports` alias for the actual path in
+ * generated declarations.
+ *
+ * @param {ProcessedConfig}   processedConfig - Processed config.
+ *
+ * @returns {import('@rollup/plugin-alias').Alias[]} Resolved local `imports` files for Rollup plugin alias.
+ */
+function resolveLocalImports(processedConfig)
+{
+   const { dtsDirectoryPath, localPackageImports } = processedConfig;
+
+   const importsAlias = [];
+
+   for (const [importKey, importPath] of localPackageImports)
+   {
+      importsAlias.push({
+         find: importKey,
+         replacement: upath.join(dtsDirectoryPath, upath.trimExt(importPath))
+      })
+   }
+
+   return importsAlias;
 }
 
 /**
@@ -1601,6 +1653,9 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {boolean}     isTSMode Indicates if the Typescript mode / processing is enabled.
  *
  * @property {string[]}    lexerFilepaths The lexically parsed original file paths connected with the entry point.
+ *
+ * @property {Map<string, string>} localPackageImports Contains local files referenced by `package.json` `imports`
+ * field.
  *
  * @property {Map<string, string>} packages Top level packages exported from entry point. Key is the identifier in
  * source code / may be an `imports` alias / value is the actual package identifier.
