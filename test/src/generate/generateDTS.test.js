@@ -38,6 +38,26 @@ describe('generateDTS()', () =>
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/dir-resolve/index.d.ts');
       });
 
+      it(`local file 'imports' path`, async () =>
+      {
+         const success = await generateDTS({
+            input: './test/fixture/src/generate/javascript/imports/local/src/index.js',
+            output: './test/fixture/output/generate/javascript/imports/local/index.d.ts',
+            logLevel: 'debug',
+            compilerOptions: {
+               outDir: './test/fixture/output/generate/javascript/imports/local/.dts'
+            },
+         });
+
+         expect(success).toBe(true);
+
+         const result = fs.readFileSync(
+          './test/fixture/output/generate/javascript/imports/local/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot(
+          '../../fixture/snapshot/generate/javascript/imports/local/index.d.ts');
+      });
+
       it('valid', async () =>
       {
          const success = await generateDTS({

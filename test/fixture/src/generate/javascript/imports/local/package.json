@@ -1,0 +1,7 @@
+{
+  "description" : "Provides `imports` lookup for testing.",
+  "imports": {
+    "#importsForLocal": "./src/local.js",
+    "#importsForLocal2": "./other/other.js"
+  }
+}
