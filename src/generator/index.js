@@ -852,6 +852,7 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
 
          for (const data of imports)
          {
+            /* v8 ignore next 1 */ // Skip if import target is not defined or is a dynamic import.
             if (data.n === void 0 || data.d === -2) { continue; }
 
             // Stores original `imports` package alias if any.
