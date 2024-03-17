@@ -901,6 +901,7 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
                         importpath = resultValue;
                      }
                   }
+                  /* v8 ignore next 7 */ // `resolve.exports` throws on error, but this is a sanity catch all.
                   else
                   {
                      if (!unresolvedImports.has(data.n))
@@ -1423,6 +1424,7 @@ function resolvePackageImportsKeys(processedConfig)
       return false;
    }
 
+   /* v8 ignore next 5 */ // Sanity check case. A failure would have already occurred in `parseFiles`.
    if (!isObject(packageObj?.imports))
    {
       logger.warn(`[resolvePackageImportsKeys]: Closest 'package.json' to input source file doesn't have 'imports'.`);
