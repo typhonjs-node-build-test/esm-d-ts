@@ -58,6 +58,55 @@ import {
    logger }                      from '#util';
 
 /**
+ * Bundles an existing TS declaration entry point.
+ *
+ * Note: Only options related to bundling apply.
+ *
+ * @param {GenerateConfig} config - Generation configuration object.
+ *
+ * @returns {Promise<boolean>} All operations successful.
+ */
+async function bundleDTS(config)
+{
+   let result = true;
+
+   try
+   {
+      const processedConfigOrError = await processConfig({
+         origConfig: config,
+         defaultCompilerOptions: s_DEFAULT_TS_GEN_COMPILER_OPTIONS,
+         lexer: false
+      });
+
+      if (typeof processedConfigOrError === 'string')
+      {
+         logger.error(`bundleDTS ${processedConfigOrError}`);
+         logger.error(`Entry point: ${config?.input}`);
+         result = false;
+      }
+      else
+      {
+         logger.info(`Bundling DTS for: ${config?.input}`);
+
+         const { generateConfig } = processedConfigOrError;
+
+         await bundle(processedConfigOrError, generateConfig.input);
+
+         // Run prettier on the bundled output file.
+         await prettierExec(processedConfigOrError);
+      }
+   }
+   catch (err)
+   {
+      logger.fatal(`A fatal uncaught exception has been raised. Terminating processing.`);
+      logger.debug(err);
+      result = false;
+   }
+
+   return result;
+}
+
+/**
  * Invokes TS compiler in `checkJS` mode without processing DTS.
  *
  * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
@@ -81,8 +130,11 @@ async function checkDTS(config)
       {
          for (const entry of config)
          {
-            const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS,
-             { tsCheckJs: true });
+            const processedConfigOrError = await processConfig({
+                origConfig: entry,
+                defaultCompilerOptions: s_DEFAULT_TS_CHECK_COMPILER_OPTIONS,
+                extraConfig: { tsCheckJs: true }
+            });
 
             if (typeof processedConfigOrError === 'string')
             {
@@ -100,8 +152,11 @@ async function checkDTS(config)
       }
       else
       {
-         const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS,
-          { tsCheckJs: true });
+         const processedConfigOrError = await processConfig({
+            origConfig: config,
+            defaultCompilerOptions: s_DEFAULT_TS_CHECK_COMPILER_OPTIONS,
+            extraConfig: { tsCheckJs: true }
+         });
 
          if (typeof processedConfigOrError === 'string')
          {
@@ -187,7 +242,10 @@ async function generateDTS(config)
       {
          for (const entry of config)
          {
-            const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
+            const processedConfigOrError = await processConfig({
+               origConfig: entry,
+               defaultCompilerOptions: s_DEFAULT_TS_GEN_COMPILER_OPTIONS
+            });
 
             if (typeof processedConfigOrError === 'string')
             {
@@ -205,7 +263,10 @@ async function generateDTS(config)
       }
       else
       {
-         const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
+         const processedConfigOrError = await processConfig({
+            origConfig: config,
+            defaultCompilerOptions: s_DEFAULT_TS_GEN_COMPILER_OPTIONS
+         });
 
          if (typeof processedConfigOrError === 'string')
          {
@@ -240,7 +301,7 @@ async function generateDTS(config)
  */
 async function generateDTSImpl(processedConfig)
 {
-   const { dtsDirectoryPath, eventbus, generateConfig } = processedConfig;
+   const { dtsDirectoryPath, eventbus } = processedConfig;
 
    logger.debug(`Intermediate declarations output path: ${upath.relative(process.cwd(), dtsDirectoryPath)}`);
 
@@ -261,31 +322,10 @@ async function generateDTSImpl(processedConfig)
    // Log emit diagnostics as warnings.
    const { dtsEntryPathActual, jsdocModuleComments } = await compile(processedConfig, true);
 
-   await bundleDTS(processedConfig, dtsEntryPathActual, jsdocModuleComments);
+   await bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments);
 
    // Run prettier on the bundled output file.
-   if (generateConfig.prettier !== void 0)
-   {
-      /** @type {import('prettier').Options} */
-      let prettierOptions;
-
-      if (typeof generateConfig.prettier === 'boolean' && generateConfig.prettier)
-      {
-         prettierOptions = { parser: 'typescript', printWidth: 120, singleQuote: true };
-      }
-      else if (isObject(generateConfig.prettier))
-      {
-         // Always use the `typescript` parser.
-         prettierOptions = Object.assign({}, generateConfig.prettier, { parser: 'typescript' });
-      }
-
-      if (prettierOptions)
-      {
-         const text = fs.readFileSync(generateConfig.output, 'utf-8');
-         const formatted = await prettier.format(text, prettierOptions);
-         fs.writeFileSync(generateConfig.output, formatted);
-      }
-   }
+   await prettierExec(processedConfig);
 
    try
    {
@@ -306,7 +346,7 @@ async function generateDTSImpl(processedConfig)
  */
 generateDTS.plugin = rollupPlugins.generateDTSPlugin(generateDTS);
 
-export { checkDTS, generateDTS };
+export { bundleDTS, checkDTS, generateDTS };
 
 // Internal Implementation -------------------------------------------------------------------------------------------
 
@@ -319,7 +359,7 @@ export { checkDTS, generateDTS };
  *
  * @returns {Promise<void>}
  */
-async function bundleDTS(processedConfig, dtsEntryPathActual, jsdocModuleComments = [])
+async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments = [])
 {
    const { generateConfig, packageObj } = processedConfig;
 
@@ -685,13 +725,17 @@ function isPackage(identifier)
  * Lexically parses all files connected to the entry point. Additional data includes top level "re-exported" packages
  * in `packages` data.
  *
- * @param {import('@typhonjs-plugin/manager/eventbus').EventbusSecure} eventbus - Plugin manager eventbus.
+ * @param {object} opts - Options.
  *
- * @param {GenerateConfig} generateConfig - Generate config.
+ * @param {import('@typhonjs-plugin/manager/eventbus').EventbusSecure} opts.eventbus - Plugin manager eventbus.
  *
- * @param {ts.CompilerOptions} compilerOptions - Typescript compiler options.
+ * @param {GenerateConfig} opts.generateConfig - Generate config.
  *
- * @param {boolean} isTSMode - Is Typescript mode enabled.
+ * @param {ts.CompilerOptions} opts.compilerOptions - Typescript compiler options.
+ *
+ * @param {boolean} opts.isTSMode - Is Typescript mode enabled.
+ *
+ * @param {boolean} [opts.lexer=true] - Perform lexical analysis.
  *
  * @returns {Promise<{
  *    lexerFilepaths: string[],
@@ -702,7 +746,7 @@ function isPackage(identifier)
  * }>} Lexically parsed files, top level packages exported, and closest `package.json` object from input source file.
  * When `success` is false this indicates there was an error encountered in parsing.
  */
-async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
+async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode, lexer = true })
 {
    await init;
 
@@ -950,7 +994,10 @@ async function parseFiles(eventbus, generateConfig, compilerOptions, isTSMode)
       if (toParseFiles.size > 0) { await parsePaths(toParseFiles); }
    };
 
-   await parsePaths(entrypoint, true);
+   if (lexer)
+   {
+      await parsePaths(entrypoint, true);
+   }
 
    // Produce any warnings about unresolved imports specifiers.
    if (unresolvedImports.size > 0)
@@ -1073,17 +1120,57 @@ function parsePackage(packageName, generateConfig)
 }
 
 /**
+ * Executes `prettier` when configured.
+ *
+ * @param {ProcessedConfig}   processedConfig - Processed config object.
+ *
+ * @returns {Promise<void>}
+ */
+async function prettierExec(processedConfig)
+{
+   const { generateConfig } = processedConfig;
+
+   // Run prettier on the bundled output file.
+   if (generateConfig.prettier !== void 0)
+   {
+      /** @type {import('prettier').Options} */
+      let prettierOptions;
+
+      if (typeof generateConfig.prettier === 'boolean' && generateConfig.prettier)
+      {
+         prettierOptions = { parser: 'typescript', printWidth: 120, singleQuote: true };
+      }
+      else if (isObject(generateConfig.prettier))
+      {
+         // Always use the `typescript` parser.
+         prettierOptions = Object.assign({}, generateConfig.prettier, { parser: 'typescript' });
+      }
+
+      if (prettierOptions)
+      {
+         const text = fs.readFileSync(generateConfig.output, 'utf-8');
+         const formatted = await prettier.format(text, prettierOptions);
+         fs.writeFileSync(generateConfig.output, formatted);
+      }
+   }
+}
+
+/**
  * Processes an original GenerateConfig object returning all processed data required to compile / bundle DTS.
  *
- * @param {GenerateConfig} origConfig - The original GenerateConfig.
+ * @param {object} opts - Options.
  *
- * @param {import('type-fest').TsConfigJson.CompilerOptions} defaultCompilerOptions - Default compiler options.
+ * @param {GenerateConfig} opts.origConfig - The original GenerateConfig.
  *
- * @param {Partial<GenerateConfig>} extraConfig - Additional config parameters to override user supplied config.
+ * @param {import('type-fest').TsConfigJson.CompilerOptions} opts.defaultCompilerOptions - Default compiler options.
+ *
+ * @param {Partial<GenerateConfig>} [opts.extraConfig] - Additional config parameters to override user supplied config.
+ *
+ * @param {boolean} [opts.lexer=true] - When true the input is lexically analyzed.
  *
  * @returns {Promise<ProcessedConfig | string>} Processed config or error string.
  */
-async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {})
+async function processConfig({ origConfig, defaultCompilerOptions, extraConfig = {}, lexer = true })
 {
    // Initial sanity checks.
    if (!isObject(origConfig))
@@ -1203,7 +1290,7 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
 
    let tsFilepaths = [];
 
-   if (!isTSMode)
+   if (lexer && !isTSMode)
    {
       // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS
       // files will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
@@ -1221,7 +1308,7 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
       localPackageImports,
       packages,
       packageObj,
-      success } = await parseFiles(eventbus, generateConfig, compilerOptions, isTSMode);
+      success } = await parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode, lexer });
 
    if (!success)
    {
@@ -1245,9 +1332,16 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
 
    // ---
 
+   let dtsEntryPath = '';
+
    // Find the common base path for all parsed files and find the relative path to the input source file.
-   const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, generateConfig.input) :
-    upath.basename(generateConfig.input);
+   if (commonPathFiles)
+   {
+      const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, generateConfig.input) :
+       upath.basename(generateConfig.input);
+
+      dtsEntryPath = `${compilerOptions.outDir}/${localRelativePath}`;
+   }
 
    // Rewrite `#imports` referenced file paths with the relative path from commonPathFiles.
    for (const [importKey, importPath] of localPackageImports)
@@ -1256,13 +1350,12 @@ async function processConfig(origConfig, defaultCompilerOptions, extraConfig = {
    }
 
    // Get the input DTS entry point; this is without DTS extension change which occurs after compilation.
-   const dtsEntryPath = `${compilerOptions.outDir}/${localRelativePath}`;
    const dtsDirectoryPath = compilerOptions.outDir;
 
    // ---
 
    // Relative path from current working directory to local common path. Used for filtering diagnostic errors.
-   const inputRelativeDir = upath.relative(process.cwd(), commonPathFiles);
+   const inputRelativeDir = commonPathFiles ? upath.relative(process.cwd(), commonPathFiles) : '';
 
    // ----------------------------------------------------------------------------------------------------------------
 
@@ -1520,7 +1613,7 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
 /**
  * @typedef {object} GenerateConfig Data used to generate the bundled TS declaration.
  *
- * @property {string}               input The input entry ESM source path.
+ * @property {string}               input The input entry source path.
  *
  * @property {boolean}              [bundlePackageExports=false] When true attempt to bundle types of top level
  * exported packages. This is useful for re-bundling libraries.
