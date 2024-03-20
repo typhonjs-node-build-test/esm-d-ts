@@ -1,0 +1,11 @@
+[
+  [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.input' file does not exist.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] bundleDTS error: Aborting as 'config' failed validation.\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] Entry point: ./bad-path.d.ts\u001b[0m"
+  ]
+]

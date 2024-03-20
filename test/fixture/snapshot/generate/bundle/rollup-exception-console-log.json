@@ -1,0 +1,8 @@
+[
+  [
+    "\u001b[32m[esm-d-ts] Bundling DTS for: ./test/fixture/data/dts/index.d.ts\u001b[0m"
+  ],
+  [
+    "\u001b[1;31m[esm-d-ts] A fatal uncaught exception has been raised. Terminating processing.\u001b[0m"
+  ]
+]
