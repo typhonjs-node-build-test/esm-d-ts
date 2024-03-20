@@ -8,6 +8,7 @@ import {
    isIterable }            from '@typhonjs-utils/object';
 
 import {
+   bundleDTS,
    checkDTS,
    generateDTS }           from '../generator/index.js';
 
@@ -16,7 +17,35 @@ import { logger }          from '#util';
 /**
  * Invokes checkDTS with the given input / config options.
  *
- * @param {string}   input - Source / input file.
+ * @param {string}   input - Unbundled declaration file path.
+ *
+ * @param {string}   output - Output bundled declaration file path.
+ *
+ * @param {object}   opts - CLI options.
+ *
+ * @returns {Promise<void>}
+ */
+export async function bundle(input, output, opts)
+{
+   // Remove any configuration option as the bundle command does not accept batch processing.
+   opts.config = void 0;
+
+   const processedOptions = await processOptions(input, opts);
+
+   if (typeof output !== 'string')
+   {
+      exit('Invalid options: missing `[output]` file path.');
+   }
+
+   processedOptions.options.output = output;
+
+   await bundleDTS(processedOptions.options);
+}
+
+/**
+ * Invokes checkDTS with the given input / config options.
+ *
+ * @param {string}   input - Source / input file path.
  *
  * @param {object}   opts - CLI options.
  *
@@ -49,7 +78,7 @@ export async function check(input, opts)
 /**
  * Invokes generateDTS with the given input / config options.
  *
- * @param {string}   input - Source / input file.
+ * @param {string}   input - Source / input file path.
  *
  * @param {object}   opts - CLI options.
  *
@@ -80,13 +109,22 @@ export async function generate(input, opts)
 }
 
 /**
- * @param {string}   filepath - Filepath of config.
+ * @param {string}   filepath - File path of config.
  *
  * @returns {Promise<import('../generate').GenerateConfig | import('../generate').GenerateConfig[]>} Loaded config.
  */
 async function loadConfig(filepath)
 {
-   const module = await import(pathToFileURL(filepath));
+   let module;
+
+   try
+   {
+      module = await import(pathToFileURL(filepath));
+   }
+   catch (err)
+   {
+      exit(`Failed to load config file:\n${err.message}`);
+   }
 
    if (module.default === void 0) { exit(`The config does not have a default export: ${filepath}`); }
 
@@ -156,7 +194,7 @@ async function processOptions(input, opts)
       if (!logger.isValidLevel(opts.loglevel))
       {
          exit(`Invalid options: log level '${
-            opts.loglevel}' must be 'off', 'fatal', 'error', 'warn', 'info', 'debug', 'verbose', 'trace', or, 'all'.`);
+            opts.loglevel}' must be 'off', 'fatal', 'error', 'warn', 'info', 'debug', 'verbose', 'trace', or 'all'.`);
       }
 
       logger.setLogLevel(opts.loglevel);
