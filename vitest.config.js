@@ -5,7 +5,7 @@ import {
 export default defineConfig({
    test: {
       exclude: [...configDefaults.exclude],
-      include: ['./test/**/*.test.js'],
+      include: ['./test/src/**/*.test.js'],
       coverage: {
          include: ['src/**'],
          exclude: ['test/**', 'src/**/*.ts', 'src/cli/**/*.js'],
