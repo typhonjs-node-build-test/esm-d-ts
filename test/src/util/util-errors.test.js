@@ -2,7 +2,6 @@
 /* eslint no-undef: "off" */
 
 import { parse }                 from 'comment-parser';
-
 import ts                        from 'typescript';
 
 import {

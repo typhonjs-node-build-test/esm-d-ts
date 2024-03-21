@@ -1,9 +1,9 @@
 /* eslint no-undef: "off" */
+import fs               from 'fs-extra';
+
 import {
    beforeAll,
    expect }             from 'vitest';
-
-import fs               from 'fs-extra';
 
 import { generateDTS }  from '../../../src/generator/index.js';
 

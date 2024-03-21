@@ -1,8 +1,11 @@
 /* eslint no-undef: "off" */
-import fs             from 'fs-extra';
-import {expect, vi} from 'vitest';
+import fs            from 'fs-extra';
 
-import { bundleDTS }  from '../../../src/generator/index.js';
+import {
+   expect,
+   vi }              from 'vitest';
+
+import { bundleDTS } from '../../../src/generator/index.js';
 
 describe('bundleDTS()', () =>
 {

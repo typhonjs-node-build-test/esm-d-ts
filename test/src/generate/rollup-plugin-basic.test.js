@@ -1,8 +1,8 @@
 // /* eslint no-undef: "off" */
 import resolve          from "@rollup/plugin-node-resolve";
-
 import fs               from 'fs-extra';
 import { rollup }       from 'rollup';
+
 import {
    beforeAll,
    expect,

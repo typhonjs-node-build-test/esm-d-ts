@@ -1,18 +1,18 @@
 /* eslint no-undef: "off" */
+import fs               from 'fs-extra';
+
 import {
    beforeAll,
    expect,
-   vi }                       from 'vitest';
+   vi }                 from 'vitest';
 
-import fs                     from 'fs-extra';
-
-import { generateDTS }        from '../../../src/generator/index.js';
+import { generateDTS }  from '../../../src/generator/index.js';
 
 import {
    PostProcess,
-   processInheritDoc }        from '../../../src/postprocess/index.js';
+   processInheritDoc }  from '../../../src/postprocess/index.js';
 
-import { logger }             from '#util';
+import { logger }       from '#util';
 
 describe('API Warnings (postprocess)', () =>
 {
