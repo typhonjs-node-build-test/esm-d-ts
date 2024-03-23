@@ -598,6 +598,8 @@ async function compile(processedConfig, isGenerate)
       if (diagnostic.file)
       {
          const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
+
+         /* v8 ignore next 1 */ // This requires a dependent package with diagnostic errors to test; it works.
          if (!fileName.startsWith(inputRelativeDir)) { return true; }
       }
 
