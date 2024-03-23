@@ -1335,7 +1335,7 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
    let dtsEntryPath = '';
 
    // Find the common base path for all parsed files and find the relative path to the input source file.
-   if (commonPathFiles)
+   if (lexer)
    {
       const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, generateConfig.input) :
        upath.basename(generateConfig.input);
