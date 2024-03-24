@@ -7,10 +7,15 @@ export class JsdocFilterTags
    /**
     * @hidden
     */
-   foo() {};
+   foo() {}
 
    /**
     * @ignore
     */
-   bar() {};
+   bar() {}
+
+   /**
+    * @internal
+    */
+   notPublic() {}
 }
