@@ -1,4 +1,6 @@
 // /* eslint no-undef: "off" */
+import ts         from 'typescript';
+
 import {
    expect,
    vi }           from 'vitest';
@@ -6,8 +8,6 @@ import {
 import {
    checkDTS,
    generateDTS }  from '../../../src/generator/index.js';
-
-import ts         from 'typescript';
 
 describe('Validation Errors (generate)', () =>
 {
