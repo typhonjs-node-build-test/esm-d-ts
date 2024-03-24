@@ -1,11 +1,19 @@
 # Changelog
 ## Release 0.3.0
+- 100% test coverage / all functionality verified in detail.
+
+- Full support for any file format that Typescript supports including React. You may now leverage `esm-d-ts` to create
+  bundled declarations for Typescript source code.
+
 - Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
-  ESM Svelte components (`.svelte` files). For more information on ESM Svelte component support please see:
+  Svelte 4 components (`.svelte` files). For more information on Svelte component support please see:
   [@typhonjs-build-test/esm-d-ts-plugin-svelte](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts-plugin-svelte).
-  Eventually, the plugin system may be opened to 3rd party extensions along with additional 1st party support for
-  alternate file formats / frameworks that are ESM compatible. Presently, compatible 1st party plugins simply need to be
-  installed as additional developer dependencies and load automatically.
+  Eventually, additional 1st party support may be added for alternate file formats / frameworks that can be transpiled
+  to ESM. Presently, 1st party plugins simply need to be installed as additional developer dependencies and load
+  automatically. You may also provide custom 3rd party plugins via new `plugins` configuration option.
+
+- Added `bundleDTS` convenience function and new `bundle` command from the CLI which allows easy bundling of existing
+  well formatted module based Typescript declarations.
 
 ## Release 0.2.2
 - Added a TS AST transformer to support import types in `@implements` JSDoc tags. This allows you to reference
