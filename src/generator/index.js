@@ -1245,8 +1245,6 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
 
    const isTSMode = isTSFile(generateConfig.input);
 
-   deepFreeze(generateConfig);
-
    const pluginManager = new DTSPluginManager();
 
    // Initialize plugin manager after logger log level set. Initialization only occurs once per entire invocation.
