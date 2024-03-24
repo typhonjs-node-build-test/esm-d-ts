@@ -1,12 +1,15 @@
 /* eslint no-undef: "off" */
 import fs               from 'fs-extra';
 
+import ts               from 'typescript';
+
 import {
    beforeAll,
    expect,
    vi }                 from 'vitest';
 
 import { generateDTS }  from '../../../src/generator/index.js';
+
 
 describe('generateDTS() package options', () =>
 {
@@ -169,8 +172,15 @@ describe('generateDTS() package options', () =>
                       './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index.d.ts',
                        'utf-8');
 
-                     expect(result).toMatchFileSnapshot(
-                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index.d.ts');
+                     const tsVersion = parseFloat(ts.versionMajorMinor);
+
+                     // Takes into account changes in TS declaration generation pre / post TS `5.4`. Post `5.4` the
+                     // package that has no types is present in the declarations.
+                     const snapshot = tsVersion >= 5.4 ?
+                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index-post-5_4.d.ts' :
+                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index-pre-5_4.d.ts';
+
+                     expect(result).toMatchFileSnapshot(snapshot);
 
                      expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/console-log.json');
