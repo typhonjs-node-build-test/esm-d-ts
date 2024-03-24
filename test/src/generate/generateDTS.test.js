@@ -74,6 +74,21 @@ describe('generateDTS()', () =>
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
+      it('valid (.mjs)', async () =>
+      {
+         const success = await generateDTS({
+            input: './test/fixture/src/generate/javascript/valid/index.mjs',
+            output: './test/fixture/output/generate/javascript/valid-mts/index.d.mts',
+            compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid-mts/.dts' },
+         });
+
+         expect(success).toBe(true);
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-mts/index.d.mts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+      });
+
       it('valid w/ tsconfig', async () =>
       {
          const success = await generateDTS({
