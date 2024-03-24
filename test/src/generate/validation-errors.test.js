@@ -7,6 +7,8 @@ import {
    checkDTS,
    generateDTS }  from '../../../src/generator/index.js';
 
+import ts         from 'typescript';
+
 describe('Validation Errors (generate)', () =>
 {
    describe('validateConfig()', () =>
@@ -142,8 +144,15 @@ describe('Validation Errors (generate)', () =>
 
          expect(result).toBe(false);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
-          '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-console-log.json');
+         const tsVersion = parseFloat(ts.versionMajorMinor);
+
+         // Takes into account new `module` option that is being tested as error message has new `preserved` value
+         // in error validation for TS 5.4+.
+         const snapshot = tsVersion >= 5.4 ?
+          '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.4-console-log.json' :
+           '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-pre-5.4-console-log.json';
+
+         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(snapshot);
       });
    });
 });
