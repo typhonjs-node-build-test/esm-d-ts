@@ -1407,8 +1407,10 @@ function resolveLocalImports(processedConfig)
 
    for (const [importKey, importPath] of localPackageImports)
    {
+      const regexImportKey = importKey.replace(/\//g, '\\/');
+
       importsAlias.push({
-         find: importKey,
+         find: new RegExp(`^${regexImportKey}$`),
          replacement: upath.join(dtsDirectoryPath, upath.trimExt(importPath))
       });
    }
@@ -1463,8 +1465,10 @@ function resolvePackageExports(processedConfig)
       // If the resolved package is the same as original package name / alias then skip adding to Rollup plugin alias.
       if (packageNameOrAlias === resolved) { continue; }
 
+      const regexPackageName = packageNameOrAlias.replace(/\//g, '\\/');
+
       packageAlias.push({
-         find: packageNameOrAlias,
+         find: new RegExp(`^${regexPackageName}$`),
          replacement: resolved
       });
    }
