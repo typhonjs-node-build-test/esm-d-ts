@@ -606,9 +606,17 @@ async function compile(processedConfig, isGenerate)
       return false;
    };
 
-   // Provide a default implementation to allow all diagnostic messages through.
-   const filterDiagnostic = generateConfig.tsDiagnosticFilter ?? !generateConfig.tsDiagnosticExternal ?
-    filterExternalDiagnostic : (() => false);
+   let filterDiagnostic;
+
+   if (typeof generateConfig.tsDiagnosticFilter === 'function')
+   {
+      filterDiagnostic = generateConfig.tsDiagnosticFilter;
+   }
+   else
+   {
+      // Provide a default implementation to allow all diagnostic messages through.
+      filterDiagnostic = !generateConfig.tsDiagnosticExternal ? filterExternalDiagnostic : () => false;
+   }
 
    /**
     * Helper method used to log a diagnostic instance. This is passed to plugins for consistent formatting.
