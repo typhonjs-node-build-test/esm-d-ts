@@ -1530,25 +1530,20 @@ function resolvePackageImportKeys(processedConfig)
       return false;
    }
 
-   /* v8 ignore next 5 */ // Sanity check case. A failure would have already occurred in `parseFiles`.
-   if (!isObject(packageObj?.imports))
-   {
-      logger.warn(`[resolvePackageImportsKeys]: Closest 'package.json' to input source file doesn't have 'imports'.`);
-      return { isImportsExternalKey, isImportsResolveKey };
-   }
-
    // Collect all relevant `importsExternal` keys.
    if (generateConfig.importsExternal !== void 0)
    {
       importsExternalKeys = new Set(Array.isArray(generateConfig.importsExternal?.importKeys) ?
-       generateConfig.importsExternal.importKeys : Object.keys(packageObj.imports));
+       /* v8 ignore next 1 */ // Just covers optional branch for sanity.
+       generateConfig.importsExternal.importKeys : Object.keys(packageObj?.imports ?? {}));
    }
 
    // Collect all relevant `importsResolve` keys.
    if (generateConfig.importsResolve !== void 0)
    {
       importsResolveKeys = new Set(Array.isArray(generateConfig.importsResolve?.importKeys) ?
-       generateConfig.importsResolve.importKeys : Object.keys(packageObj.imports));
+       /* v8 ignore next 1 */ // Just covers optional branch for sanity.
+       generateConfig.importsResolve.importKeys : Object.keys(packageObj?.imports ?? {}));
    }
 
    // Store any imports key lookup failures for later logging.
@@ -1556,6 +1551,17 @@ function resolvePackageImportKeys(processedConfig)
 
    // Combine external and resolve keys in one Set to perform the lookups once.
    const allImportsKeys = new Set([...importsExternalKeys, ...importsResolveKeys]);
+
+   /* v8 ignore next 9 */ // Sanity check case.
+   if (!isObject(packageObj?.imports))
+   {
+      if (allImportsKeys.size)
+      {
+         logger.warn(
+          `[resolvePackageImportsKeys]: Closest 'package.json' to input source file doesn't have 'imports'.`);
+      }
+      return { isImportsExternalKey, isImportsResolveKey };
+   }
 
    for (const key of allImportsKeys)
    {
