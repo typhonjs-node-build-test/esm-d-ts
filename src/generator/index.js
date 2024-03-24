@@ -1385,9 +1385,8 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
       tsFilepaths,
    };
 
-   // Don't deep freeze 'compileFilepaths', 'dtsReplace', 'eventbus', 'prependFiles', 'prependString'.
-   deepFreeze(processedConfig, new Set(['compileFilepaths', 'dtsReplace', 'eventbus', 'prependFiles',
-    'prependString']));
+   // Don't deep freeze 'compileFilepaths', 'eventbus', 'generateConfig'.
+   deepFreeze(processedConfig, new Set(['compileFilepaths', 'eventbus', 'generateConfig']));
 
    return processedConfig;
 }
