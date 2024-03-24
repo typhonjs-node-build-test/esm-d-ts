@@ -1,5 +1,5 @@
 /**
- * Provides the main entry points to the package including `checkDTS` and `generateDTS`.
+ * Provides the main entry points to the package including `bundleDTS`, `checkDTS`, and `generateDTS`.
  *
  * @module
  */
@@ -96,7 +96,7 @@ declare namespace PluginEvent {
  */
 type GenerateConfig = {
   /**
-   * The input entry ESM source path.
+   * The input entry source path.
    */
   input: string;
   /**
@@ -318,6 +318,16 @@ type ProcessedConfig = {
   tsFilepaths: string[];
 };
 /**
+ * Bundles an existing TS declaration entry point.
+ *
+ * Note: Only options related to bundling apply.
+ *
+ * @param {GenerateConfig} config - Generation configuration object.
+ *
+ * @returns {Promise<boolean>} All operations successful.
+ */
+declare function bundleDTS(config: GenerateConfig): Promise<boolean>;
+/**
  * Invokes TS compiler in `checkJS` mode without processing DTS.
  *
  * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
@@ -337,4 +347,4 @@ declare namespace generateDTS {
   let plugin: (options?: Partial<GenerateConfig>) => rollup.Plugin<any>;
 }
 
-export { type GenerateConfig, PluginEvent, type ProcessedConfig, checkDTS, generateDTS };
+export { type GenerateConfig, PluginEvent, type ProcessedConfig, bundleDTS, checkDTS, generateDTS };
