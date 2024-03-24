@@ -3,6 +3,7 @@
 // "#importsForTesting2": "esm-d-ts-test-default"
 
 export * from '#importsForTesting/org';
+export * from '#importsForTesting/org/subpath';
 export * from 'esm-d-ts-test-basic';
 export * from 'esm-d-ts-test-basic-typings';
 export * from '#importsForTesting2';
