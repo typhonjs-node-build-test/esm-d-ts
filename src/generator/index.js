@@ -1,5 +1,5 @@
 /**
- * Provides the main entry points to the package including `checkDTS` and `generateDTS`.
+ * Provides the main entry points to the package including `bundleDTS`, `checkDTS`, and `generateDTS`.
  *
  * @module
  */
