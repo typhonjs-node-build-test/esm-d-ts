@@ -7,7 +7,7 @@
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
-This is a beta test version of the next mainline release (`0.3.0-next.1`). There are many new features to describe
+This is a beta test version of the next mainline release (`0.3.0-next.2`). There are many new features to describe
 (updated README soon)!
 
 Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate
@@ -34,12 +34,24 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
 ## What's New:
-### (0.3.0-next.1 / partial list):
-- Support for Typescript projects; easily generate bundled type declarations for TS projects including all file types
-TS supports.
+### (0.3.0-next.2 / partial list):
+- 100% test coverage / all functionality verified in detail.
 
-- (soon) Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
-ESM Svelte components (`.svelte` files).
+
+- Full support for any file format that Typescript supports including React. You may now leverage `esm-d-ts` to create
+  bundled declarations for Typescript source code.
+
+
+- Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
+  Svelte 4 components (`.svelte` files). For more information on Svelte component support please see:
+  [@typhonjs-build-test/esm-d-ts-plugin-svelte](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts-plugin-svelte).
+  Eventually, additional 1st party support may be added for alternate file formats / frameworks that can be transpiled
+  to ESM. Presently, 1st party plugins simply need to be installed as additional developer dependencies and load
+  automatically. You may also provide custom 3rd party plugins via new `plugins` configuration option.
+
+
+- Added `bundleDTS` convenience function and new `bundle` command from the CLI which allows easy bundling of existing
+  well formatted module based Typescript declarations.
 
 ## Overview:
 
@@ -251,6 +263,10 @@ configuration CLI frontend to generate API documentation with TypeDoc from a wel
 Typescript declarations.
 
 ## Roadmap
+- Implement declaration source maps for unbundled package distributions. When shipping direct unbundled ESM source
+code provide a configuration option to create declaration source maps.
+
+
 - Create an initial processing stage where `esm-d-ts` analyzes all exported symbols of the local code base allowing
 local symbols to be used without `import types`.
 
