@@ -808,7 +808,6 @@ async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode,
          // Must indicate warnings for the case when an `index.js` / `index.mjs` file is referenced by directory.
          if (isDirectory(resolvedPath))
          {
-
             /* v8 ignore start */
             // TS will not transpile malformed imports that don't have a proper `index.(m)ts` and diagnostic warnings
             // are ignored in `DTSPluginTypescript.lexerTransform`, diagnostic logs are not checked in `lexerTransform`.
@@ -861,9 +860,29 @@ async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode,
 
          const dirpath = upath.dirname(resolvedPath);
 
+         let tsErrorMessage = '';
+
+         if (isTSMode && !isFile(resolvedPath))
+         {
+            // Store original resolved path for any potential error message.
+            tsErrorMessage = ` from '${resolvedPath}'`;
+
+            // Attempt to resolve a few fallbacks when in Typescript mode such as changing the extension:
+            // - `.js` to `.ts`
+            // - Adding `.ts` when there is no extension.
+            if (resolvedPath.endsWith('.js'))
+            {
+               resolvedPath = upath.changeExt(resolvedPath, '.ts');
+            }
+            else if (s_REGEX_FILEPATH_NO_EXTENSION.test(resolvedPath))
+            {
+               resolvedPath = upath.addExt(resolvedPath, '.ts');
+            }
+         }
+
          if (!isFile(resolvedPath))
          {
-            logger.error(`Parse files error: could not resolve; '${resolvedPath}'`);
+            logger.error(`Parse files error: could not resolve; '${resolvedPath}'${tsErrorMessage}`);
             success = false;
             continue;
          }
@@ -1625,6 +1644,7 @@ const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
 };
 
 const s_REGEX_EXPORT = /^\s*export/;
+const s_REGEX_FILEPATH_NO_EXTENSION = /^(?:.*\/)?[^.]*$/;
 const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 
