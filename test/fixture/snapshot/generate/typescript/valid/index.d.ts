@@ -6,6 +6,10 @@
 
 import React from 'react';
 
+declare const jsExtension = "Can load '.js' extension.";
+
+declare const noExtension = "Can load '.ts' from no extension.";
+
 declare class Test {
   /**
    * A test of TS declaration generation.
@@ -46,4 +50,4 @@ interface ReactComponentTSXProps {
  */
 declare const ReactComponentTSX: React.FC<ReactComponentTSXProps>;
 
-export { ReactComponentJSX, ReactComponentTSX, Test };
+export { ReactComponentJSX, ReactComponentTSX, Test, jsExtension, noExtension };
