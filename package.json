@@ -1,6 +1,6 @@
 {
   "name": "@typhonjs-build-test/esm-d-ts",
-  "description": "Generates bundled Typescript declaration files from ESM source w/ JSDoc.",
+  "description": "Generates bundled Typescript declaration files from ESM source w/ JSDoc _or_ any file formats Typescript supports.",
   "version": "0.3.0-next.2",
   "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
   "type": "module",
@@ -57,7 +57,7 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@typhonjs-config/eslint-config" : "^0.6.0",
-    "@typhonjs-typedoc/typedoc-pkg": "^0.0.4",
+    "@typhonjs-typedoc/typedoc-pkg": "^0.0.5",
     "@types/node": "^20.11.30",
     "@vitest/coverage-v8": "^1.4.0",
     "@vitest/ui": "^1.4.0",
@@ -123,7 +123,7 @@
   "apidocs": "https://typhonjs-node-build-test.github.io/esm-d-ts/",
   "scripts": {
     "eslint": "eslint .",
-    "docs": "typedoc-pkg --api-link esm --loglevel debug",
+    "docs": "typedoc-pkg --api-link es --loglevel debug",
     "types": "node ./src/cli/index.js gen -c --loglevel debug",
     "test": "vitest --coverage",
     "test-ui": "vitest --ui --coverage",
