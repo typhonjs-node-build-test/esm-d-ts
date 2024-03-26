@@ -1589,11 +1589,7 @@ function resolvePackageImportKeys(processedConfig)
          const importPackage = resolvePkg.imports(packageObj, key)?.[0];
 
          // Skip all local path mappings for imports and anything that isn't a package.
-         if (!isPackage(importPackage))
-         {
-            logger.warn(`[resolvePackageImportKeys]: Imports specifier does not reference a package '${key}'.`);
-            continue;
-         }
+         if (!isPackage(importPackage)) { continue; }
 
          const regex = globToRegExp(key);
 
