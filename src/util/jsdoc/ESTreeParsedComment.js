@@ -17,10 +17,19 @@ export class ESTreeParsedComment
 
    /**
     * @param {string}   rawComment - A JSDoc comment string.
+    *
+    * @param {object}   options - Options.
+    *
+    * @param {'closure' | 'jsdoc' | 'typescript'} [options.mode='typescript'] - Type parsing mode; by default,
+    *        `typescript` is enabled.
+    *
+    * @param {'compact' | 'preserve'}   [options.spacing='preserve'] - Parsed comment spacing; by default, spacing is
+    *        `preserved`.
     */
-   constructor(rawComment)
+   constructor(rawComment, options = { mode: 'typescript', spacing: 'preserve' })
    {
-      this.#ast = commentParserToESTree(parseComment(rawComment), 'typescript');
+      this.#ast = commentParserToESTree(parseComment(rawComment), options?.mode ?? 'typescript',
+       { spacing: options?.spacing ?? 'preserve' });
    }
 
    /**
@@ -124,6 +133,7 @@ export class ESTreeParsedComment
     */
    toString()
    {
-      return estreeToString(this.#ast);
+      // `preferRawType` will accurately represent the type from input to output.
+      return estreeToString(this.#ast, { preferRawType: true });
    }
 }
