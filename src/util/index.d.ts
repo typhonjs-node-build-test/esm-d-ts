@@ -86,8 +86,22 @@ type ParsedLeadingComments = {
 declare class ESTreeParsedComment {
   /**
    * @param {string}   rawComment - A JSDoc comment string.
+   *
+   * @param {object}   options - Options.
+   *
+   * @param {'closure' | 'jsdoc' | 'typescript'} [options.mode='typescript'] - Type parsing mode; by default,
+   *        `typescript` is enabled.
+   *
+   * @param {'compact' | 'preserve'}   [options.spacing='preserve'] - Parsed comment spacing; by default, spacing is
+   *        `preserved`.
    */
-  constructor(rawComment: string);
+  constructor(
+    rawComment: string,
+    options?: {
+      mode?: 'closure' | 'jsdoc' | 'typescript';
+      spacing?: 'compact' | 'preserve';
+    },
+  );
   /**
    * @returns {import('@es-joy/jsdoccomment').JsdocBlock} ESTree AST.
    */
