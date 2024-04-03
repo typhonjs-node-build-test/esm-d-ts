@@ -119,6 +119,13 @@ describe('`util` exports', () =>
 
          expect(parsed.toString()).toEqual(comment);
       });
+
+      it('toString() w/ null options (fallback defaults)', () =>
+      {
+         const parsed = new ESTreeParsedComment(comment, null);
+
+         expect(parsed.toString()).toEqual(comment);
+      });
    });
 
    describe('isDTSFile', () =>
