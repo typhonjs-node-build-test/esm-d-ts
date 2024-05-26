@@ -24,7 +24,9 @@ import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
 import fs                        from 'fs-extra';
 import globToRegExp              from 'glob-to-regexp';
-import { resolve }               from 'import-meta-resolve';
+import {
+   moduleResolve,
+   resolve }                     from 'import-meta-resolve';
 import * as prettier             from 'prettier';
 import * as resolvePkg           from 'resolve.exports';
 import { rollup }                from 'rollup';
@@ -1073,8 +1075,9 @@ function parsePackage(packageName, generateConfig)
    {
       try
       {
-         // Attempt to load exact package name / path.
-         const exportedPath = fileURLToPath(resolve(packageName, import.meta.url));
+         // Attempt to load exact package name / path. Use `moduleResolve` to provide expanded set of conditions.
+         const exportedPath = fileURLToPath(moduleResolve(packageName, new URL(import.meta.url),
+          s_DEFAULT_RESOLVE_CONDITIONS));
 
          const { packageObj, filepath } = getPackageWithPath({ filepath: exportedPath });
 
@@ -1609,6 +1612,13 @@ function resolvePackageImportKeys(processedConfig)
 
    return { isImportsExternalKey, isImportsResolveKey };
 }
+
+/**
+ * Provides an expanded set of resolve conditions for `moduleResolve` in `parsePackage`.
+ *
+ * @type {Set<string>}
+ */
+const s_DEFAULT_RESOLVE_CONDITIONS = new Set(['node', 'import', 'require', 'types', 'default', 'browser']);
 
 /**
  * @type {import('type-fest').TsConfigJson.CompilerOptions}
