@@ -104,7 +104,7 @@ export function generateDTSPlugin(generateDTS)
             async handler()
             {
                // Skip processing if stored Rollup options are not valid.
-               if (!validRollupOptions) { return; }
+               if (!validRollupOptions || !rollupOptionFile) { return; }
 
                const outputExt = typeof config.outputExt === 'string' ? config.outputExt : '.d.ts';
 
