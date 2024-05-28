@@ -70,6 +70,27 @@ describe('generateDTS() package options', () =>
                 '../../fixture/snapshot/generate/packages/bundlePackageExports/direct/installed/index.d.ts');
             });
 
+            it(`(bundle-internal) inside self-referenced not installed package`, async () =>
+            {
+               const success = await generateDTS({
+                  bundlePackageExports: true,
+                  input: './test/fixture/packages/not-installed/@esm-d-ts-test-not-installed-org/bundle-internal/local.js',
+                  output: './test/fixture/output/generate/packages/bundlePackageExports/bundle-internal/index.d.ts',
+                  logLevel: 'debug',
+                  compilerOptions: {
+                     outDir: './test/fixture/output/generate/packages/bundlePackageExports/bundle-internal/.dts'
+                  },
+               });
+
+               expect(success).toBe(true);
+
+               const result = fs.readFileSync(
+                './test/fixture/output/generate/packages/bundlePackageExports/bundle-internal/index.d.ts', 'utf-8');
+
+               expect(result).toMatchFileSnapshot(
+                '../../fixture/snapshot/generate/packages/bundlePackageExports/bundle-internal/index.d.ts');
+            });
+
             describe('importsExternal', () =>
             {
                it(`(direct / imports) w/ 'checkDefaultPath'`, async () =>

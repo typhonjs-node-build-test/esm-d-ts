@@ -23,6 +23,21 @@ describe('bundleDTS()', () =>
       expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
    });
 
+   it('bundles existing DTS (internal w/ bundlePackageExports)', async () =>
+   {
+      const success = await bundleDTS({
+         bundlePackageExports: true,
+         input: './test/fixture/packages/not-installed/@esm-d-ts-test-not-installed-org/bundle-internal/types-local-ref.d.ts',
+         output: './test/fixture/output/generate/bundle/bundled-internal.d.ts'
+      });
+
+      expect(success).toBe(true);
+
+      const result = fs.readFileSync('./test/fixture/output/generate/bundle/bundled-internal.d.ts', 'utf-8');
+
+      expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled-internal.d.ts');
+   });
+
    it('config error (bad input path)', async () =>
    {
       const consoleLog = [];
