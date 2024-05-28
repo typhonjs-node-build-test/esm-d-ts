@@ -92,6 +92,36 @@ async function bundleDTS(config)
 
          const { generateConfig } = processedConfigOrError;
 
+         // Handle the case when attempting to bundle a local DTS file in a source repository that may reference other
+         // sub-path exports.
+         if (generateConfig.bundlePackageExports && isObject(processedConfigOrError.packageObj))
+         {
+            const packageObj = processedConfigOrError.packageObj;
+            const packageName = packageObj.name;
+
+            if (typeof packageName === 'string')
+            {
+               processedConfigOrError.packages.set(packageName, packageName);
+
+               // Add all local sub-path exports to potential bundled package lookups.
+               if (isObject(packageObj.exports))
+               {
+                  for (const key of Object.keys(packageObj.exports))
+                  {
+                     // Skip main package.
+                     if (key === '.') { continue; }
+
+                     // Skip any wild card exports.
+                     if (key.includes('*')) { continue; }
+
+                     const exportName = upath.join(packageName, key);
+
+                     processedConfigOrError.packages.set(exportName, exportName);
+                  }
+               }
+            }
+         }
+
          await bundle(processedConfigOrError, generateConfig.input);
 
          // Run prettier on the bundled output file.
@@ -1084,11 +1114,27 @@ function parsePackage(packageName, generateConfig)
          packageJSON = packageObj;
          packagePath = filepath;
       }
-      /* v8 ignore next 1 */ // No-op
-      catch (err) { /**/ }
+      catch (err)
+      {
+         // Attempt one last package lookup from the input file. If the package object name starts with the base
+         // package path of `packageName` then proceed. This allows bundling from a local source repository not
+         // installed in `node_modules`.
+         try
+         {
+            const { packageObj, filepath } = getPackageWithPath({ filepath: generateConfig.input });
+
+            if (packageObj?.name?.startsWith?.(match[1]))
+            {
+               packageJSON = packageObj;
+               packagePath = filepath;
+            }
+         }
+         /* v8 ignore next 1 */ // No-op
+         catch (err) { /**/ }
+      }
    }
 
-   /* v8 ignore next 7 */ // Not common; unless a package is malformed.
+   /* v8 ignore next 7 */ // Not common; unless a package is malformed or when lookup fails above.
    if (!isObject(packageJSON))
    {
       logger.warn(
