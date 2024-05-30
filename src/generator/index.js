@@ -440,11 +440,11 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
        { packageObj, ...generateConfig.importsExternal } : { packageObj }));
    }
 
-   plugins.push(...[
+   plugins.push(
       alias({ entries: resolvePackageExports(processedConfig) }),
       alias({ entries: resolveLocalImports(processedConfig) }),
       dts()
-   ]);
+   );
 
    const rollupConfig = {
       input: {
