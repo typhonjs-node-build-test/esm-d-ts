@@ -21,6 +21,9 @@
     "\u001b[31m[esm-d-ts] validateConfig error: 'config.importsExternal' must be a boolean or an object.\u001b[0m"
   ],
   [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.importsLocal' must be a boolean or an object.\u001b[0m"
+  ],
+  [
     "\u001b[31m[esm-d-ts] validateConfig error: 'config.importsResolve' must be a boolean or an object.\u001b[0m"
   ],
   [

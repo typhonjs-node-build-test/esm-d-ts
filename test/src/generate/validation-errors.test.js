@@ -91,6 +91,7 @@ describe('Validation Errors (generate)', () =>
             dtsReplace: null,
             filterTags: Number.NaN,
             importsExternal: null,
+            importsLocal: null,
             importsResolve: null,
             logLevel: null,
             output: null,

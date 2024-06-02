@@ -1,0 +1,24 @@
+{
+  "name": "test-package",
+  "description" : "Provides `imports` for `importsLocal` testing.",
+  "imports": {
+    "#test-package": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "#test-package/sub": {
+      "types": "./dist/sub/index.d.ts",
+      "default": "./src/sub/index.js"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./sub": {
+      "types": "./dist/sub/index.d.ts",
+      "default": "./dist/sub/index.js"
+    }
+  }
+}
