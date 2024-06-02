@@ -97,6 +97,13 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.importsLocal !== void 0 && !isObject(config.importsLocal) &&
+    typeof config.importsLocal !== 'boolean')
+   {
+      logger.error(`validateConfig error: 'config.importsLocal' must be a boolean or an object.`);
+      result = false;
+   }
+
    if (config.importsResolve !== void 0 && !isObject(config.importsResolve) &&
     typeof config.importsResolve !== 'boolean')
    {

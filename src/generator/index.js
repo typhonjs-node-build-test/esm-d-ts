@@ -7,7 +7,9 @@
 import { fileURLToPath }         from 'node:url';
 
 import alias                     from '@rollup/plugin-alias';
-import { importsExternal }       from '@typhonjs-build-test/rollup-plugin-pkg-imports';
+import {
+   importsExternal,
+   importsLocal }                from '@typhonjs-build-test/rollup-plugin-pkg-imports';
 
 import {
    commonPath,
@@ -432,6 +434,13 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
    }
 
    const plugins = [];
+
+   // Add `importsLocal` plugin if configured.
+   if (generateConfig.importsLocal)
+   {
+      plugins.push(importsLocal(isObject(generateConfig.importsLocal) ?
+       { packageObj, ...generateConfig.importsLocal } : { packageObj }));
+   }
 
    // Add `importsExternal` plugin if configured.
    if (generateConfig.importsExternal)
@@ -1725,6 +1734,11 @@ const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-
  * @property {(
  *    boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions
  * )} [importsExternal] When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
+ * package.
+ *
+ * @property {(
+ *    boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions
+ * )} [importsLocal] When defined enables `importsLocal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
  * package.
  *
  * @property {(

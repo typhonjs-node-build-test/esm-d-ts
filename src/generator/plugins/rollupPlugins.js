@@ -65,6 +65,13 @@ export function generateDTSPlugin(generateDTS)
                          plugin.importsPluginOptions : {};
                      }
 
+                     if (config.importsLocal === void 0 &&
+                      plugin?.name === '@typhonjs-build-test/rollup-plugin-pkg-imports/importsLocal')
+                     {
+                        config.importsLocal = isObject(plugin.importsPluginOptions) ?
+                         plugin.importsPluginOptions : {};
+                     }
+
                      if (config.importsResolve === void 0 &&
                       plugin?.name === '@typhonjs-build-test/rollup-plugin-pkg-imports/importsResolve')
                      {
