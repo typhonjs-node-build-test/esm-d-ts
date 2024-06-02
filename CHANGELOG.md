@@ -15,6 +15,8 @@
 - Added `bundleDTS` convenience function and new `bundle` command from the CLI which allows easy bundling of existing
   well formatted module based Typescript declarations.
 
+- Added `importsLocal` support from `@typhonjs-build-test/rollup-plugin-pkg-imports`
+
 ## Release 0.2.2
 - Added a TS AST transformer to support import types in `@implements` JSDoc tags. This allows you to reference
 an interface from a class and have it properly converted to `implements <INTERFACE>` in the declarations generated.
