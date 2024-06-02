@@ -64,6 +64,7 @@
     "@vitest/ui": "^1.6.0",
     "eslint": "^8.57.0",
     "tslib" : "^2.6.2",
+    "typedoc": "0.25.12",
     "vitest": "^1.6.0",
     "@esm-d-ts-test/org": "file:./test/fixture/packages/@esm-d-ts-test-org",
     "esm-d-ts-test-basic": "file:./test/fixture/packages/esm-d-ts-test-basic",
