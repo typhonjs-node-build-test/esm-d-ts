@@ -132,6 +132,11 @@ type GenerateConfig = {
    */
   importsExternal?: boolean | _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
   /**
+   * When defined enables `importsLocal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
+   * package.
+   */
+  importsLocal?: boolean | _typhonjs_build_test_rollup_plugin_pkg_imports.ImportsPluginOptions;
+  /**
    * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
    * package.
    */
@@ -247,9 +252,9 @@ type GenerateConfig = {
    * {@link https://rollupjs.org/configuration-options/#external}
    */
   rollupExternal?:
-    | string
-    | RegExp
     | (string | RegExp)[]
+    | RegExp
+    | string
     | ((id: string, parentId: string, isResolved: boolean) => boolean);
   /**
    * Rollup `paths` option.
@@ -344,7 +349,7 @@ declare function checkDTS(config: GenerateConfig | Iterable<GenerateConfig>): Pr
  */
 declare function generateDTS(config: GenerateConfig | Iterable<GenerateConfig>): Promise<boolean>;
 declare namespace generateDTS {
-  let plugin: (options?: Partial<GenerateConfig>) => rollup.Plugin<any>;
+  let plugin: (options?: Partial<GenerateConfig>) => rollup.Plugin;
 }
 
 export { type GenerateConfig, PluginEvent, type ProcessedConfig, bundleDTS, checkDTS, generateDTS };
