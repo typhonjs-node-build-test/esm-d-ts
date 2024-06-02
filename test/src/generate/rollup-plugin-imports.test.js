@@ -332,7 +332,7 @@ describe('Rollup Plugin Imports (generate)', () =>
             });
 
             // TODO: TS 5.5
-            it(`(all) w/ @import`, async () =>
+            it.skip(`(all) w/ @import`, async () =>
             {
                const generateConfig = {
                   compilerOptions: {
@@ -469,7 +469,7 @@ describe('Rollup Plugin Imports (generate)', () =>
             });
 
             // TODO: TS 5.5
-            it(`(all) w/ @import`, async () =>
+            it.skip(`(all) w/ @import`, async () =>
             {
                const generateConfig = {
                   compilerOptions: {
