@@ -23,19 +23,19 @@ import type {
    TransformerFactory }                from 'typescript';
 
 /**
- * Data used to generate the bundled TS declaration. Either `input` or `stdin` options must be specified, but not both.
- * When `stdin` is defined an `output` file path must also be defined.
+ * Data used to generate the bundled TS declaration.
  */
 export type GenerateConfig = {
    /**
     * The input entry source file path.
     */
-   input?: string;
+   input: string;
 
-   /**
-    * An ESM string interpreted as the entry point.
-    */
-   stdin?: string;
+   // TODO: STDIN
+   // /**
+   //  * An ESM string interpreted as the entry point.
+   //  */
+   // stdin?: string;
 
    /**
     * When true attempt to bundle types of top level exported packages. This is useful for re-bundling libraries.
@@ -225,10 +225,13 @@ export type GenerateConfig = {
    rollupOnwarn?: (warning: import('rollup').RollupLog,
     defaultHandler: (warning: string | import('rollup').RollupLog) => void) => void;
 
-} & (
-   | { input: string; stdin?: never; }
-   | { input?: never; stdin: string; output: string; }
-);
+}
+
+// TODO: STDIN
+// & (
+//    | { input: string; stdin?: never; }
+//    | { input?: never; stdin: string; output: string; }
+// );
 
 /**
  * Contains the processed config and associated data. This is internal data for an execution of `esm-d-ts` and is
