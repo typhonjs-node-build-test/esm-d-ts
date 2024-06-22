@@ -43,7 +43,7 @@ export function validateCompilerOptions(compilerOptions)
 /**
  * Validates all config object parameters except `compilerOptions`.
  *
- * @param {import('./index').GenerateConfig} config - A generate config.
+ * @param {import('./types').GenerateConfig} config - A generate config.
  *
  * @returns {boolean} Validation state.
  */

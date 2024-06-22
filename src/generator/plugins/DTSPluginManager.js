@@ -38,7 +38,7 @@ export class DTSPluginManager extends PluginManager
    /**
     * Handles deferred plugin loading until after the logger log level has been set for programmatic API.
     *
-    * @param {import('..').GenerateConfig} generateConfig - Iterable list of 3rd party plugins to load.
+    * @param {import('../types').GenerateConfig} generateConfig - Iterable list of 3rd party plugins to load.
     *
     * @param {boolean} isTSMode - Is Typescript mode enabled.
     *

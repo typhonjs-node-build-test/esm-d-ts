@@ -66,7 +66,7 @@ import {
  *
  * Note: Only options related to bundling apply.
  *
- * @param {GenerateConfig} config - Generation configuration object.
+ * @param {import('./types').GenerateConfig} config - Generation configuration object.
  *
  * @returns {Promise<boolean>} All operations successful.
  */
@@ -143,7 +143,8 @@ async function bundleDTS(config)
 /**
  * Invokes TS compiler in `checkJS` mode without processing DTS.
  *
- * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
+ * @param {import('./types').GenerateConfig | Iterable<import('./types').GenerateConfig>} config - Generation
+ *        configuration object.
  *
  * @returns {Promise<boolean>} All operations successful.
  */
@@ -219,7 +220,7 @@ async function checkDTS(config)
 /**
  * `checkDTS` implementation.
  *
- * @param {ProcessedConfig}   processedConfig - Processed Config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed Config.
  *
  * @returns {Promise<void>}
  */
@@ -255,7 +256,8 @@ async function checkDTSImpl(processedConfig)
 /**
  * Generates TS declarations from ESM source.
  *
- * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
+ * @param {import('./types').GenerateConfig | Iterable<import('./types').GenerateConfig>} config - Generation
+ *        configuration object.
  *
  * @returns {Promise<boolean>} All Operations successful.
  */
@@ -329,7 +331,7 @@ async function generateDTS(config)
 /**
  * `generateDTS` implementation.
  *
- * @param {ProcessedConfig}   processedConfig - Processed Config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed Config.
  *
  * @returns {Promise<void>}
  */
@@ -376,7 +378,7 @@ async function generateDTSImpl(processedConfig)
 /**
  * Provides a Rollup plugin generating a bundled TS declaration after the bundle has been written.
  *
- * @type {(options?: Partial<GenerateConfig>) => import('rollup').Plugin}
+ * @type {(options?: Partial<import('./types').GenerateConfig>) => import('rollup').Plugin}
  */
 generateDTS.plugin = rollupPlugins.generateDTSPlugin(generateDTS);
 
@@ -385,7 +387,7 @@ export { bundleDTS, checkDTS, generateDTS };
 // Internal Implementation -------------------------------------------------------------------------------------------
 
 /**
- * @param {ProcessedConfig}   processedConfig - Processed config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config.
  *
  * @param {string} dtsEntryPathActual - The actual processed DTS entry path.
  *
@@ -513,7 +515,7 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
 /**
  * Compiles TS declaration files from the provided list of ESM & TS files.
  *
- * @param {ProcessedConfig}   processedConfig - Processed config object.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config object.
  *
  * @param {boolean}  isGenerate - Indicates compilation is from DTS generation vs just `checkJs`.
  *
@@ -780,7 +782,7 @@ function isPackage(identifier)
  *
  * @param {import('@typhonjs-plugin/manager/eventbus').EventbusSecure} opts.eventbus - Plugin manager eventbus.
  *
- * @param {GenerateConfig} opts.generateConfig - Generate config.
+ * @param {import('./types').GenerateConfig} opts.generateConfig - Generate config.
  *
  * @param {ts.CompilerOptions} opts.compilerOptions - Typescript compiler options.
  *
@@ -1086,7 +1088,7 @@ async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode,
  *
  * @param {string}         packageName - NPM package name.
  *
- * @param {GenerateConfig} generateConfig - The generate configuration.
+ * @param {import('./types').GenerateConfig} generateConfig - The generate configuration.
  *
  * @returns {string} Returns any found TS declaration for the given package.
  */
@@ -1209,7 +1211,7 @@ function parsePackage(packageName, generateConfig)
 /**
  * Executes `prettier` when configured.
  *
- * @param {ProcessedConfig}   processedConfig - Processed config object.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config object.
  *
  * @returns {Promise<void>}
  */
@@ -1247,7 +1249,7 @@ async function prettierExec(processedConfig)
  *
  * @param {object} opts - Options.
  *
- * @param {GenerateConfig} opts.origConfig - The original GenerateConfig.
+ * @param {import('./types').GenerateConfig} opts.origConfig - The original GenerateConfig.
  *
  * @param {import('type-fest').TsConfigJson.CompilerOptions} opts.defaultCompilerOptions - Default compiler options.
  *
@@ -1269,7 +1271,7 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
     * A shallow copy of the original configuration w/ default values for , `filterTags`,`logLevel`,
     * `removePrivateStatic`, `tsDiagnosticExternal`, and `tsDiagnosticLog`.
     *
-    * @type {GenerateConfig}
+    * @type {import('./types').GenerateConfig}
     */
    const generateConfig = Object.assign({
       filterTags: 'internal',
@@ -1470,7 +1472,7 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
  * Resolve local `imports` files from `package.json` substituting the `#imports` alias for the actual path in
  * generated declarations.
  *
- * @param {ProcessedConfig}   processedConfig - Processed config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config.
  *
  * @returns {import('@rollup/plugin-alias').Alias[]} Resolved local `imports` files for Rollup plugin alias.
  */
@@ -1499,7 +1501,7 @@ function resolveLocalImports(processedConfig)
  *
  * Note: This is useful for libraries that re-bundle NPM packages.
  *
- * @param {ProcessedConfig}   processedConfig - Processed config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config.
  *
  * @returns {import('@rollup/plugin-alias').Alias[]} Resolved local package types for Rollup plugin alias.
  */
@@ -1555,7 +1557,7 @@ function resolvePackageExports(processedConfig)
  * Parses the `imports` field of the closest `package.json` from the input source file for import specifier keys that
  * map to packages.
  *
- * @param {ProcessedConfig}   processedConfig - Processed config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config.
  *
  * @returns {({
  *    isImportsExternalKey: (key: string) => boolean,
@@ -1708,153 +1710,3 @@ const s_REGEX_EXPORT = /^\s*export/;
 const s_REGEX_FILEPATH_NO_EXTENSION = /^(?:.*\/)?[^.]*$/;
 const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
-
-/**
- * @typedef {object} GenerateConfig Data used to generate the bundled TS declaration.
- *
- * @property {string}               input The input entry source path.
- *
- * @property {boolean}              [bundlePackageExports=false] When true attempt to bundle types of top level
- * exported packages. This is useful for re-bundling libraries.
- *
- * @property {boolean}              [checkDefaultPath=false] When true and bundling top level package exports via
- * `bundlePackageExports` check for `index.d.ts` in package root; this is off by default as usually this is indicative
- * of and older package not updated for `exports` in `package.json`.
- *
- * @property {import('resolve.exports').Options}   [conditionImports] `resolve.exports` conditional options for
- * `package.json` imports field type.
- *
- * @property {Record<string, string>} [dtsReplace] Options for naive text replacement operating on the final bundled
- * TS declaration file. The keys are converted into RegExp instances so may be a valid pattern to match.
- *
- * @property {string|Iterable<string>|false|null|undefined} [filterTags='internal'] By default,
- * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
- * `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
- *
- * @property {(
- *    boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions
- * )} [importsExternal] When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
- * package.
- *
- * @property {(
- *    boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions
- * )} [importsLocal] When defined enables `importsLocal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
- * package.
- *
- * @property {(
- *    boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsResolvePluginOptions
- * )} [importsResolve] When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports`
- * package.
- *
- * @property {import('@typhonjs-utils/logger-color').LogLevel} [logLevel='info'] Defines the logging level.
- *
- * @property {string}               [output] The output file path for the bundled TS declarations.
- *
- * @property {string}               [outputExt='.d.ts'] The bundled output TS declaration file extension. Normally a
- * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
- * change the extension as desired.
- *
- * @property {string}               [outputGraph] Outputs the package dependency graph to the given file path. The
- * graph JSON is suitable for use in various graph libraries like cytoscape / Svelte Flow / amongst others.
-
- * @property {number}               [outputGraphIndentation] When outputting the dependency graph use this indentation
- * value for the JSON output.
- *
- * @property {string}               [outputPostprocess] When postprocessing is configured this is a helpful debugging
- * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of
- * any additional processing. You must specify a valid filepath.
- *
- * @property {Iterable<string>}     [plugins] An iterable list of NPM package names or local source files providing ESM
- * plugins to load for additional file type support. Official 1st party plugins installed will automatically load. Use
- * `plugins` to load any 3rd party plugins.
- *
- * @property {Iterable<import('@typhonjs-build-test/esm-d-ts/postprocess').ProcessorFunction>} [postprocess] An
- * iterable list of postprocessing functions. Note: This is experimental!
- *
- * @property {Iterable<string>}     [prependFiles] Directly prepend these files to the bundled output. The files are
- * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied
- * across multiple subpath exports. Then a second attempt is made with the path provided.
- *
- * @property {Iterable<string>}     [prependString] Directly prepend these strings to the bundled output.
- *
- * @property {boolean | import('prettier').Options} [prettier] When defined as "false" `prettier` is not executed on
- * the bundled declaration output. Otherwise, you may provide a custom `prettier` configuration object.
- *
- * @property {boolean}              [removePrivateStatic=true] When true a custom transformer is added to remove the
- * renaming of private static class members that Typescript currently renames.
- *
- *
- *
- * @property {import('type-fest').TsConfigJson.CompilerOptions}   [compilerOptions] Typescript compiler options.
- * {@link https://www.typescriptlang.org/tsconfig}
- *
- * @property {boolean}  [tsCheckJs=false] When true set `checkJs` to default compiler options. This is a
- * convenience parameter to quickly turn `checkJs` on / off.
- *
- * @property {string}   [tsconfig] Provide a path to a `tsconfig.json` for custom `compilerOptions` configuration.
- *
- * @property {boolean} [tsDiagnosticExternal=false] By default, all diagnostic errors that are external to the common
- * root path from the `input` source file will be filtered from diagnostic logging. Set to `true` to include all
- * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `tsDiagnosticFilter` this
- * option is ignored.
- *
- * @property {(
- *    (params: { diagnostic: import('typescript').Diagnostic, message?: string }) => boolean
- * )} [tsDiagnosticFilter] Optional filter function to handle diagnostic messages in a similar manner as the `onwarn`
- * Rollup callback. Return `true` to filter the given diagnostic from posting to `console.error` otherwise return false
- * to include.
- *
- * @property {boolean} [tsDiagnosticLog=true] When generating a DTS bundle you may opt to turn off any emitted TS
- * compiler diagnostic messages.
- *
- * @property {boolean} [tsFileWalk=true] When true all TS files located at the `input` path and all subdirectories
- * are included as synthetic exports in the generated declarations. Setting to false only includes TS files in the
- * direct `input` path.
- *
- * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [tsTransformers]
- * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
- * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
- *
- *
- *
- * @property {(string | RegExp)[] | RegExp | string |
- * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [rollupExternal] Rollup `external` option.
- * {@link https://rollupjs.org/configuration-options/#external}
- *
- * @property {Record<string, string> | ((id: string) => string)} [rollupPaths] Rollup `paths` option.
- * {@link https://rollupjs.org/configuration-options/#output-paths}
- *
- * @property {(warning: import('rollup').RollupLog,
- * defaultHandler: (warning: string | import('rollup').RollupLog) => void) => void} [rollupOnwarn] Rollup `onwarn`
- * option. {@link https://rollupjs.org/configuration-options/#onwarn}
- */
-
-/**
- * @typedef {object} ProcessedConfig Contains the processed config and associated data.
- *
- * @property {string[]}    compileFilepaths A list of all file paths to compile.
- *
- * @property {ts.CompilerOptions} compilerOptions TS compiler options.
- *
- * @property {string}      dtsDirectoryPath The directory path for intermediate TS declarations generated.
- *
- * @property {string}      dtsEntryPath The entry point path for intermediate TS declarations generated.
- *
- * @property {GenerateConfig} generateConfig The original generate generateConfig w/ default data.
- *
- * @property {string}      inputRelativeDir Relative directory of common project files path.
- *
- * @property {boolean}     isTSMode Indicates if the Typescript mode / processing is enabled.
- *
- * @property {string[]}    lexerFilepaths The lexically parsed original file paths connected with the entry point.
- *
- * @property {Map<string, string>} localPackageImports Contains local files referenced by `package.json` `imports`
- * field.
- *
- * @property {Map<string, string>} packages Top level packages exported from entry point. Key is the identifier in
- * source code / may be an `imports` alias / value is the actual package identifier.
- *
- * @property {import('type-fest').PackageJson} packageObj - Closest `package.json` object from input source file.
- *
- * @property {string[]}    tsFilepaths A list of all TS files to add synthetic exports.
- */

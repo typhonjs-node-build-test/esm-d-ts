@@ -9,9 +9,10 @@ import upath         from 'upath';
 /**
  * Provides a Rollup plugin generating the declaration after the bundle has been written.
  *
- * @param {function(import('./index.js').GenerateConfig): Promise<void>} generateDTS - Generation function.
+ * @param {function(import('../types').GenerateConfig): Promise<void>} generateDTS - Generation function.
  *
- * @returns {(options?: Partial<import('./index.js').GenerateConfig>) => import('rollup').Plugin} The Rollup plugin.
+ * @returns {(options?: Partial<import('../types').GenerateConfig>) => import('rollup').Plugin<unknown>} The Rollup
+ *          plugin.
  */
 export function generateDTSPlugin(generateDTS)
 {
@@ -28,7 +29,7 @@ export function generateDTSPlugin(generateDTS)
       /**
        * Make a shallow copy as various top level attributes may be automatically set.
        *
-       * @type {import('./index.js').GenerateConfig}
+       * @type {import('../types').GenerateConfig}
        */
       const config = Object.assign({ input: void 0 }, options);
 
