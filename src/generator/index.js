@@ -600,6 +600,7 @@ async function compile(processedConfig, isGenerate)
     * Optionally add `addSyntheticExports` to add exports for any additional TS files compiled.
     */
    const jsTransformers = isTSMode ? [] : [
+      // TODO: REMOVE FOR TS 5.5; favor `@import`.
       jsdocImplementsImportType(),
 
       // TODO: The problem this transformer solves is fixed in TS 5.3+; Keep until minimum peer dependency is bumped.
