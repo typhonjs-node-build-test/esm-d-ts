@@ -108,10 +108,15 @@ export async function generate(input, opts)
    }
 }
 
+// Internal implementation -------------------------------------------------------------------------------------------
+
 /**
  * @param {string}   filepath - File path of config.
  *
- * @returns {Promise<import('../generate').GenerateConfig | import('../generate').GenerateConfig[]>} Loaded config.
+ * @returns {(Promise<
+ *    import('../generator/types').GenerateConfig |
+ *    import('../generator/types').GenerateConfig[]>
+ * )} Loaded config.
  */
 async function loadConfig(filepath)
 {
@@ -260,14 +265,17 @@ async function processOptions(input, opts)
    else
    {
       // Verify `input` file.
-      const inputpath = path.resolve(input);
-      if (!isFile(inputpath)) { exit(`No input / entry point file exists for: ${input}`); }
+      if (typeof input === 'string')
+      {
+         const inputpath = path.resolve(input);
+         if (!isFile(inputpath)) { exit(`No input / entry point file exists for: ${input}`); }
+      }
    }
 
    /**
     * Construct command line options configuration; this is used when a config file is not loaded.
     *
-    * @type {import('../generate').GenerateConfig}
+    * @type {import('../generator/types').GenerateConfig}
     */
    const options = { input };
 
@@ -293,7 +301,11 @@ function exit(message, exit = true)
 /**
  * @typedef {object} ProcessedOptions
  *
- * @property {import('../generate').GenerateConfig | import('../generate').GenerateConfig[]} [config] Loaded config(s).
+ * @property {(
+ *    import('../generator/types').GenerateConfig |
+ *    import('../generator/types').GenerateConfig[]
+ * )} [config] Loaded config(s).
  *
- * @property {object} [options] All GenerateConfig command line options defined.
+ * @property {import('../generator/types').GenerateConfig} [options] All GenerateConfig command line options
+ * defined.
  */
