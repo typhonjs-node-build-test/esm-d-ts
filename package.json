@@ -31,16 +31,16 @@
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "dependencies": {
-    "@es-joy/jsdoccomment": "^0.43.0",
+    "@es-joy/jsdoccomment": "^0.48.0",
     "@rollup/plugin-alias": "^5.1.0",
-    "@types/cytoscape": "^3.21.2",
+    "@types/cytoscape": "^3.21.0",
     "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.5.0",
     "@typhonjs-plugin/manager": "^0.1.2",
     "@typhonjs-utils/file-util": "^0.1.0",
     "@typhonjs-utils/logger-color": "^0.1.0",
     "@typhonjs-utils/object": "^0.1.0",
     "@typhonjs-utils/package-json": "^0.7.0",
-    "cytoscape": "^3.29.0",
+    "cytoscape": "^3.30.0",
     "comment-parser": "^1.4.0",
     "es-module-lexer": "^1.5.0",
     "fs-extra": "^11.2.0",
@@ -50,22 +50,21 @@
     "resolve.exports": "^2.0.2",
     "rollup-plugin-dts": "^6.1.0",
     "sade": "^1.8.1",
-    "ts-morph": "^22.0.0",
-    "type-fest": "^4.18.0",
-    "upath": "^2.0.1"
+    "ts-morph": "^23.0.0",
+    "type-fest": "^4.26.0",
+    "upath": "^2.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-node-resolve": "^15.2.0",
     "@rollup/plugin-typescript": "^11.1.6",
     "@typhonjs-config/eslint-config" : "^0.6.0",
-    "@typhonjs-typedoc/typedoc-pkg": "^0.0.5",
-    "@types/node": "^20.11.30",
-    "@vitest/coverage-v8": "^1.6.0",
-    "@vitest/ui": "^1.6.0",
+    "@typhonjs-typedoc/typedoc-pkg": "^0.1.0",
+    "@types/node": "^22.5.5",
+    "@vitest/coverage-v8": "^2.1.0",
+    "@vitest/ui": "^2.1.0",
     "eslint": "^8.57.0",
-    "tslib" : "^2.6.2",
-    "typedoc": "0.25.12",
-    "vitest": "^1.6.0",
+    "tslib" : "^2.7.0",
+    "vitest": "^2.1.0",
     "@esm-d-ts-test/org": "file:./test/fixture/packages/@esm-d-ts-test-org",
     "esm-d-ts-test-basic": "file:./test/fixture/packages/esm-d-ts-test-basic",
     "esm-d-ts-test-basic-typings": "file:./test/fixture/packages/esm-d-ts-test-basic-typings",
@@ -74,7 +73,7 @@
   },
   "peerDependencies": {
     "rollup": "3.3 - 4",
-    "typescript": ">=5.1"
+    "typescript": ">=5.5"
   },
   "engines": {
     "node": ">=18"
@@ -115,10 +114,14 @@
         "cytoscape.ElementDefinition": "https://js.cytoscape.org/#notation/elements-json",
         "cytoscape.SearchVisitFunction": "https://js.cytoscape.org/#eles.depthFirstSearch"
       },
+      "prettier": {
+        "Options": "https://prettier.io/docs/en/options.html"
+      },
       "resolve.exports": {
         "Options": "https://www.npmjs.com/package/resolve.exports#options"
       }
-    }
+    },
+    "projectDocuments": ["./CHANGELOG.md"]
   },
   "license": "MPL-2.0",
   "repository": "github:typhonjs-node-build-test/esm-d-ts",
