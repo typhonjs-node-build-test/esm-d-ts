@@ -1254,11 +1254,12 @@ async function prettierExec(processedConfig)
  *
  * @param {import('type-fest').TsConfigJson.CompilerOptions} opts.defaultCompilerOptions - Default compiler options.
  *
- * @param {Partial<GenerateConfig>} [opts.extraConfig] - Additional config parameters to override user supplied config.
+ * @param {Partial<import('./types').GenerateConfig>} [opts.extraConfig] - Additional config parameters to override
+ *        user supplied config.
  *
  * @param {boolean} [opts.lexer=true] - When true the input is lexically analyzed.
  *
- * @returns {Promise<ProcessedConfig | string>} Processed config or error string.
+ * @returns {Promise<import('./types').ProcessedConfig | string>} Processed config or error string.
  */
 async function processConfig({ origConfig, defaultCompilerOptions, extraConfig = {}, lexer = true })
 {
