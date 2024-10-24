@@ -128,6 +128,17 @@ async function bundleDTS(config)
 
          // Run prettier on the bundled output file.
          await prettierExec(processedConfigOrError);
+
+         // For strict Typescript adherence for dual ESM / CJS packages referencing an independent `.d.cts` file is necessary.
+         if (generateConfig.emitCTS)
+         {
+            const outputCTS = upath.changeExt(generateConfig.output, 'cts');
+            if (isFile(generateConfig.output))
+            {
+               fs.copySync(generateConfig.output, outputCTS);
+               logger.verbose(`Output bundled CTS file to: ${outputCTS}`);
+            }
+         }
       }
    }
    catch (err)
@@ -337,7 +348,7 @@ async function generateDTS(config)
  */
 async function generateDTSImpl(processedConfig)
 {
-   const { dtsDirectoryPath, eventbus } = processedConfig;
+   const { dtsDirectoryPath, eventbus, generateConfig } = processedConfig;
 
    logger.debug(`Intermediate declarations output path: ${upath.relative(process.cwd(), dtsDirectoryPath)}`);
 
@@ -362,6 +373,17 @@ async function generateDTSImpl(processedConfig)
 
    // Run prettier on the bundled output file.
    await prettierExec(processedConfig);
+
+   // For strict Typescript adherence for dual ESM / CJS packages referencing an independent `.d.cts` file is necessary.
+   if (generateConfig.emitCTS)
+   {
+      const outputCTS = upath.changeExt(generateConfig.output, 'cts');
+      if (isFile(generateConfig.output))
+      {
+         fs.copySync(generateConfig.output, outputCTS);
+         logger.verbose(`Output bundled CTS file to: ${outputCTS}`);
+      }
+   }
 
    try
    {
@@ -510,16 +532,6 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
    }
 
    logger.verbose(`Output bundled DTS file to: ${generateConfig.output}`);
-
-   if (generateConfig.emitCTS)
-   {
-      const outputCTS = upath.changeExt(generateConfig.output, 'cts');
-      if (isFile(generateConfig.output))
-      {
-         fs.copySync(generateConfig.output, outputCTS);
-         logger.verbose(`Output bundled CTS file to: ${outputCTS}`);
-      }
-   }
 }
 
 /**
