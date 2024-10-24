@@ -31,11 +31,10 @@ export type GenerateConfig = {
     */
    input: string;
 
-   // TODO: STDIN
-   // /**
-   //  * An ESM string interpreted as the entry point.
-   //  */
-   // stdin?: string;
+   /**
+    * Output additional '.d.cts' file for strict Typescript adherence for packages that are dual ESM / CJS.
+    */
+   emitCTS?: boolean;
 
    /**
     * When true attempt to bundle types of top level exported packages. This is useful for re-bundling libraries.
@@ -226,12 +225,6 @@ export type GenerateConfig = {
     defaultHandler: (warning: string | import('rollup').RollupLog) => void) => void;
 
 }
-
-// TODO: STDIN
-// & (
-//    | { input: string; stdin?: never; }
-//    | { input?: never; stdin: string; output: string; }
-// );
 
 /**
  * Contains the processed config and associated data. This is internal data for an execution of `esm-d-ts` and is

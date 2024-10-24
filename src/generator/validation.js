@@ -81,6 +81,12 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.emitCTS !== void 0 && typeof config.emitCTS !== 'boolean')
+   {
+      logger.error(`validateConfig error: 'config.emitCTS' must be a boolean.`);
+      result = false;
+   }
+
    if (typeof config.filterTags !== 'string' && !isIterable(config.filterTags) && config.filterTags !== false &&
     config.filterTags !== null && config.filterTags !== void 0)
    {

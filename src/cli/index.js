@@ -20,6 +20,7 @@ const program = sade('esm-d-ts')
 program
    .command('bundle [input] [output]', 'Bundle DTS')
    .describe(`Provides a convenience command to bundle an existing Typescript declaration entry point.`)
+   .option('--emitCTS', `Output additional '.d.cts' file for strict Typescript adherence for packages that are dual ESM / CJS.`)
    .example('bundle dist/index.d.ts dist/bundled.d.ts')
    .action(bundle);
 
@@ -37,6 +38,7 @@ program
    .describe('Generate bundled DTS from source file.')
    .option('-c, --config', `Provide a path to an 'esm-d-ts' configuration file.`)
    .option('--check', `Enable 'checkJs' diagnostic logging.`)
+   .option('--emitCTS', `Output additional '.d.cts' file for strict Typescript adherence for packages that are dual ESM / CJS.`)
    .option('-o, --output', 'Provide a file path to generated TS declaration output.')
    .option('-t, --tsconfig', `Provide a path to a 'tsconfig.json' file for custom compiler options.`)
    .example('generate src/index.js')

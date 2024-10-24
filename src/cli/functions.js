@@ -280,6 +280,7 @@ async function processOptions(input, opts)
    const options = { input };
 
    if (typeof opts?.check === 'boolean' && opts.check) { options.tsCheckJs = true; }
+   if (typeof opts?.emitCTS === 'boolean' && opts.emitCTS) { options.emitCTS = true; }
    if (typeof opts?.loglevel === 'string') { options.logLevel = opts.loglevel; }
    if (typeof opts?.output === 'string' && opts.output !== '') { options.output = opts.output; }
    if (typeof opts?.tsconfig === 'string' && opts.tsconfig !== '') { options.tsconfig = opts.tsconfig; }

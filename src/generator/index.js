@@ -510,6 +510,16 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
    }
 
    logger.verbose(`Output bundled DTS file to: ${generateConfig.output}`);
+
+   if (generateConfig.emitCTS)
+   {
+      const outputCTS = upath.changeExt(generateConfig.output, 'cts');
+      if (isFile(generateConfig.output))
+      {
+         fs.copySync(generateConfig.output, outputCTS);
+         logger.verbose(`Output bundled CTS file to: ${outputCTS}`);
+      }
+   }
 }
 
 /**
@@ -1276,6 +1286,7 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
     * @type {import('./types').GenerateConfig}
     */
    const generateConfig = Object.assign({
+      emitCTS: false,
       filterTags: 'internal',
       logLevel: 'info',
       plugins: [],

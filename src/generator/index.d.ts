@@ -29,6 +29,10 @@ type GenerateConfig = {
    */
   input: string;
   /**
+   * Output additional '.d.cts' file for strict Typescript adherence for packages that are dual ESM / CJS.
+   */
+  emitCTS?: boolean;
+  /**
    * When true attempt to bundle types of top level exported packages. This is useful for re-bundling libraries.
    */
   bundlePackageExports?: boolean;
