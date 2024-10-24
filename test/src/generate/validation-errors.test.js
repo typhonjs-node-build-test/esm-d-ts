@@ -89,6 +89,7 @@ describe('Validation Errors (generate)', () =>
             checkDefaultPath: null,
             conditionImports: null,
             dtsReplace: null,
+            emitCTS: null,
             filterTags: Number.NaN,
             importsExternal: null,
             importsLocal: null,

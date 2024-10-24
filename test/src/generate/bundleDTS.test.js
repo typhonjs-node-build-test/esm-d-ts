@@ -23,6 +23,25 @@ describe('bundleDTS()', () =>
       expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
    });
 
+   it('bundles existing DTS w/ emitCTS', async () =>
+   {
+      const success = await bundleDTS({
+         input: './test/fixture/data/dts/index.d.ts',
+         output: './test/fixture/output/generate/bundle/bundled.d.ts',
+         emitCTS: true
+      });
+
+      expect(success).toBe(true);
+
+      const result = fs.readFileSync('./test/fixture/output/generate/bundle/bundled.d.ts', 'utf-8');
+
+      expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
+
+      const resultCTS = fs.readFileSync('./test/fixture/output/generate/bundle/bundled.d.cts', 'utf-8');
+
+      expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
+   });
+
    it('bundles existing DTS (internal w/ bundlePackageExports)', async () =>
    {
       const success = await bundleDTS({

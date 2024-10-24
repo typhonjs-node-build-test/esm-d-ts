@@ -74,6 +74,27 @@ describe('generateDTS()', () =>
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
+      it('valid w/ emitCTS', async () =>
+      {
+         const success = await generateDTS({
+            input: './test/fixture/src/generate/javascript/valid/index.js',
+            output: './test/fixture/output/generate/javascript/valid/index.d.ts',
+            emitCTS: true,
+            logLevel: 'debug',
+            compilerOptions: { outDir: './test/fixture/output/generate/javascript/valid/.dts' },
+         });
+
+         expect(success).toBe(true);
+
+         const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+
+         const resultCTS = fs.readFileSync('./test/fixture/output/generate/javascript/valid/index.d.cts', 'utf-8');
+
+         expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+      });
+
       it('valid (.mjs)', async () =>
       {
          const success = await generateDTS({

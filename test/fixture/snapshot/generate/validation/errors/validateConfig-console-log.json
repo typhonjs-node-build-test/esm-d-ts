@@ -15,6 +15,9 @@
     "\u001b[31m[esm-d-ts] validateConfig error: 'config.dtsReplace' must be an object.\u001b[0m"
   ],
   [
+    "\u001b[31m[esm-d-ts] validateConfig error: 'config.emitCTS' must be a boolean.\u001b[0m"
+  ],
+  [
     "\u001b[31m[esm-d-ts] validateConfig error: 'config.filterTags' must be a string, iterable list of strings, or falsy value.\u001b[0m"
   ],
   [

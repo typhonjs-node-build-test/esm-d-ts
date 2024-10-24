@@ -46,6 +46,37 @@ describe('Rollup Plugin (generate)', () =>
          expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
+      it('basic rollup (valid) w/ emitCTS', async () =>
+      {
+         const rollupConfig = {
+            input: {
+               input: './test/fixture/src/generate/javascript/valid/index.js',
+               plugins: [
+                  generateDTS.plugin({
+                     compilerOptions: { outDir: './test/fixture/output/generate/rollup/basic/.dts' },
+                     emitCTS: true
+                  })
+               ]
+            },
+            output: {
+               file: './test/fixture/output/generate/rollup/basic/index.js',
+               format: 'es',
+            }
+         };
+
+         const bundle = await rollup(rollupConfig.input);
+         await bundle.write(rollupConfig.output);
+         await bundle.close();
+
+         const result = fs.readFileSync('./test/fixture/output/generate/rollup/basic/index.d.ts', 'utf-8');
+
+         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+
+         const resultCTS = fs.readFileSync('./test/fixture/output/generate/rollup/basic/index.d.cts', 'utf-8');
+
+         expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+      });
+
       it(`dir-resolve w/ resolve Rollup plugin`, async () =>
       {
          const rollupConfig = {
