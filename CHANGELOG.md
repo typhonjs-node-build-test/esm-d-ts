@@ -15,6 +15,10 @@
 - Added `bundleDTS` convenience function and new `bundle` command from the CLI which allows easy bundling of existing
   well formatted module based Typescript declarations.
 
+- Added `emitCTS` option to output additional '.d.cts' file for strict Typescript adherence for packages that are dual
+  ESM / CJS. When referencing `require` as an export condition in an dual ESM / CJS package the `types` referenced must
+  be `.d.cts` for the `require` condition for strict Typescript adherence.
+
 - Added `importsLocal` support from `@typhonjs-build-test/rollup-plugin-pkg-imports`
 
 ## Release 0.2.2
