@@ -180,3 +180,161 @@ export function naiveReplace(replace)
       }
    };
 }
+
+/**
+ * A Rollup plugin to relax "conflicting namespaces" for `.d.ts` bundling.
+ *
+ * @returns {import('rollup').Plugin} The Rollup plugin.
+ */
+export function relaxNamespaceConflict()
+{
+   /**
+    * Reused Set tracking top level namespace names in the `transform` callback.
+    *
+    * @type {Set<string>}
+    */
+   const nameSet = new Set();
+
+   /**
+    * Stores the modified / transformed namespace name -> original name.
+    *
+    * @type {Map<string, string>}
+    */
+   const transformMap = new Map();
+
+   /**
+    * An incrementing counter as namespaces are transformed.
+    *
+    * @type {number}
+    */
+   let counter = 1; // A counter for unique numbering.
+
+   return /** @type {import('rollup').Plugin} */ {
+      name: 'relax-namespace-conflict',
+
+      /**
+       * During the `transform` phase (pre) parse code for namespaces transforming to unique names.
+       */
+      transform: {
+         order: 'pre',
+
+         handler(code)
+         {
+            parseTopLevelNamespaces(code, nameSet);
+
+            if (nameSet.size)
+            {
+               // Replace all top level namespace names with a valid / unique identifier.
+               for (const name of nameSet)
+               {
+                  const modName = `___transformed_namespace___${name}_${counter++}`;
+                  code = code.replaceAll(name, modName);
+                  transformMap.set(modName, name);
+               }
+            }
+
+            return code;
+         }
+      },
+
+      /**
+       * During the `generateBundle` phase (post) convert back transformed namespace names carefully handling export
+       * statements / de-duping.
+       */
+      generateBundle: {
+         order: 'post',
+
+         handler(options, bundle)
+         {
+            // Early out nothing to transform.
+            if (!transformMap.size) { return; }
+
+            for (const key in bundle)
+            {
+               const chunk = bundle[key];
+               if (typeof chunk?.code !== 'string') { continue; }
+
+               const exportsSet = new Set(Array.isArray(chunk.exports) ? chunk.exports : []);
+
+               for (const modName of transformMap.keys())
+               {
+                  const name = transformMap.get(modName);
+                  if (exportsSet.has(modName))
+                  {
+                     const exportsHasOriginalName = exportsSet.has(name);
+
+                     const regex = new RegExp(`(?<=export\\s*{[^}]*?)\\s*${modName}\\s*(,\\s*|(?=}|$))`, 'gm');
+
+                     // If original name is in the exports set then do not add it to the export statement.
+                     chunk.code = chunk.code.replaceAll(regex, exportsHasOriginalName ? '' : `, ${name}`);
+
+                     exportsSet.delete(modName);
+
+                     // Add the original / replaced name to the exports set.
+                     if (!exportsHasOriginalName) { exportsSet.add(name); }
+                  }
+
+                  // Substitute all transformed namespace names to the original outside of export statements.
+                  const regex = new RegExp(`\\b${modName}\\b(?![^]*?export\\s*{[^}]*${modName}[^}]*})`, 'g');
+                  chunk.code = chunk.code.replaceAll(regex, name);
+               }
+
+               // Remove leading / trailing commas and extra whitespace.
+               chunk.code = chunk.code.replace(/export\s*{([^}]*)}/g, (_, content) =>
+               {
+                  return `export { ${content.split(',').map((item) => item.trim()).filter(Boolean).join(', ')} }`;
+               });
+            }
+         }
+      }
+   };
+}
+
+// Internal implementation -------------------------------------------------------------------------------------------
+
+/**
+ * Parses various permutations of how namespaces are defined in Typescript source files.
+ *
+ * @type {RegExp}
+ */
+const namespaceRegex = /^\s*(export\s+declare|declare|export)\s+namespace\s+(?<NAME>[a-zA-Z_$][\w$]*)\s*(?={|;|$)/gm;
+
+/**
+ * @param {string}   code - Declaration file to parse.
+ *
+ * @param {Set<string>} nameSet - Reused Set to track namespace names.
+ */
+function parseTopLevelNamespaces(code, nameSet)
+{
+   nameSet.clear();
+
+   let depth = 0; // Tracks brace depth.
+
+   let match;
+   let lastIndex = 0; // Tracks last processed position.
+
+   // Iterate through regex matches.
+   while ((match = namespaceRegex.exec(code)) !== null)
+   {
+      const matchIndex = match.index;
+
+      // Update brace depth from the last processed position to the current match.
+      for (let i = lastIndex; i < matchIndex; i++)
+      {
+         switch (code[i])
+         {
+            case '{':
+               depth++;
+               break;
+            case '}':
+               depth--;
+               break;
+         }
+      }
+
+      lastIndex = matchIndex;
+
+      // Only add top-level namespaces.
+      if (depth === 0) { nameSet.add(match.groups.NAME); }
+   }
+}

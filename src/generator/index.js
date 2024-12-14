@@ -479,6 +479,11 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
       dts()
    );
 
+   if (generateConfig.tsRelaxNamespaces)
+   {
+      plugins.push(rollupPlugins.relaxNamespaceConflict());
+   }
+
    const rollupConfig = {
       input: {
          input: dtsEntryPathActual,
@@ -1306,7 +1311,8 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
       removePrivateStatic: true,
       tsDiagnosticExternal: false,
       tsDiagnosticLog: true,
-      tsFileWalk: true
+      tsFileWalk: true,
+      tsRelaxNamespaces: true
    }, origConfig, extraConfig);
 
    // Set default output extension and output file if not defined.
