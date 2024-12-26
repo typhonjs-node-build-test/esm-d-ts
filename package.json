@@ -31,7 +31,7 @@
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "dependencies": {
-    "@es-joy/jsdoccomment": "^0.49.0",
+    "@es-joy/jsdoccomment": "^0.50.0",
     "@rollup/plugin-alias": "^5.1.1",
     "@types/cytoscape": "^3.21.8",
     "@typhonjs-build-test/rollup-plugin-pkg-imports": "^0.5.0",
@@ -46,19 +46,19 @@
     "fs-extra": "^11.2.0",
     "glob-to-regexp": "^0.4.1",
     "import-meta-resolve": "^4.1.0",
-    "prettier": "^3.3.3",
-    "resolve.exports": "^2.0.2",
+    "prettier": "^3.4.2",
+    "resolve.exports": "^2.0.3",
     "rollup-plugin-dts": "^6.1.1",
     "sade": "^1.8.1",
     "ts-morph": "^24.0.0",
-    "type-fest": "^4.26.0",
+    "type-fest": "^4.31.0",
     "upath": "^2.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-typescript": "^12.1.0",
     "@typhonjs-config/eslint-config" : "^0.6.0",
-    "@typhonjs-typedoc/typedoc-pkg": "^0.1.2",
+    "@typhonjs-typedoc/typedoc-pkg": "^0.3.1",
     "@types/node": "^22.7.9",
     "@vitest/coverage-v8": "^2.1.0",
     "@vitest/ui": "^2.1.0",
