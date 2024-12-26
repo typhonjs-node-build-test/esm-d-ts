@@ -196,16 +196,6 @@ export type GenerateConfig = {
    tsFileWalk?: boolean;
 
    /**
-    * When namespaces are defined and exported from separate source files this may cause conflicts when bundling
-    * declarations. During the bundling process all top-level namespaces are temporarily transformed and de-duped
-    * allowing definition of namespaces that share the same name with another symbol such as a class. This is helpful
-    * for ESM developers who create namespaces in separate TS source files for inclusion.
-    *
-    * @defaultValue `true`
-    */
-   tsRelaxNamespaces?: boolean;
-
-   /**
     * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
     * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
     */

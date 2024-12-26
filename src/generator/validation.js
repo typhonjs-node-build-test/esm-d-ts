@@ -235,12 +235,6 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (typeof config.tsRelaxNamespaces !== 'boolean')
-   {
-      logger.error(`validateConfig error: 'config.tsRelaxNamespaces' must be a boolean.`);
-      result = false;
-   }
-
    if (config.tsTransformers !== void 0 && !isIterable(config.tsTransformers) &&
     typeof config.tsTransformers !== 'function')
    {
