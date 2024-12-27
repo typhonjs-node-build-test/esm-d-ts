@@ -15,6 +15,10 @@ export default defineConfig({
       reporters: ['default', 'html'],
       globals: true,
       testTimeout: 20000,
-      watchExclude: ['./test/fixture/**/*']
+      server: {
+         watch: {
+            ignored: ['./test/fixture/**/*']
+         }
+      }
    }
 });
