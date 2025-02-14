@@ -61,7 +61,7 @@ describe('generateDTS() warnings / errors', () =>
             // `null` config above will cause false to return indicating not all configs ran.
             expect(success).toBe(false);
 
-            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+            await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/javascript/errors/config/bad-input-path.json');
          });
 
@@ -83,7 +83,7 @@ describe('generateDTS() warnings / errors', () =>
 
             expect(success).toBe(false);
 
-            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+            await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/javascript/errors/imports/local/bad-path-missing-import.json');
          });
       });
@@ -107,7 +107,7 @@ describe('generateDTS() warnings / errors', () =>
 
             expect(success).toBe(false);
 
-            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+            await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/javascript/errors/parseFile/generateDTS-dir-missing-index.json');
          });
       });
@@ -129,7 +129,7 @@ describe('generateDTS() warnings / errors', () =>
 
             expect(success).toBe(false);
 
-            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+            await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/javascript/errors/tsconfig/malformed-tsconfig.json');
          });
       });
@@ -159,7 +159,7 @@ describe('generateDTS() warnings / errors', () =>
 
             expect(success).toBe(true);
 
-            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+            await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/typescript/errors/parseFile/generateDTS-dir-missing-index.json');
          });
       });

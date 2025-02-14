@@ -20,7 +20,7 @@ describe('bundleDTS()', () =>
 
       const result = fs.readFileSync('./test/fixture/output/generate/bundle/bundled.d.ts', 'utf-8');
 
-      expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
+      await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
    });
 
    it('bundles existing DTS w/ emitCTS', async () =>
@@ -35,11 +35,11 @@ describe('bundleDTS()', () =>
 
       const result = fs.readFileSync('./test/fixture/output/generate/bundle/bundled.d.ts', 'utf-8');
 
-      expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
+      await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
 
       const resultCTS = fs.readFileSync('./test/fixture/output/generate/bundle/bundled.d.cts', 'utf-8');
 
-      expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
+      await expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
    });
 
    it('bundles existing DTS (internal w/ bundlePackageExports)', async () =>
@@ -54,7 +54,7 @@ describe('bundleDTS()', () =>
 
       const result = fs.readFileSync('./test/fixture/output/generate/bundle/bundled-internal.d.ts', 'utf-8');
 
-      expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled-internal.d.ts');
+      await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled-internal.d.ts');
    });
 
    it('config error (bad input path)', async () =>
@@ -71,7 +71,7 @@ describe('bundleDTS()', () =>
 
       expect(success).toBe(false);
 
-      expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+      await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
        `../../fixture/snapshot/generate/bundle/bad-path-warning-console-log.json`);
    });
 
@@ -90,7 +90,7 @@ describe('bundleDTS()', () =>
 
       expect(success).toBe(false);
 
-      expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+      await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
        `../../fixture/snapshot/generate/bundle/rollup-exception-console-log.json`);
    });
 });

@@ -39,7 +39,7 @@ describe('generateDTS()', () =>
 
          expect(success).toBe(true);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/options/diagnostic/console-log-with-diagnostic-warning.json');
       });
 
@@ -64,7 +64,7 @@ describe('generateDTS()', () =>
 
          expect(success).toBe(true);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/options/diagnostic/console-log-without-diagnostic-warning.json');
       });
 
@@ -89,7 +89,7 @@ describe('generateDTS()', () =>
 
          expect(success).toBe(true);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/options/diagnostic/console-log-without-diagnostic-warning.json');
       });
    });

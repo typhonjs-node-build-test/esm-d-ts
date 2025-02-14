@@ -24,7 +24,7 @@ describe('Validation Errors (generate)', () =>
 
          expect(result).toBe(false);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/checkDTS-validateConfig-config-null-console-log.json');
       });
 
@@ -41,7 +41,7 @@ describe('Validation Errors (generate)', () =>
 
          expect(result).toBe(false);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/checkDTS-validateConfig-input-console-log.json');
       });
 
@@ -56,7 +56,7 @@ describe('Validation Errors (generate)', () =>
 
          expect(result).toBe(false);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/generateDTS-validateConfig-config-null-console-log.json');
       });
 
@@ -74,7 +74,7 @@ describe('Validation Errors (generate)', () =>
 
          expect(result).toBe(false);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/generateDTS-validateConfig-input-console-log.json');
       });
 
@@ -122,7 +122,7 @@ describe('Validation Errors (generate)', () =>
 
          expect(result).toBe(false);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/validation/errors/validateConfig-console-log.json');
       });
    });
@@ -154,7 +154,7 @@ describe('Validation Errors (generate)', () =>
           '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.4-console-log.json' :
            '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-pre-5.4-console-log.json';
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(snapshot);
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(snapshot);
       });
    });
 });

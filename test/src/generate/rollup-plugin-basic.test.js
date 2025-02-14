@@ -43,7 +43,7 @@ describe('Rollup Plugin (generate)', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/rollup/basic/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
       it('basic rollup (valid) w/ emitCTS', async () =>
@@ -70,11 +70,11 @@ describe('Rollup Plugin (generate)', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/rollup/basic/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
 
          const resultCTS = fs.readFileSync('./test/fixture/output/generate/rollup/basic/index.d.cts', 'utf-8');
 
-         expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
       it(`dir-resolve w/ resolve Rollup plugin`, async () =>
@@ -101,7 +101,7 @@ describe('Rollup Plugin (generate)', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/rollup/dir-resolve/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/dir-resolve/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/dir-resolve/index.d.ts');
       });
 
       it(`'dtsReplace' plugin / option`, async () =>
@@ -128,7 +128,7 @@ describe('Rollup Plugin (generate)', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/rollup/basic/dtsReplace/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/rollup/basic/dtsReplace/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/rollup/basic/dtsReplace/index.d.ts');
       });
 
       it(`'outputExt' plugin / option`, async () =>
@@ -153,7 +153,7 @@ describe('Rollup Plugin (generate)', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/rollup/basic/outputExt/index.d.mts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
       it(`'onwarn' (direct Rollup configuration)`, async () =>

@@ -51,7 +51,7 @@ describe('Plugin Errors (generate)', () =>
 
                const filename = `event_${event.replaceAll(':', '-')}_console-log.json`;
 
-               expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+               await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
                 `../../fixture/snapshot/generate/plugin/errors/checkDTS/${filename}`);
             });
          }
@@ -84,7 +84,7 @@ describe('Plugin Errors (generate)', () =>
 
                const filename = `event_${event.replaceAll(':', '-')}_console-log.json`;
 
-               expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+               await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
                 `../../fixture/snapshot/generate/plugin/errors/generateDTS/${filename}`);
             });
          }

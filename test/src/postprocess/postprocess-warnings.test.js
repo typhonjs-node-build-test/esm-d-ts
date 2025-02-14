@@ -26,7 +26,7 @@ describe('API Warnings (postprocess)', () =>
    {
       describe('logged warning', () =>
       {
-         it('process - processors[0] is not a function', () =>
+         it('process - processors[0] is not a function', async () =>
          {
             const consoleLog = [];
             vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
@@ -42,7 +42,7 @@ describe('API Warnings (postprocess)', () =>
 
             vi.restoreAllMocks();
 
-            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+            await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
              '../../fixture/snapshot/postprocess/Postprocess/warnings/processors/console-log.json');
          });
       });
@@ -65,7 +65,7 @@ describe('API Warnings (postprocess)', () =>
 
          vi.restoreAllMocks();
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/postprocess/processInheritDoc/warnings/console-log.json');
       });
    });

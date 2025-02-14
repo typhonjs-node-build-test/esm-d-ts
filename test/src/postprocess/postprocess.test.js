@@ -102,7 +102,7 @@ describe('PostProcess', () =>
 
    describe('processInheritDoc', () =>
    {
-      it('direct', () =>
+      it('direct', async () =>
       {
          PostProcess.process({
             filepath: './test/fixture/src/postprocess/processInheritDoc/valid/direct/index.d.ts',
@@ -114,7 +114,7 @@ describe('PostProcess', () =>
          const result = fs.readFileSync('./test/fixture/output/postprocess/processInheritDoc/valid/direct/index.d.ts',
           'utf-8');
 
-         expect(result).toMatchFileSnapshot(
+         await expect(result).toMatchFileSnapshot(
           '../../fixture/snapshot/postprocess/processInheritDoc/valid/direct/index.d.ts');
       });
 
@@ -135,14 +135,14 @@ describe('PostProcess', () =>
          const resultIndex = fs.readFileSync(
           './test/fixture/output/postprocess/processInheritDoc/valid/simple/index.d.ts', 'utf-8');
 
-         expect(resultIndex).toMatchFileSnapshot(
+         await expect(resultIndex).toMatchFileSnapshot(
           '../../fixture/snapshot/postprocess/processInheritDoc/valid/simple/index.d.ts');
 
          // Verify postprocess output.
          const resultPostprocess = fs.readFileSync(
           './test/fixture/output/postprocess/processInheritDoc/valid/simple/postprocess.d.ts', 'utf-8');
 
-         expect(resultPostprocess).toMatchFileSnapshot(
+         await expect(resultPostprocess).toMatchFileSnapshot(
           '../../fixture/snapshot/postprocess/processInheritDoc/valid/simple/postprocess.d.ts');
 
          // Verify graph output.
@@ -156,7 +156,7 @@ describe('PostProcess', () =>
          delete resultGraph[3].id;
          delete resultGraph[4].id;
 
-         expect(JSON.stringify(resultGraph, null, 3)).toMatchFileSnapshot(
+         await expect(JSON.stringify(resultGraph, null, 3)).toMatchFileSnapshot(
           '../../fixture/snapshot/postprocess/processInheritDoc/valid/simple/graph.json');
       });
    });

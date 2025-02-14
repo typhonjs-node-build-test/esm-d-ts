@@ -31,7 +31,7 @@ describe('Transformer - generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/transformer/boolean/jsdocFilterTags.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/transformer/jsdocFilterTags-false.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/transformer/jsdocFilterTags-false.d.ts');
       });
 
       it('array', async () =>
@@ -45,7 +45,7 @@ describe('Transformer - generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/transformer/array/jsdocFilterTags.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/transformer/jsdocFilterTags.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/transformer/jsdocFilterTags.d.ts');
       });
 
       it('Set', async () =>
@@ -59,7 +59,7 @@ describe('Transformer - generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/transformer/set/jsdocFilterTags.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/transformer/jsdocFilterTags.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/transformer/jsdocFilterTags.d.ts');
       });
    });
 

@@ -152,11 +152,11 @@ describe('API Errors (postprocess)', () =>
 
             vi.restoreAllMocks();
 
-            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+            await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
              '../../fixture/snapshot/postprocess/processInheritDoc/errors/outputPostprocess/console-log.json');
          });
 
-         it('process - processors[0] throws', () =>
+         it('process - processors[0] throws', async () =>
          {
             const consoleLog = [];
             vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
@@ -172,7 +172,7 @@ describe('API Errors (postprocess)', () =>
 
             vi.restoreAllMocks();
 
-            expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+            await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
              '../../fixture/snapshot/postprocess/Postprocess/errors/processors/console-log.json');
          });
       });
@@ -196,7 +196,7 @@ describe('API Errors (postprocess)', () =>
 
          vi.restoreAllMocks();
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/postprocess/processInheritDoc/errors/outputPostprocess/console-log.json');
       });
 
@@ -216,7 +216,7 @@ describe('API Errors (postprocess)', () =>
 
          vi.restoreAllMocks();
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           '../../fixture/snapshot/postprocess/processInheritDoc/errors/outputGraph/console-log.json');
       });
    });

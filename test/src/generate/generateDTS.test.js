@@ -35,7 +35,7 @@ describe('generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/dir-resolve/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/dir-resolve/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/dir-resolve/index.d.ts');
       });
 
       it(`local file 'imports' path`, async () =>
@@ -54,7 +54,7 @@ describe('generateDTS()', () =>
          const result = fs.readFileSync(
           './test/fixture/output/generate/javascript/imports/local/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot(
+         await expect(result).toMatchFileSnapshot(
           '../../fixture/snapshot/generate/javascript/imports/local/index.d.ts');
       });
 
@@ -71,7 +71,7 @@ describe('generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
       it('valid w/ emitCTS', async () =>
@@ -88,11 +88,11 @@ describe('generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
 
          const resultCTS = fs.readFileSync('./test/fixture/output/generate/javascript/valid/index.d.cts', 'utf-8');
 
-         expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
       it('valid (.mjs)', async () =>
@@ -107,7 +107,7 @@ describe('generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-mts/index.d.mts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
       it('valid w/ tsconfig', async () =>
@@ -122,7 +122,7 @@ describe('generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-tsconfig/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid/index.d.ts');
       });
 
       it(`valid w/ 'prependFiles' / 'prependString' comments`, async () =>
@@ -140,7 +140,8 @@ describe('generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-prepend/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid-prepend/index.d.ts');
+         await expect(result).toMatchFileSnapshot(
+          '../../fixture/snapshot/generate/javascript/valid-prepend/index.d.ts');
       });
 
       it(`valid w/ 'prettier' options`, async () =>
@@ -157,7 +158,8 @@ describe('generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/javascript/valid-prettier/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/javascript/valid-prettier/index.d.ts');
+         await expect(result).toMatchFileSnapshot(
+          '../../fixture/snapshot/generate/javascript/valid-prettier/index.d.ts');
       });
    });
 
@@ -179,7 +181,7 @@ describe('generateDTS()', () =>
 
          const result = fs.readFileSync('./test/fixture/output/generate/typescript/valid/index.d.ts', 'utf-8');
 
-         expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/typescript/valid/index.d.ts');
+         await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/typescript/valid/index.d.ts');
       });
 
       it('dir-resolve', async () =>

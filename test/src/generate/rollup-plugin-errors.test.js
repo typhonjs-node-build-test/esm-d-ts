@@ -54,7 +54,7 @@ describe('Rollup Plugin (generate) errors', () =>
 
          expect(error).toBeDefined();
 
-         expect(JSON.stringify(consoleError, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleError, null, 2)).toMatchFileSnapshot(
           `../../fixture/snapshot/generate/rollup/errors/bad-input_console.error.json`);
       });
 

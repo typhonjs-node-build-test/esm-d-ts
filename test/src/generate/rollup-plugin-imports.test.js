@@ -61,7 +61,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/external/index.d.ts',
              'utf-8');
 
-            expect(result).toMatchFileSnapshot(
+            await expect(result).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/index.d.ts');
          });
 
@@ -98,7 +98,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/external/partial/index.d.ts',
              'utf-8');
 
-            expect(result).toMatchFileSnapshot(
+            await expect(result).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/partial/index.d.ts');
          });
 
@@ -134,7 +134,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/external/installed/index.d.ts',
              'utf-8');
 
-            expect(result).toMatchFileSnapshot(
+            await expect(result).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/installed/index.d.ts');
          });
       });
@@ -175,7 +175,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/external/index.d.ts',
               'utf-8');
 
-            expect(result).toMatchFileSnapshot(
+            await expect(result).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/index.d.ts');
          });
 
@@ -212,7 +212,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/external/partial/index.d.ts',
               'utf-8');
 
-            expect(result).toMatchFileSnapshot(
+            await expect(result).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/partial/index.d.ts');
          });
 
@@ -248,7 +248,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              './test/fixture/output/generate/rollup/imports/external-plugin/bundlePackageExports/external/installed/index.d.ts',
               'utf-8');
 
-            expect(result).toMatchFileSnapshot(
+            await expect(result).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/installed/index.d.ts');
          });
       });
@@ -320,14 +320,14 @@ describe('Rollup Plugin Imports (generate)', () =>
                 './test/fixture/output/generate/rollup/imports/generate-config/no-bundlePackageExports/local/dist/index.d.ts',
                 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/javascript/import-types/index.d.ts');
 
                const resultSub = fs.readFileSync(
                 './test/fixture/output/generate/rollup/imports/generate-config/no-bundlePackageExports/local/dist/sub/index.d.ts',
                 'utf-8');
 
-               expect(resultSub).toMatchFileSnapshot(
+               await expect(resultSub).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/javascript/import-types/index-sub.d.ts');
             });
 
@@ -382,14 +382,14 @@ describe('Rollup Plugin Imports (generate)', () =>
                 './test/fixture/output/generate/rollup/imports/generate-config/no-bundlePackageExports/local-@import/dist/index.d.ts',
                 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/javascript/@import/index.d.ts');
 
                const resultSub = fs.readFileSync(
                 './test/fixture/output/generate/rollup/imports/generate-config/no-bundlePackageExports/local-@import/dist/sub/index.d.ts',
                 'utf-8');
 
-               expect(resultSub).toMatchFileSnapshot(
+               await expect(resultSub).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/javascript/@import/index-sub.d.ts');
             });
          });
@@ -457,14 +457,14 @@ describe('Rollup Plugin Imports (generate)', () =>
                 './test/fixture/output/generate/rollup/imports/external-plugin/no-bundlePackageExports/local/dist/index.d.ts',
                 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/javascript/import-types/index.d.ts');
 
                const resultSub = fs.readFileSync(
                 './test/fixture/output/generate/rollup/imports/external-plugin/no-bundlePackageExports/local/dist/sub/index.d.ts',
                 'utf-8');
 
-               expect(resultSub).toMatchFileSnapshot(
+               await expect(resultSub).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/javascript/import-types/index-sub.d.ts');
             });
 
@@ -520,14 +520,14 @@ describe('Rollup Plugin Imports (generate)', () =>
                 './test/fixture/output/generate/rollup/imports/external-plugin/no-bundlePackageExports/local-@import/dist/index.d.ts',
                 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/javascript/@import/index.d.ts');
 
                const resultSub = fs.readFileSync(
                 './test/fixture/output/generate/rollup/imports/external-plugin/no-bundlePackageExports/local-@import/dist/sub/index.d.ts',
                 'utf-8');
 
-               expect(resultSub).toMatchFileSnapshot(
+               await expect(resultSub).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/javascript/@import/index-sub.d.ts');
             });
          });
@@ -599,14 +599,14 @@ describe('Rollup Plugin Imports (generate)', () =>
                 './test/fixture/output/generate/rollup/imports/generate-config/no-bundlePackageExports/local-ts/dist/index.d.ts',
                 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/typescript/index.d.ts');
 
                const resultSub = fs.readFileSync(
                 './test/fixture/output/generate/rollup/imports/generate-config/no-bundlePackageExports/local-ts/dist/sub/index.d.ts',
                 'utf-8');
 
-               expect(resultSub).toMatchFileSnapshot(
+               await expect(resultSub).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/typescript/index-sub.d.ts');
             });
          });
@@ -676,14 +676,14 @@ describe('Rollup Plugin Imports (generate)', () =>
                 './test/fixture/output/generate/rollup/imports/external-plugin/no-bundlePackageExports/local-ts/dist/index.d.ts',
                 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/typescript/index.d.ts');
 
                const resultSub = fs.readFileSync(
                 './test/fixture/output/generate/rollup/imports/external-plugin/no-bundlePackageExports/local-ts/dist/sub/index.d.ts',
                 'utf-8');
 
-               expect(resultSub).toMatchFileSnapshot(
+               await expect(resultSub).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/typescript/index-sub.d.ts');
             });
 
@@ -750,14 +750,14 @@ describe('Rollup Plugin Imports (generate)', () =>
                 './test/fixture/output/generate/rollup/imports/external-plugin/no-bundlePackageExports/local-ts/dist/index.d.ts',
                 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/typescript/index.d.ts');
 
                const resultSub = fs.readFileSync(
                 './test/fixture/output/generate/rollup/imports/external-plugin/no-bundlePackageExports/local-ts/dist/sub/index.d.ts',
                 'utf-8');
 
-               expect(resultSub).toMatchFileSnapshot(
+               await expect(resultSub).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/local/typescript/index-sub.d.ts');
             });
          });
@@ -802,7 +802,7 @@ describe('Rollup Plugin Imports (generate)', () =>
              './test/fixture/output/generate/rollup/imports/generate-config/bundlePackageExports/resolve/index.d.ts',
              'utf-8');
 
-            expect(result).toMatchFileSnapshot(
+            await expect(result).toMatchFileSnapshot(
              '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/index.d.ts');
          });
 

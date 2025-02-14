@@ -20,7 +20,7 @@ describe('checkDTS()', () =>
 
          expect(success).toBe(true);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           `../../fixture/snapshot/generate/javascript/type-warning/warning-console-log.json`);
       });
 
@@ -41,7 +41,7 @@ describe('checkDTS()', () =>
          // `null` config above will cause false to return indicating not all configs ran.
          expect(success).toBe(false);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           `../../fixture/snapshot/generate/javascript/type-warning/warning-iterable-console-log.json`);
       });
 
@@ -62,7 +62,7 @@ describe('checkDTS()', () =>
          // `null` config above will cause false to return indicating not all configs ran.
          expect(success).toBe(false);
 
-         expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+         await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
           `../../fixture/snapshot/generate/javascript/type-warning/bad-path-warning-iterable-console-log.json`);
       });
    });

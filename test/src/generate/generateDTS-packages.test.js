@@ -43,7 +43,7 @@ describe('generateDTS() package options', () =>
                const result = fs.readFileSync(
                 './test/fixture/output/generate/packages/bundlePackageExports/direct/index.d.ts', 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/bundlePackageExports/direct/index.d.ts');
             });
 
@@ -66,7 +66,7 @@ describe('generateDTS() package options', () =>
                 './test/fixture/output/generate/packages/bundlePackageExports/direct/installed/index.d.ts',
                  'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/bundlePackageExports/direct/installed/index.d.ts');
             });
 
@@ -87,7 +87,7 @@ describe('generateDTS() package options', () =>
                const result = fs.readFileSync(
                 './test/fixture/output/generate/packages/bundlePackageExports/bundle-internal/index.d.ts', 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/bundlePackageExports/bundle-internal/index.d.ts');
             });
 
@@ -114,7 +114,7 @@ describe('generateDTS() package options', () =>
                    './test/fixture/output/generate/packages/bundlePackageExports/imports/external/index.d.ts',
                     'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/index.d.ts');
                });
 
@@ -138,7 +138,7 @@ describe('generateDTS() package options', () =>
                    './test/fixture/output/generate/packages/bundlePackageExports/imports/external/partial/index.d.ts',
                     'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/partial/index.d.ts');
                });
 
@@ -160,7 +160,7 @@ describe('generateDTS() package options', () =>
                   const result = fs.readFileSync(
                    './test/fixture/output/generate/packages/bundlePackageExports/imports/external/installed/index.d.ts', 'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/external/installed/index.d.ts');
                });
             });
@@ -201,9 +201,9 @@ describe('generateDTS() package options', () =>
                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index-post-5_4.d.ts' :
                        '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index-pre-5_4.d.ts';
 
-                     expect(result).toMatchFileSnapshot(snapshot);
+                     await expect(result).toMatchFileSnapshot(snapshot);
 
-                     expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+                     await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/console-log.json');
                   });
 
@@ -231,10 +231,10 @@ describe('generateDTS() package options', () =>
                       './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/not-package/index.d.ts',
                        'utf-8');
 
-                     expect(result).toMatchFileSnapshot(
+                     await expect(result).toMatchFileSnapshot(
                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/not-package/index.d.ts');
 
-                     expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+                     await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/not-package/console-log.json');
                   });
 
@@ -262,10 +262,10 @@ describe('generateDTS() package options', () =>
                       './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/bad-importKey/index.d.ts',
                        'utf-8');
 
-                     expect(result).toMatchFileSnapshot(
+                     await expect(result).toMatchFileSnapshot(
                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/bad-importKey/index.d.ts');
 
-                     expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+                     await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/bad-importKey/console-log.json');
                   });
                });
@@ -291,7 +291,7 @@ describe('generateDTS() package options', () =>
                    './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve/index.d.ts',
                     'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/index.d.ts');
                });
 
@@ -315,7 +315,7 @@ describe('generateDTS() package options', () =>
                    './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve/partial/index.d.ts',
                     'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/partial/index.d.ts');
                });
 
@@ -337,7 +337,7 @@ describe('generateDTS() package options', () =>
                   const result = fs.readFileSync(
                    './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve/installed/index.d.ts', 'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve/installed/index.d.ts');
                });
             });
@@ -362,7 +362,7 @@ describe('generateDTS() package options', () =>
                const result = fs.readFileSync(
                 './test/fixture/output/generate/packages/no-bundlePackageExports/direct/index.d.ts', 'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/direct/index.d.ts');
             });
 
@@ -384,7 +384,7 @@ describe('generateDTS() package options', () =>
                 './test/fixture/output/generate/packages/no-bundlePackageExports/direct/installed/index.d.ts',
                  'utf-8');
 
-               expect(result).toMatchFileSnapshot(
+               await expect(result).toMatchFileSnapshot(
                 '../../fixture/snapshot/generate/packages/no-bundlePackageExports/direct/installed/index.d.ts');
             });
 
@@ -410,7 +410,7 @@ describe('generateDTS() package options', () =>
                    './test/fixture/output/generate/packages/no-bundlePackageExports/imports/external/index.d.ts',
                     'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/external/index.d.ts');
                });
 
@@ -433,7 +433,7 @@ describe('generateDTS() package options', () =>
                    './test/fixture/output/generate/packages/no-bundlePackageExports/imports/external/partial/index.d.ts',
                     'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/external/partial/index.d.ts');
                });
 
@@ -454,7 +454,7 @@ describe('generateDTS() package options', () =>
                   const result = fs.readFileSync(
                    './test/fixture/output/generate/packages/no-bundlePackageExports/imports/external/installed/index.d.ts', 'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/external/installed/index.d.ts');
                });
             });
@@ -481,7 +481,7 @@ describe('generateDTS() package options', () =>
                    './test/fixture/output/generate/packages/no-bundlePackageExports/imports/resolve/index.d.ts',
                     'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/resolve/index.d.ts');
                });
 
@@ -504,7 +504,7 @@ describe('generateDTS() package options', () =>
                    './test/fixture/output/generate/packages/no-bundlePackageExports/imports/resolve/partial/index.d.ts',
                     'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/resolve/partial/index.d.ts');
                });
 
@@ -525,7 +525,7 @@ describe('generateDTS() package options', () =>
                   const result = fs.readFileSync(
                    './test/fixture/output/generate/packages/no-bundlePackageExports/imports/resolve/installed/index.d.ts', 'utf-8');
 
-                  expect(result).toMatchFileSnapshot(
+                  await expect(result).toMatchFileSnapshot(
                    '../../fixture/snapshot/generate/packages/no-bundlePackageExports/imports/resolve/installed/index.d.ts');
                });
             });
