@@ -1,116 +1,163 @@
+/**
+ * Provides common object manipulation utility functions and TypeScript type guards.
+ *
+ * @packageDocumentation
+ */
+
 declare function klona<T>(input: T): T;
 
 /**
- * Provides common object manipulation utilities including depth traversal, obtaining accessors, safely setting values /
- * equality tests, and validation.
+ * Provides common object manipulation utility functions and TypeScript type guards.
+ *
+ * @packageDocumentation
  */
 
 /**
  * Freezes all entries traversed that are objects including entries in arrays.
  *
- * @param {object | []}   data - An object or array.
+ * @param data - An object or array.
  *
- * @param {Set<string>}   [skipFreezeKeys] - A Set of strings indicating keys of objects to not freeze.
+ * @param [options] - Options
  *
- * @returns {object | []} The frozen object.
+ * @param [options.skipKeys] - A Set of strings indicating keys of objects to not freeze.
+ *
+ * @returns The frozen object.
+ *
+ * @typeParam T - Type of data.
  */
-declare function deepFreeze(data: object | [], skipFreezeKeys?: Set<string>): object | [];
+declare function deepFreeze<T extends object | []>(
+  data: T,
+  {
+    skipKeys,
+  }?: {
+    skipKeys?: Set<string>;
+  },
+): T;
 /**
  * Recursively deep merges all source objects into the target object in place. Like `Object.assign` if you provide `{}`
- * as the target a copy is produced. If the target and source property are object literals they are merged.
- * Deleting keys is supported by specifying a property starting with `-=`.
+ * as the target a shallow copy is produced. If the target and source property are object literals they are merged.
  *
- * @param {object}      target - Target object.
+ * Note: The output type is inferred, but you may provide explicit generic types as well.
  *
- * @param {...object}   sourceObj - One or more source objects.
+ * @param target - Target object.
  *
- * @returns {object}    Target object.
+ * @param sourceObj - One or more source objects.
+ *
+ * @returns Target object.
  */
-declare function deepMerge(target?: object, ...sourceObj: object[]): object;
+declare function deepMerge<T extends object, U extends object>(target: T, sourceObj: U): DeepMerge<T, [U]>;
+declare function deepMerge<T extends object, U extends object, V extends object>(
+  target: T,
+  sourceObj1: U,
+  sourceObj2: V,
+): DeepMerge<T, [U, V]>;
+declare function deepMerge<T extends object, U extends object[]>(target: T, ...sourceObj: U): DeepMerge<T, U>;
 /**
- * Performs a naive depth traversal of an object / array. The data structure _must not_ have circular references.
- * The result of the callback function is used to modify in place the given data.
+ * Seals all entries traversed that are objects including entries in arrays.
  *
- * @param {object | []}   data - An object or array.
+ * @param data - An object or array.
  *
- * @param {(any) => any}  func - A callback function to process leaf values in children arrays or object members.
+ * @param [options] - Options
  *
- * @param {boolean}       modify - If true then the result of the callback function is used to modify in place
- *                                  the given data.
+ * @param [options.skipKeys] - A Set of strings indicating keys of objects to not seal.
  *
- * @returns {*} The data object.
+ * @returns The sealed object.
+ *
+ * @typeParam T - Type of data.
  */
-declare function depthTraverse(data: object | [], func: Function, modify?: boolean): object | [];
+declare function deepSeal<T extends object | []>(
+  data: T,
+  {
+    skipKeys,
+  }?: {
+    skipKeys?: Set<string>;
+  },
+): T;
 /**
- * Returns a list of accessor keys by traversing the given object.
+ * Determine if the given object has a getter & setter accessor.
  *
- * @param {object}   data - An object to traverse for accessor keys.
+ * @param object - An object.
  *
- * @returns {string[]} Accessor list.
+ * @param accessor - Accessor to test.
+ *
+ * @returns Whether the given object has the getter and setter for accessor.
+ *
+ * @typeParam T - Type of data.
+ * @typeParam K - Accessor key.
  */
-declare function getAccessorList(data: object): string[];
+declare function hasAccessor<T extends object, K extends string>(
+  object: T,
+  accessor: K,
+): object is T & Record<K, unknown>;
 /**
- * Provides a method to determine if the passed in Svelte component has a getter & setter accessor.
+ * Determine if the given object has a getter accessor.
  *
- * @param {object}   object - An object.
+ * @param object - An object.
  *
- * @param {string}   accessor - Accessor to test.
+ * @param accessor - Accessor to test.
  *
- * @returns {boolean} Whether the component has the getter and setter for accessor.
+ * @returns Whether the given object has the getter for accessor.
+ *
+ * @typeParam T - Type of data.
+ * @typeParam K - Accessor key.
  */
-declare function hasAccessor(object: object, accessor: string): boolean;
-/**
- * Provides a method to determine if the passed in Svelte component has a getter accessor.
- *
- * @param {object}   object - An object.
- *
- * @param {string}   accessor - Accessor to test.
- *
- * @returns {boolean} Whether the component has the getter for accessor.
- */
-declare function hasGetter(object: object, accessor: string): boolean;
+declare function hasGetter<T extends object, K extends string>(
+  object: T,
+  accessor: K,
+): object is T & Record<K, unknown>;
 /**
  * Returns whether the target is or has the given prototype walking up the prototype chain.
  *
- * @param {unknown}  target - Any target to test.
+ * @param target - Any target class / constructor function to test.
  *
- * @param {new (...args: any[]) => any} Prototype - Prototype function / class constructor to find.
+ * @param Prototype - Class / constructor function to find.
  *
- * @returns {boolean} Target matches prototype.
+ * @returns Target matches prototype.
+ *
+ * @typeParam T - Prototype class / constructor.
  */
-declare function hasPrototype(target: unknown, Prototype: new (...args: any[]) => any): boolean;
+declare function hasPrototype<T extends new (...args: any[]) => any>(
+  target: new (...args: any[]) => any,
+  Prototype: T,
+): target is T;
 /**
- * Provides a method to determine if the passed in Svelte component has a setter accessor.
+ * Determine if the given object has a setter accessor.
  *
- * @param {object}   object - An object.
+ * @param object - An object.
  *
- * @param {string}   accessor - Accessor to test.
+ * @param accessor - Accessor to test.
  *
- * @returns {boolean} Whether the component has the setter for accessor.
+ * @returns Whether the given object has the setter for accessor.
+ *
+ * @typeParam T - Type of data.
+ * @typeParam K - Accessor key.
  */
-declare function hasSetter(object: object, accessor: string): boolean;
+declare function hasSetter<T extends object, K extends string>(
+  object: T,
+  accessor: K,
+): object is T & Record<K, unknown>;
 /**
  * Tests for whether an object is async iterable.
  *
- * @param {unknown} value - Any value.
+ * @param value - Any value.
  *
- * @returns {boolean} Whether value is async iterable.
+ * @returns Whether value is async iterable.
  */
-declare function isAsyncIterable(value: unknown): value is AsyncIterable<unknown>;
+declare function isAsyncIterable(value: unknown): value is AsyncIterable<any>;
 /**
  * Tests for whether an object is iterable.
  *
- * @param {unknown} value - Any value.
+ * @param value - Any value.
  *
- * @returns {boolean} Whether object is iterable.
+ * @returns Whether object is iterable.
  */
-declare function isIterable(value: unknown): value is Iterable<unknown>;
+declare function isIterable(value: unknown): value is Iterable<any>;
 /**
  * Tests for whether object is not null, typeof object, and not an array.
  *
- * @param {unknown} value - Any value.
+ * @param value - Any value.
  *
- * @returns {boolean} Is it an object.
+ * @returns Is it an object.
  */
 declare function isObject(value: unknown): value is Record<string, unknown>;
 /**
@@ -118,231 +165,166 @@ declare function isObject(value: unknown): value is Record<string, unknown>;
  *
  * An object is plain if it is created by either: `{}`, `new Object()` or `Object.create(null)`.
  *
- * @param {unknown} value - Any value
+ * @param value - Any value
  *
- * @returns {boolean} Is it a plain object.
+ * @returns Is it a plain object.
  */
-declare function isPlainObject(value: unknown): value is JSONObject;
+declare function isPlainObject(value: unknown): value is Record<string, unknown>;
 /**
  * Safely returns keys on an object or an empty array if not an object.
  *
- * @param {object} object - An object.
+ * @param object - An object.
  *
- * @returns {string[]}  Object keys or empty array.
+ * @returns Object keys or empty array.
  */
 declare function objectKeys(object: object): string[];
 /**
- * Safely returns an objects size. Note for String objects unicode is not taken into consideration.
+ * Safely returns an objects size. Note for String objects Unicode is not taken into consideration.
  *
- * @param {any} object - Any value, but size returned for object / Map / Set / arrays / strings.
+ * @param object - Any value, but size returned for object / Map / Set / arrays / strings.
  *
- * @returns {number} Size of object.
+ * @returns Size of object.
  */
-declare function objectSize(object: any): any;
+declare function objectSize(object: any): number;
 /**
  * Provides a way to safely access an objects data / entries given an accessor string which describes the
  * entries to walk. To access deeper entries into the object format the accessor string with `.` between entries
  * to walk.
  *
- * @param {object}   data - An object to access entry data.
+ * @param data - An object to access entry data.
  *
- * @param {string}   accessor - A string describing the entries to access with keys separated by `.`.
+ * @param accessor - A string describing the entries to access with keys separated by `.`.
  *
- * @param {any}      [defaultValue] - (Optional) A default value to return if an entry for accessor is not found.
+ * @param [defaultValue] - (Optional) A default value to return if an entry for accessor is not found.
  *
- * @returns {object} The data object.
+ * @returns The value referenced by the accessor.
+ *
+ * @typeParam T - Type of data.
+ * @typeParam P - Accessor type.
+ * @typeParam R - Return value / Inferred deep access type or any provided default value type.
  */
-declare function safeAccess(data: object, accessor: string, defaultValue?: any): any;
-/**
- * Provides a way to safely batch set an objects data / entries given an array of accessor strings which describe the
- * entries to walk. To access deeper entries into the object format the accessor string with `.` between entries
- * to walk. If value is an object the accessor will be used to access a target value from `value` which is
- * subsequently set to `data` by the given operation. If `value` is not an object it will be used as the target
- * value to set across all accessors.
- *
- * @param {object}   data - An object to access entry data.
- *
- * @param {string[]} accessors - A string describing the entries to access.
- *
- * @param {any}      value - A new value to set if an entry for accessor is found.
- *
- * @param {SafeSetOperation}   [operation='set'] - Operation to perform including: 'add', 'div', 'mult', 'set',
- *        'set-undefined', 'sub'.
- *
- * @param {any}      [defaultAccessValue=0] - A new value to set if an entry for accessor is found.
- *
- * @param {boolean}  [createMissing=true] - If true missing accessor entries will be created as objects automatically.
- */
-declare function safeBatchSet(
-  data: object,
-  accessors: string[],
-  value: any,
-  operation?: SafeSetOperation,
-  defaultAccessValue?: any,
-  createMissing?: boolean,
-): void;
+declare function safeAccess<T extends object, P extends string, R = DeepAccess<T, P>>(
+  data: T,
+  accessor: P,
+  defaultValue?: DeepAccess<T, P> extends undefined ? R : DeepAccess<T, P>,
+): DeepAccess<T, P> extends undefined ? R : DeepAccess<T, P>;
 /**
  * Compares a source object and values of entries against a target object. If the entries in the source object match
  * the target object then `true` is returned otherwise `false`. If either object is undefined or null then false
  * is returned.
  *
- * @param {object}   source - Source object.
+ * Note: The source and target should be JSON objects.
  *
- * @param {object}   target - Target object.
+ * @param source - Source object.
  *
- * @returns {boolean} True if equal.
+ * @param target - Target object.
+ *
+ * @param [options] - Options.
+ *
+ * @param [options.arrayIndex] - Set to `false` to exclude equality testing for array contents; default: `true`.
+ *
+ * @param [options.hasOwnOnly] - Set to `false` to include enumerable prototype properties; default: `true`.
+ *
+ * @returns True if equal.
  */
-declare function safeEqual(source: object, target: object): boolean;
+declare function safeEqual(
+  source: object,
+  target: object,
+  options?: {
+    arrayIndex?: boolean;
+    hasOwnOnly?: boolean;
+  },
+): boolean;
+/**
+ * Returns an iterator of safe keys useful with {@link safeAccess} and {@link safeSet} by traversing the given object.
+ *
+ * Note: Keys are only generated for JSON objects; {@link Map} and {@link Set} are not indexed.
+ *
+ * @param data - An object to traverse for accessor keys.
+ *
+ * @param [options] - Options.
+ *
+ * @param [options.arrayIndex] - Set to `false` to exclude safe keys for array indexing; default: `true`.
+ *
+ * @param [options.hasOwnOnly] - Set to `false` to include enumerable prototype properties; default: `true`.
+ *
+ * @returns Safe key iterator.
+ */
+declare function safeKeyIterator(
+  data: object,
+  {
+    arrayIndex,
+    hasOwnOnly,
+  }?: {
+    arrayIndex?: boolean;
+    hasOwnOnly?: boolean;
+  },
+): IterableIterator<string>;
 /**
  * Provides a way to safely set an objects data / entries given an accessor string which describes the
  * entries to walk. To access deeper entries into the object format the accessor string with `.` between entries
  * to walk.
  *
- * @param {object}   data - An object to access entry data.
+ * @param data - An object to access entry data.
  *
- * @param {string}   accessor - A string describing the entries to access.
+ * @param accessor - A string describing the entries to access.
  *
- * @param {any}      value - A new value to set if an entry for accessor is found.
+ * @param value - A new value to set if an entry for accessor is found.
  *
- * @param {SafeSetOperation}   [operation='set'] - Operation to perform including: 'add', 'div', 'mult', 'set',
- *        'set-undefined', 'sub'.
+ * @param [options] - Options.
  *
- * @param {boolean}  [createMissing=true] - If true missing accessor entries will be created as objects
- *        automatically.
+ * @param [options.operation] - Operation to perform including: `add`, `div`, `mult`, `set`, `set-undefined`, `sub`;
+ *        default: `set`.
  *
- * @returns {boolean} True if successful.
+ * @param [options.createMissing] - If `true` missing accessor entries will be created as objects automatically;
+ *        default: `false`.
+ *
+ * @returns True if successful.
  */
 declare function safeSet(
   data: object,
   accessor: string,
   value: any,
-  operation?: SafeSetOperation,
-  createMissing?: boolean,
+  {
+    operation,
+    createMissing,
+  }?: {
+    operation?: 'add' | 'div' | 'mult' | 'set' | 'set-undefined' | 'sub';
+    createMissing?: boolean;
+  },
 ): boolean;
 /**
- * Performs bulk setting of values to the given data object.
- *
- * @param {object}            data - The data object to set data.
- *
- * @param {Record<string, any>}  accessorValues - Object of accessor keys to values to set.
- *
- * @param {SafeSetOperation}  [operation='set'] - Operation to perform including: 'add', 'div', 'mult', 'set', 'sub';
- *        default (`set`).
- *
- * @param {boolean}           [createMissing=true] - If true missing accessor entries will be created as objects
- *        automatically.
+ * Utility type for `safeAccess`. Infers compound accessor strings in object T.
  */
-declare function safeSetAll(
-  data: object,
-  accessorValues: Record<string, any>,
-  operation?: SafeSetOperation,
-  createMissing?: boolean,
-): void;
+type DeepAccess<T, P extends string> = P extends `${infer K}.${infer Rest}`
+  ? K extends keyof T
+    ? DeepAccess<T[K], Rest>
+    : undefined
+  : P extends keyof T
+    ? T[P]
+    : undefined;
 /**
- * Performs bulk validation of data given an object, `validationData`, which describes all entries to test.
+ * Recursively merges multiple object types ensuring correct property resolution.
  *
- * @param {object}                           data - The data object to test.
+ * This utility takes a target object `T` and applies a sequence of merges from `U` progressively combining their
+ * properties while respecting key precedence. Later objects overwrite earlier ones, similar to `Object.assign`.
  *
- * @param {Record<string, ValidationEntry>}  validationData - Key is the accessor / value is a validation entry.
- *
- * @param {string}                           [dataName='data'] - Optional name of data.
- *
- * @returns {boolean} True if validation passes otherwise an exception is thrown.
+ * @typeParam T - The base object type.
+ * @typeParam U - A tuple of objects to be deeply merged with `T`.
  */
-declare function validate(data: object, validationData?: Record<string, ValidationEntry>, dataName?: string): any;
-/**
- * Validates all array entries against potential type and expected tests.
- *
- * @param {object}            data - The data object to test.
- *
- * @param {string}            accessor - A string describing the entries to access.
- *
- * @param {ValidationEntry}   entry - Validation entry object
- *
- * @param {string}            [dataName='data'] - Optional name of data.
- *
- * @returns {boolean} True if validation passes otherwise an exception is thrown.
- */
-declare function validateArray(data: object, accessor: string, entry: ValidationEntry, dataName?: string): boolean;
-/**
- * Validates data entry with a typeof check and potentially tests against the values in any given expected set.
- *
- * @param {object}            data - The object data to validate.
- *
- * @param {string}            accessor - A string describing the entries to access.
- *
- * @param {ValidationEntry}   entry - Validation entry.
- *
- * @param {string}            [dataName='data'] - Optional name of data.
- *
- * @returns {boolean} True if validation passes otherwise an exception is thrown.
- */
-declare function validateEntry(data: object, accessor: string, entry: ValidationEntry, dataName?: string): boolean;
-/**
- * Dispatches validation of data entry to string or array validation depending on data entry type.
- *
- * @param {object}            data - The data object to test.
- *
- * @param {string}            accessor - A string describing the entries to access.
- *
- * @param {ValidationEntry}   [entry] - A validation entry.
- *
- * @param {string}            [dataName='data'] - Optional name of data.
- *
- * @returns {boolean} True if validation passes otherwise an exception is thrown.
- */
-declare function validateEntryOrArray(data: object, accessor: string, entry: ValidationEntry, dataName?: string): any;
-/**
- * Defines the operation to perform for `safeSet`.
- */
-type SafeSetOperation = 'add' | 'div' | 'mult' | 'set' | 'set-undefined' | 'sub';
-/**
- * Provides data for a validation check.
- */
-type ValidationEntry = {
-  /**
-   * Optionally tests with a typeof check.
-   */
-  type?: string;
-  /**
-   * The type of entry / variable to test.
-   */
-  test: 'array' | 'entry' | 'entry|array';
-  /**
-   * Optional array, function, or set of expected values to test against.
-   */
-  expected?: any[] | Function | Set<any>;
-  /**
-   * Optional message to include.
-   */
-  message?: string;
-  /**
-   * When false if the accessor is missing validation is skipped; default: true
-   */
-  required?: boolean;
-  /**
-   * When true and an error is thrown otherwise a boolean is returned; default: true
-   */
-  error?: boolean;
-};
-type Primitive = bigint | boolean | null | number | string | symbol | undefined;
-type JSONValue = Primitive | JSONObject | JSONArray;
-interface JSONObject {
-  [key: string]: JSONValue;
-}
-interface JSONArray extends Array<JSONValue> {}
+type DeepMerge<T extends object, U extends object[]> = U extends [infer First, ...infer Rest]
+  ? DeepMerge<
+      {
+        [K in keyof (Omit<T, keyof First> & First)]: (Omit<T, keyof First> & First)[K];
+      },
+      Rest extends object[] ? Rest : []
+    >
+  : T;
 
 export {
-  type JSONArray,
-  type JSONObject,
-  type JSONValue,
-  type Primitive,
-  type SafeSetOperation,
-  type ValidationEntry,
   deepFreeze,
   deepMerge,
-  depthTraverse,
-  getAccessorList,
+  deepSeal,
   hasAccessor,
   hasGetter,
   hasPrototype,
@@ -355,12 +337,7 @@ export {
   objectKeys,
   objectSize,
   safeAccess,
-  safeBatchSet,
   safeEqual,
+  safeKeyIterator,
   safeSet,
-  safeSetAll,
-  validate,
-  validateArray,
-  validateEntry,
-  validateEntryOrArray,
 };
