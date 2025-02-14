@@ -1488,7 +1488,7 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
    };
 
    // Don't deep freeze 'compileFilepaths', 'eventbus', 'generateConfig'.
-   deepFreeze(processedConfig, new Set(['compileFilepaths', 'eventbus', 'generateConfig']));
+   deepFreeze(processedConfig, { skipKeys: new Set(['compileFilepaths', 'eventbus', 'generateConfig']) });
 
    return processedConfig;
 }
