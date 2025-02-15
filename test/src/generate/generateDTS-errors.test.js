@@ -18,7 +18,7 @@ describe('generateDTS() warnings / errors', () =>
 
    describe('Javascript', () =>
    {
-      describe.skip('Errors', () =>
+      describe('Errors', () =>
       {
          it('iterable config (error)', async () =>
          {
@@ -88,7 +88,7 @@ describe('generateDTS() warnings / errors', () =>
          });
       });
 
-      describe.skip('parseFiles()', () =>
+      describe('parseFiles()', () =>
       {
          // Tests when a directory is referenced in an import, but without a corresponding `index.(m)js` file.
          // Tests when a module / file import is missing.
@@ -135,7 +135,7 @@ describe('generateDTS() warnings / errors', () =>
       });
    });
 
-   describe.skip('Typescript', () =>
+   describe('Typescript', () =>
    {
       describe('parseFiles()', () =>
       {
