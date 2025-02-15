@@ -424,8 +424,9 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
 {
    const { generateConfig, packageObj } = processedConfig;
 
-   // Prepend any comment with the `@module` tag preserving it in the bundled DTS file.
+   // Collect any banner / header ------------------------------------------------------------------------------------
 
+   // Prepend any comment with the `@module` / `@packageDocumentation` tag preserving it in the bundled DTS file.
    let banner = jsdocModuleComments.length === 1 && typeof jsdocModuleComments[0]?.comment === 'string' ?
     `${jsdocModuleComments[0].comment}\n` : '';
 
@@ -460,6 +461,8 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
       for (const prependStr of generateConfig.prependString) { banner += prependStr; }
    }
 
+   // Configure Rollup plugins ---------------------------------------------------------------------------------------
+
    const plugins = [];
 
    // Add `importsLocal` plugin if configured.
@@ -488,7 +491,6 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
          plugins
       },
       output: {
-         banner,
          file: generateConfig.output,
          format: 'es',
       }
@@ -507,11 +509,13 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
       rollupConfig.input.plugins.push(rollupPlugins.naiveReplace(generateConfig.dtsReplace));
    }
 
-   // ----------------------------------------------------------------------------------------------------------------
+   // Generate bundle ------------------------------------------------------------------------------------------------
 
    const bundle = await rollup(rollupConfig.input);
    await bundle.write(rollupConfig.output);
    await bundle.close();
+
+   // Postprocess ----------------------------------------------------------------------------------------------------
 
    // Collect the postprocessor functions.
    const processors = [...(isIterable(generateConfig.postprocess) ? generateConfig.postprocess : [])];
@@ -533,6 +537,16 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
          logStart: true
       });
    }
+
+   // Add any banner -------------------------------------------------------------------------------------------------
+
+   if (banner.length)
+   {
+      const outputDTS = fs.readFileSync(generateConfig.output, 'utf-8');
+      fs.writeFileSync(generateConfig.output, `${banner}\n\n${outputDTS}`);
+   }
+
+   // ----------------------------------------------------------------------------------------------------------------
 
    logger.verbose(`Output bundled DTS file to: ${generateConfig.output}`);
 }
