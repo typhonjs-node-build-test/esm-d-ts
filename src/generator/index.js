@@ -29,6 +29,9 @@ import globToRegExp              from 'glob-to-regexp';
 import {
    moduleResolve,
    resolve }                     from 'import-meta-resolve';
+import {
+   parse as jsoncParse,
+   printParseErrorCode }         from 'jsonc-parser';
 import * as prettier             from 'prettier';
 import * as resolvePkg           from 'resolve.exports';
 import { rollup }                from 'rollup';
@@ -1367,7 +1370,23 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
 
       try
       {
-         const configJSON = JSON.parse(fs.readFileSync(generateConfig.tsconfig, 'utf-8').toString());
+         const parseErrors = [];
+         const configJSON = jsoncParse(fs.readFileSync(generateConfig.tsconfig, 'utf-8').toString(), parseErrors);
+
+         // Abort on parse errors.
+         if (parseErrors.length > 0)
+         {
+            let errorMsg = `error: Aborting as 'tsconfig' path is specified, but failed to load;\ntsconfig path: ${
+             generateConfig.tsconfig}\n`;
+
+            for (const error of parseErrors)
+            {
+               errorMsg += `Error at offset ${error.offset}: ${printParseErrorCode(error.error)}\n`;
+            }
+
+            return errorMsg;
+         }
+
          if (isObject(configJSON?.compilerOptions)) { tsconfigCompilerOptions = configJSON.compilerOptions; }
       }
       catch (err)
