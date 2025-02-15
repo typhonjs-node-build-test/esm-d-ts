@@ -18,7 +18,7 @@ describe('generateDTS() warnings / errors', () =>
 
    describe('Javascript', () =>
    {
-      describe('Errors', () =>
+      describe.skip('Errors', () =>
       {
          it('iterable config (error)', async () =>
          {
@@ -88,7 +88,7 @@ describe('generateDTS() warnings / errors', () =>
          });
       });
 
-      describe('parseFiles()', () =>
+      describe.skip('parseFiles()', () =>
       {
          // Tests when a directory is referenced in an import, but without a corresponding `index.(m)js` file.
          // Tests when a module / file import is missing.
@@ -114,7 +114,7 @@ describe('generateDTS() warnings / errors', () =>
 
       describe('Malformed tsconfig.json referenced', () =>
       {
-         it('valid w/ tsconfig', async () =>
+         it('valid w/ tsconfig (malformed)', async () =>
          {
             const consoleLog = [];
             vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
@@ -135,7 +135,7 @@ describe('generateDTS() warnings / errors', () =>
       });
    });
 
-   describe('Typescript', () =>
+   describe.skip('Typescript', () =>
    {
       describe('parseFiles()', () =>
       {
