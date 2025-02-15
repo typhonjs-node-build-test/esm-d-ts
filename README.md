@@ -7,12 +7,12 @@
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
-This is a beta test version of the next mainline release (`0.3.0-next.2`). There are many new features to describe
+This is a beta test version of the next mainline release (`0.3.0-next.10`). There are many new features to describe
 (updated README soon)!
 
-Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate
-bundled Typescript declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to build
-types for a primary export and one or more sub-path [exports](https://nodejs.org/api/packages.html#exports) creating
+Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript / Typescript developers to
+generate bundled Typescript declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to
+build types for a primary export and one or more sub-path [exports](https://nodejs.org/api/packages.html#exports) creating
 independent _ESM oriented / module_ based declarations utilizing import / export semantics. This tooling can be
 employed by any project, but is particularly useful for library authors as there are many additional options covering
 advanced use cases that library authors may encounter. Some of these optional advanced features include support for
@@ -34,7 +34,7 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
 ## What's New:
-### (0.3.0-next.2 / partial list):
+### (0.3.0 / partial list):
 - 100% test coverage / all functionality verified in detail.
 
 
