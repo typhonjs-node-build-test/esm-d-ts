@@ -491,6 +491,7 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
          plugins
       },
       output: {
+         banner,
          file: generateConfig.output,
          format: 'es',
       }
@@ -536,14 +537,6 @@ async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments =
          dependencies: true,
          logStart: true
       });
-   }
-
-   // Add any banner -------------------------------------------------------------------------------------------------
-
-   if (banner.length)
-   {
-      const outputDTS = fs.readFileSync(generateConfig.output, 'utf-8');
-      fs.writeFileSync(generateConfig.output, `${banner}\n\n${outputDTS}`);
    }
 
    // ----------------------------------------------------------------------------------------------------------------
