@@ -1389,6 +1389,7 @@ async function processConfig({ origConfig, defaultCompilerOptions, extraConfig =
 
          if (isObject(configJSON?.compilerOptions)) { tsconfigCompilerOptions = configJSON.compilerOptions; }
       }
+      /* v8 ignore next 5 */ // Bad file paths are caught in validation.
       catch (err)
       {
          return `error: Aborting as 'tsconfig' path is specified, but failed to load; '${
