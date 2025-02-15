@@ -675,16 +675,12 @@ async function compile(processedConfig, isGenerate)
       return false;
    };
 
-   let filterDiagnostic;
+   /** @type {Function[]} */
+   const filterDiagnostic = !generateConfig.tsDiagnosticExternal ? [filterExternalDiagnostic] : [];
 
    if (typeof generateConfig.tsDiagnosticFilter === 'function')
    {
-      filterDiagnostic = generateConfig.tsDiagnosticFilter;
-   }
-   else
-   {
-      // Provide a default implementation to allow all diagnostic messages through.
-      filterDiagnostic = !generateConfig.tsDiagnosticExternal ? filterExternalDiagnostic : () => false;
+      filterDiagnostic.push(generateConfig.tsDiagnosticFilter);
    }
 
    /**
@@ -722,7 +718,9 @@ async function compile(processedConfig, isGenerate)
    {
       const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
 
-      if (filterDiagnostic({ diagnostic, message })) { continue; }
+      let filter = false;
+      for (const filterFn of filterDiagnostic) { filter |= filterFn({ diagnostic, message }); }
+      if (filter) { continue; }
 
       try
       {
