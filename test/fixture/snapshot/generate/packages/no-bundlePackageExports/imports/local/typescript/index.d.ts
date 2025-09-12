@@ -5,4 +5,5 @@ type TestAlias = {
 };
 declare const test: SubTestAlias;
 
-export { type TestAlias, test };
+export { test };
+export type { TestAlias };

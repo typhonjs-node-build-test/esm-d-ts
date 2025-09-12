@@ -65,4 +65,5 @@ declare class Test implements ITest, NameSpace.ITest2<boolean> {
   get baz(): boolean;
 }
 
-export { type ITest, NameSpace, Test, type TypeAlias };
+export { NameSpace, Test };
+export type { ITest, TypeAlias };

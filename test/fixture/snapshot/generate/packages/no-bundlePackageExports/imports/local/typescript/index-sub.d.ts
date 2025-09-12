@@ -6,4 +6,5 @@ type SubTestAlias = {
   bar: boolean;
 };
 
-export { type SubTestAlias, subTest };
+export { subTest };
+export type { SubTestAlias };

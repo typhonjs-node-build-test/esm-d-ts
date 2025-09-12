@@ -226,8 +226,6 @@ declare const regexIsTSFileExt: RegExp;
 
 export {
   ESTreeParsedComment,
-  type ParsedImportType,
-  type ParsedLeadingComments,
   getLeadingComments,
   isDTSFile,
   isTSFile,
@@ -242,3 +240,4 @@ export {
   regexIsTSFile,
   regexIsTSFileExt,
 };
+export type { ParsedImportType, ParsedLeadingComments };

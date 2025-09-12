@@ -53,4 +53,5 @@ declare class Test implements IReplacedTest, NameSpace.IReplacedTest2<boolean> {
   get baz(): boolean;
 }
 
-export { type IReplacedTest, NameSpace, Test, type TypeAlias };
+export { NameSpace, Test };
+export type { IReplacedTest, TypeAlias };

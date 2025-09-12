@@ -20,4 +20,5 @@ type testAlias = typeof testTypesSubpath;
  */
 declare const testTypesCondition: string;
 
-export { type testAlias, testTypesCondition };
+export { testTypesCondition };
+export type { testAlias };
