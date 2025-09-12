@@ -148,11 +148,25 @@ describe('Validation Errors (generate)', () =>
 
          const tsVersion = parseFloat(ts.versionMajorMinor);
 
-         // Takes into account new `module` option that is being tested as error message has new `preserved` value
-         // in error validation for TS 5.4+.
-         const snapshot = tsVersion >= 5.4 ?
-          '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.4-console-log.json' :
-           '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-pre-5.4-console-log.json';
+         // Takes into account new `module` option that is being tested as error message has new values
+         // in error validation for TS 5.9+.
+         let snapshot;
+
+         if (tsVersion >= 5.9)
+         {
+            snapshot =
+             '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.9-console-log.json';
+         }
+         else if (tsVersion >= 5.8)
+         {
+            snapshot =
+             '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.8-console-log.json';
+         }
+         else
+         {
+            snapshot =
+             '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.4-console-log.json';
+         }
 
          await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(snapshot);
       });

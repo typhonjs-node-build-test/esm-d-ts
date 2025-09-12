@@ -83,10 +83,16 @@ describe('Transformer - generateDTS()', () =>
          const result = fs.readFileSync('./test/fixture/output/transformer/removePrivateStatic/index.d.ts',
           'utf-8');
 
-         // Tests if there is a mangled private static symbol.
-         const regexPrivateStatic = /__#\d+@#.*/;
+         // 1) Old mangled private static (TS <5.9.x)
+         const reMangled = /__#\d+@#.*/;
 
-         expect(regexPrivateStatic.test(result)).toBe(true);
+         // 2) Any private identifier that starts with # (TS 5.9.x+)
+         const rePrivateIdent = /(^|[^/])#[A-Za-z_]\w*/;
+
+         const hasMangled = reMangled.test(result);
+         const hasPrivate = rePrivateIdent.test(result);
+
+         expect(hasMangled || hasPrivate).toBe(true);
       });
    });
 
