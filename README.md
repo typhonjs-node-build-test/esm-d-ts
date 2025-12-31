@@ -7,7 +7,7 @@
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
-This is a beta test version of the next mainline release (`0.3.0-next.10`). There are many new features to describe
+This is a beta test version of the next mainline release (`0.3.0-next.12`). There are many new features to describe
 (updated README soon)!
 
 Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript / Typescript developers to
