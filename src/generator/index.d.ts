@@ -354,4 +354,5 @@ declare namespace generateDTS {
   let plugin: (options?: Partial<GenerateConfig>) => rollup.Plugin;
 }
 
-export { type GenerateConfig, PluginEvent, type ProcessedConfig, bundleDTS, checkDTS, generateDTS };
+export { PluginEvent, bundleDTS, checkDTS, generateDTS };
+export type { GenerateConfig, ProcessedConfig };

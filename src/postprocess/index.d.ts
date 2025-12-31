@@ -218,12 +218,5 @@ type ProcessorFunction = (params: {
   dependencies?: GraphAnalysis<DependencyNodes, DependencyGraphJSON>;
 }) => void;
 
-export {
-  type DependencyGraphJSON,
-  type DependencyNodes,
-  DependencyParser,
-  GraphAnalysis,
-  PostProcess,
-  type ProcessorFunction,
-  processInheritDoc,
-};
+export { DependencyParser, GraphAnalysis, PostProcess, processInheritDoc };
+export type { DependencyGraphJSON, DependencyNodes, ProcessorFunction };

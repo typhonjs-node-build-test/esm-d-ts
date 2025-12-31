@@ -54,7 +54,7 @@ declare function getLeadingComments(
 declare function parseLeadingComments(
   node: ts.Node | ts_morph.ts.Node,
   sourceFile: ts.SourceFile | ts_morph.SourceFile,
-  options?: any,
+  options?: Partial<comment_parser.Options>,
 ): ParsedLeadingComments;
 /**
  * Defines all leading JSDoc comments for a Typescript compiler node.
@@ -240,8 +240,6 @@ declare const regexIsTSFileExt: RegExp;
 
 export {
   ESTreeParsedComment,
-  type ParsedImportType,
-  type ParsedLeadingComments,
   getLeadingComments,
   isDTSFile,
   isTSFile,
@@ -256,3 +254,4 @@ export {
   regexIsTSFile,
   regexIsTSFileExt,
 };
+export type { ParsedImportType, ParsedLeadingComments };
