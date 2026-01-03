@@ -33,7 +33,7 @@ import {
    parse as jsoncParse,
    printParseErrorCode }         from 'jsonc-parser';
 import * as prettier             from 'prettier';
-import * as resolvePkg           from 'resolve.exports';
+import * as resolvePkg           from '@es-joy/resolve.exports';
 import { rollup }                from 'rollup';
 import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
