@@ -4,11 +4,13 @@
   "imports": {
     "#test-package": {
       "types": "./dist/index.d.ts",
-      "default": "./src/index.js"
+      "default": "./src/index.js",
+      "replace": "test-package"
     },
-    "#test-package/sub": {
-      "types": "./dist/sub/index.d.ts",
-      "default": "./src/sub/index.js"
+    "#test-package/*": {
+      "types": "./dist/*/index.d.ts",
+      "default": "./src/*/index.js",
+      "replace": "test-package/*"
     }
   },
   "exports": {

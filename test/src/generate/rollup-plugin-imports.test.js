@@ -700,7 +700,7 @@ describe('Rollup Plugin Imports (generate)', () =>
                   input: {
                      input: './test/fixture/src/generate/packages/imports/local-ts/src/index.ts',
                      plugins: [
-                        importsLocal({ importKeys: ['#test-package', '#test-package/sub'] }),
+                        importsLocal({ importKeys: ['#test-package', '#test-package/*'] }),
                         typescript({
                            compilerOptions: {
                              moduleResolution: 'Bundler'
@@ -726,7 +726,7 @@ describe('Rollup Plugin Imports (generate)', () =>
                   input: {
                      input: './test/fixture/src/generate/packages/imports/local-ts/src/sub/index.ts',
                      plugins: [
-                        importsLocal({ importKeys: ['#test-package', '#test-package/sub'] }),
+                        importsLocal({ importKeys: ['#test-package', '#test-package/*'] }),
                         typescript({
                            compilerOptions: {
                               moduleResolution: 'Bundler'
