@@ -561,6 +561,7 @@ async function compile(processedConfig, isGenerate)
    const {
       compilerOptions,
       compileFilepaths,
+      dtsDirectoryPath,
       dtsEntryPath,
       eventbus,
       generateConfig,
@@ -591,14 +592,50 @@ async function compile(processedConfig, isGenerate)
       throw err;
    }
 
-   // Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
-   const origReadFile = host.readFile;
+   const origReadFile = host.readFile.bind(host);
+
+   /**
+    * Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
+    *
+    * @param {string} fileName - File path to read.
+    *
+    * @returns {string | undefined} File contents.
+    */
    host.readFile = (fileName) =>
    {
       /* v8 ignore next 1 */ // Covered in plugin package tests.
       if (memoryFiles.has(fileName)) { return memoryFiles.get(fileName); }
 
       return origReadFile(fileName);
+   };
+
+   const origWriteFile = host.writeFile.bind(host);
+
+   /**
+    * Overrides the compiler host `writeFile` hook to enforce declaration-emit boundaries.
+    *
+    * When generating declarations, the TypeScript compiler may resolve and type-check additional source files outside
+    * the intended compilation unit. If such files fall outside `rootDir`, TypeScript may attempt to emit `.d.ts` files
+    * adjacent to their source locations as a fallback.
+    *
+    * This override filters all emit operations so that only declaration files targeting the designated output directory
+    * are written. Any stray or transitive declaration emits outside the expected output path are intentionally
+    * suppressed.
+    *
+    * Note: This does not affect type-checking or resolution; it only constrains where emitted declaration files are
+    * allowed to be written.
+    *
+    * @param {string} fileName - File path to write.
+    *
+    * @param {string} content - File contents.
+    *
+    * @param {any[]} rest - Additional parameters.
+    */
+   host.writeFile = (fileName, content, ...rest) =>
+   {
+      if (!fileName.startsWith(dtsDirectoryPath)) { return; }
+
+      origWriteFile(fileName, content, ...rest);
    };
 
    // Prepare and emit the d.ts files
@@ -672,6 +709,20 @@ async function compile(processedConfig, isGenerate)
    // `tsDiagnosticFilter` option is set. Only diagnostics that are a part of `compileFilepaths` are reported.
    const filterExternalDiagnostic = ({ diagnostic }) =>
    {
+      /**
+       * TS6059 (`File is not under 'rootDir'`) is intentionally suppressed.
+       *
+       * Source files are first transformed to ESM and the runtime module graph is derived from ESM import / export
+       * traversal. TypeScript is then used only for type resolution and declaration emission over that predefined file
+       * set.
+       *
+       * During type-checking, TypeScript may resolve additional type-only dependencies that were erased prior to
+       * ESM analysis and fall outside the effective `rootDir` triggering TS6059. This is a structural containment
+       * warning and does not indicate incorrect types or invalid declaration output in this pipeline.
+       */
+      if (diagnostic.code === 6059) { return true; }
+
+      // Ignore any diagnostic errors from files that are not in `compileFilepaths`.
       if (diagnostic.file)
       {
          /* v8 ignore next 2 */ // This requires a dependent package with diagnostic errors to test; it works.
