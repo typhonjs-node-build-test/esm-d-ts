@@ -564,7 +564,6 @@ async function compile(processedConfig, isGenerate)
       dtsEntryPath,
       eventbus,
       generateConfig,
-      inputRelativeDir,
       isTSMode,
       tsFilepaths
    } = processedConfig;
@@ -667,16 +666,16 @@ async function compile(processedConfig, isGenerate)
 
    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
+   const compileFilepathSet = new Set(compileFilepaths);
+
    // Default filter to exclude non-project files when option `tsDiagnosticExternal` is true and no explicit
-   // `tsDiagnosticFilter` option is set.
+   // `tsDiagnosticFilter` option is set. Only diagnostics that are a part of `compileFilepaths` are reported.
    const filterExternalDiagnostic = ({ diagnostic }) =>
    {
       if (diagnostic.file)
       {
-         const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
-
-         /* v8 ignore next 1 */ // This requires a dependent package with diagnostic errors to test; it works.
-         if (!fileName.startsWith(inputRelativeDir)) { return true; }
+         /* v8 ignore next 2 */ // This requires a dependent package with diagnostic errors to test; it works.
+         if (!compileFilepathSet.has(diagnostic.file.fileName)) { return true; }
       }
 
       return false;
@@ -1736,8 +1735,8 @@ const s_DEFAULT_TS_GEN_COMPILER_OPTIONS = {
    declaration: true,
    emitDeclarationOnly: true,
    moduleResolution: 'bundler',
-   module: 'es2022',
-   target: 'es2022',
+   module: 'esnext',
+   target: 'esnext',
    outDir: './.dts'
 };
 
@@ -1751,8 +1750,8 @@ const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
    declaration: true,
    noEmit: true,
    moduleResolution: 'bundler',
-   module: 'es2022',
-   target: 'es2022',
+   module: 'esnext',
+   target: 'esnext',
    outDir: './.dts'
 };
 
