@@ -694,8 +694,8 @@ async function compile(processedConfig, isGenerate)
       emitResult = program.emit(void 0, void 0, void 0, void 0, {
          afterDeclarations: transformers,
       });
+      /* v8 ignore next 5 */ // Currently there are always transformers.
    }
-   /* v8 ignore next 4 */ // Currently there are always transformers.
    else
    {
       emitResult = program.emit();
@@ -763,8 +763,8 @@ async function compile(processedConfig, isGenerate)
          const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
          const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
          logger.ext[`${logLevel}Raw`](`${fileName} (${line + 1},${character + 1})[33m: [TS] ${message}[0m`);
+         /* v8 ignore next 5 */ // All diagnostic messages should have an associated file.
       }
-      /* v8 ignore next 4 */ // All diagnostic messages should have an associated file.
       else
       {
          logger[logLevel](`[TS] ${message}`);
@@ -1098,8 +1098,8 @@ async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode,
                         packageAlias = data.n;
                         importpath = resultValue;
                      }
+                     /* v8 ignore next 8 */ // `resolve.exports` throws on error, but this is a sanity catch all.
                   }
-                  /* v8 ignore next 7 */ // `resolve.exports` throws on error, but this is a sanity catch all.
                   else
                   {
                      if (!unresolvedImports.has(data.n))
