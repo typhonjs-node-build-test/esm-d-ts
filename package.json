@@ -107,8 +107,8 @@
         "ImportsResolvePluginOptions": "https://typhonjs-node-build-test.github.io/rollup-plugin-pkg-imports/types/ImportsResolvePluginOptions.html"
       },
       "@typhonjs-utils/logger-color": {
-        "ColorLogger": "https://typhonjs-node-utils.github.io/logger-color/classes/_typhonjs_utils_logger_color.ColorLogger.html",
-        "LogLevel": "https://typhonjs-node-utils.github.io/logger-color/types/_typhonjs_utils_logger_color.LogLevel.html"
+        "ColorLogger": "https://typhonjs-node-utils.github.io/logger-color/classes/_typhonjs-utils_logger-color.ColorLogger.html",
+        "LogLevel": "https://typhonjs-node-utils.github.io/logger-color/types/_typhonjs-utils_logger-color.LogLevel.html"
       },
       "@types/cytoscape": {
         "cytoscape.Core": "https://js.cytoscape.org/#core",
