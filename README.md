@@ -3,7 +3,7 @@
 [![NPM](https://img.shields.io/npm/v/@typhonjs-build-test/esm-d-ts.svg?label=npm)](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts)
 [![Code Style](https://img.shields.io/badge/code%20style-allman-yellowgreen.svg?style=flat)](https://en.wikipedia.org/wiki/Indent_style#Allman_style)
 [![License](https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat)](https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/LICENSE)
-[![Coverage](https://img.shields.io/codecov/c/github/typhonjs-node-utils/object.svg)](https://codecov.io/github/typhonjs-node-utils/object)
+[![Coverage](https://img.shields.io/codecov/c/github/typhonjs-node-build-test/esm-d-ts.svg)](https://codecov.io/github/typhonjs-node-build-test/esm-d-ts)
 [![API Docs](https://img.shields.io/badge/API%20Documentation-476ff0)](https://typhonjs-node-build-test.github.io/esm-d-ts/)
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
