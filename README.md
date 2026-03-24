@@ -30,7 +30,7 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 }
 ```
 
-`esm-d-ts 0.3.0` supports Typescript `5.5 - 5.9.x`. A forthcoming `0.4.0` release will support Typescript `6.x`.
+`esm-d-ts 0.3.x` supports Typescript `5.5 - 5.9.x`. A forthcoming `0.4.0` release will support Typescript `6.x`.
 
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
