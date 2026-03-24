@@ -1,8 +1,8 @@
+import fs                     from 'node:fs';
+
+import { isFile }             from '@typhonjs-utils/file-util';
 import { isIterable }         from '@typhonjs-utils/object';
-import fs                     from 'fs-extra';
-
 import { Project }            from 'ts-morph';
-
 import ts                     from 'typescript';
 
 import { DependencyParser }   from './DependencyParser.js';
@@ -25,20 +25,24 @@ export class PostProcess
     *
     * @param {string}   options.filepath - Source DTS file to process.
     *
-    * @param {string}   [options.output] - Alternate output filepath for testing.
-    *
     * @param {Iterable<import('./').ProcessorFunction>}   options.processors - List of processor functions.
+    *
+    * @param {boolean}  [options.dependencies=false] - When true generate dependencies graph analysis.
+    *
+    * @param {boolean}  [options.logStart=false] - When true verbosely log processor start.
+    *
+    * @param {string}   [options.output] - Alternate output filepath for testing.
     */
-   static process({ filepath, output, processors })
+   static process({ filepath, processors, dependencies = false, logStart = false, output })
    {
       if (typeof filepath !== 'string')
       {
          throw new TypeError(`PostProcess.process error: 'filepath' is not a string.`);
       }
 
-      if (output !== void 0 && typeof output !== 'string')
+      if (!isFile(filepath))
       {
-         throw new TypeError(`PostProcess.process error: 'output' is not a string.`);
+         throw new TypeError(`PostProcess.process error: 'filepath' does not exist:\n${filepath}`);
       }
 
       if (!isIterable(processors))
@@ -46,9 +50,19 @@ export class PostProcess
          throw new TypeError(`PostProcess.process error: 'processors' is not an iterable list.`);
       }
 
-      if (!fs.existsSync(filepath))
+      if (typeof dependencies !== 'boolean')
       {
-         throw new TypeError(`PostProcess.process error: 'filepath' does not exist:\n${filepath}`);
+         throw new TypeError(`PostProcess.process error: 'dependencies' is not a boolean.`);
+      }
+
+      if (typeof logStart !== 'boolean')
+      {
+         throw new TypeError(`PostProcess.process error: 'logStart' is not a boolean.`);
+      }
+
+      if (output !== void 0 && typeof output !== 'string')
+      {
+         throw new TypeError(`PostProcess.process error: 'output' is not a string.`);
       }
 
       const project = new Project({
@@ -62,7 +76,12 @@ export class PostProcess
       const sourceFile = project.addSourceFileAtPath(filepath);
 
       /** @type {GraphAnalysis<import('./').DependencyNodes, import('./').DependencyGraphJSON>} */
-      const dependencies = new GraphAnalysis(DependencyParser.parse(sourceFile));
+      let graphAnalysis;
+
+      if (dependencies)
+      {
+         graphAnalysis = new GraphAnalysis(DependencyParser.parse(sourceFile));
+      }
 
       let cntr = -1;
 
@@ -76,16 +95,21 @@ export class PostProcess
             continue;
          }
 
-         if (logger.is.verbose) { logger.verbose(`PostProcess.process: Starting processor '${processor.name}'.`); }
+         if (logStart && logger.is.verbose)
+         {
+            logger.verbose(`PostProcess.process: Starting processor '${processor.name}'.`);
+         }
 
          try
          {
-            processor({ logger, sourceFile, dependencies });
+            processor({ logger, sourceFile, dependencies: graphAnalysis });
          }
          catch (err)
          {
             logger.error(
              `PostProcess.process error: processor[${cntr}] raised an error (aborting processing):\n${err.message}`);
+
+            logger.debug(err);
 
             return;
          }

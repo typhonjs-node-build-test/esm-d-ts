@@ -1,13 +1,19 @@
+import { isFile } from '@typhonjs-utils/file-util';
+
 import {
    isIterable,
    isObject }     from '@typhonjs-utils/object';
 
-import fs         from 'fs-extra';
 import ts         from 'typescript';
 
 import { logger } from '#util';
 
-const s_LOG_LEVELS = new Set(['all', 'verbose', 'info', 'warn', 'error']);
+/**
+ * Defines valid JS source extensions.
+ *
+ * @type {RegExp}
+ */
+export const regexJSExt = /\.(m?js)$/;
 
 /**
  * Validates the TS compiler options.
@@ -37,7 +43,7 @@ export function validateCompilerOptions(compilerOptions)
 /**
  * Validates all config object parameters except `compilerOptions`.
  *
- * @param {import('./index').GenerateConfig} config - A generate config.
+ * @param {import('./types').GenerateConfig} config - A generate config.
  *
  * @returns {boolean} Validation state.
  */
@@ -45,13 +51,7 @@ export function validateConfig(config)
 {
    let result = true;
 
-   if (typeof config.input !== 'string')
-   {
-      logger.error(`validateConfig error: 'config.input' must be a string.`);
-      result = false;
-   }
-
-   if (!fs.existsSync(config.input))
+   if (!isFile(config.input))
    {
       logger.error(`validateConfig error: 'config.input' file does not exist.`);
       result = false;
@@ -69,12 +69,6 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (config.conditionExports !== void 0 && !isObject(config.conditionExports))
-   {
-      logger.error(`validateConfig error: 'config.conditionExports' must be an object.`);
-      result = false;
-   }
-
    if (config.conditionImports !== void 0 && !isObject(config.conditionImports))
    {
       logger.error(`validateConfig error: 'config.conditionImports' must be an object.`);
@@ -84,6 +78,12 @@ export function validateConfig(config)
    if (config.dtsReplace !== void 0 && !isObject(config.dtsReplace))
    {
       logger.error(`validateConfig error: 'config.dtsReplace' must be an object.`);
+      result = false;
+   }
+
+   if (config.emitCTS !== void 0 && typeof config.emitCTS !== 'boolean')
+   {
+      logger.error(`validateConfig error: 'config.emitCTS' must be a boolean.`);
       result = false;
    }
 
@@ -103,6 +103,13 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.importsLocal !== void 0 && !isObject(config.importsLocal) &&
+    typeof config.importsLocal !== 'boolean')
+   {
+      logger.error(`validateConfig error: 'config.importsLocal' must be a boolean or an object.`);
+      result = false;
+   }
+
    if (config.importsResolve !== void 0 && !isObject(config.importsResolve) &&
     typeof config.importsResolve !== 'boolean')
    {
@@ -110,11 +117,10 @@ export function validateConfig(config)
       result = false;
    }
 
-   if (!s_LOG_LEVELS.has(config.logLevel))
+   if (!logger.isValidLevel(config.logLevel))
    {
-      logger.error(
-       `validateConfig error: 'config.logLevel' must be 'all', 'verbose', 'info', 'warn', or 'error'; received: '${
-         config.logLevel}'`);
+      logger.error(`validateConfig error: 'config.logLevel' must be 'off', 'fatal', 'error', 'warn', 'info', ` +
+       `'verbose', 'debug', 'trace', or 'all'; received: '${config.logLevel}'`);
 
       result = false;
    }
@@ -122,12 +128,6 @@ export function validateConfig(config)
    if (typeof config.output !== 'string')
    {
       logger.error(`validateConfig error: 'config.output' must be a string.`);
-      result = false;
-   }
-
-   if (config.outputExt !== void 0 && typeof config.outputExt !== 'string')
-   {
-      logger.error(`validateConfig error: 'config.outputExt' must be a string.`);
       result = false;
    }
 
@@ -155,6 +155,13 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.plugins !== void 0 && !isIterable(config.plugins))
+   {
+      logger.error(
+       `validateConfig error: 'config.plugins' must be an iterable list of 3rd party NPM packages to load as plugins.`);
+      result = false;
+   }
+
    if (config.prependFiles !== void 0 && !isIterable(config.prependFiles))
    {
       logger.error(`validateConfig error: 'config.prependFiles' must be an iterable list of strings.`);
@@ -167,6 +174,12 @@ export function validateConfig(config)
       result = false;
    }
 
+   if (config.prettier !== void 0 && typeof config.prettier !== 'boolean' && !isObject(config.prettier))
+   {
+      logger.error(`validateConfig error: 'config.prettier' must be a boolean or 'prettier' configuration object.`);
+      result = false;
+   }
+
    if (typeof config.removePrivateStatic !== 'boolean')
    {
       logger.error(`validateConfig error: 'config.removePrivateStatic' must be a boolean.`);
@@ -174,6 +187,11 @@ export function validateConfig(config)
    }
 
    // Typescript related configuration options -----------------------------------------------------------------------
+
+   if (config.compilerOptions !== void 0 && !isObject(config.compilerOptions))
+   {
+      logger.error(`validateConfig error: 'config.compilerOptions' must be an object.`);
+   }
 
    if (config.tsCheckJs !== void 0 && typeof config.tsCheckJs !== 'boolean')
    {
@@ -184,6 +202,12 @@ export function validateConfig(config)
    if (config.tsconfig !== void 0 && typeof config.tsconfig !== 'string')
    {
       logger.error(`validateConfig error: 'config.tsconfig' must be a string.`);
+      result = false;
+   }
+
+   if (config.tsconfig !== void 0 && !isFile(config.tsconfig))
+   {
+      logger.error(`validateConfig error: 'config.tsconfig' file does not exist.`);
       result = false;
    }
 

@@ -1,0 +1,8 @@
+{
+  "description" : "Provides `imports` lookup for testing.",
+  "imports": {
+    "#importsForTesting/*": "@esm-d-ts-test/*",
+    "#importsForTesting2": "esm-d-ts-test-default",
+    "#importsForTesting3": "@typhonjs-utils/object"
+  }
+}

@@ -1,0 +1,11 @@
+[
+  [
+    "\u001b[32m[esm-d-ts] Generating DTS bundle for: ./test/fixture/src/generate/plugin/errors/index.js\u001b[0m"
+  ],
+  [
+    "\u001b[31m[esm-d-ts] External plugin error for event 'lifecycle:start': Test Plugin Event Failure\u001b[0m"
+  ],
+  [
+    "\u001b[1;31m[esm-d-ts] A fatal uncaught exception has been raised. Terminating processing.\u001b[0m"
+  ]
+]

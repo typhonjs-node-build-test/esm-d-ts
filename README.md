@@ -3,13 +3,14 @@
 [![NPM](https://img.shields.io/npm/v/@typhonjs-build-test/esm-d-ts.svg?label=npm)](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts)
 [![Code Style](https://img.shields.io/badge/code%20style-allman-yellowgreen.svg?style=flat)](https://en.wikipedia.org/wiki/Indent_style#Allman_style)
 [![License](https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat)](https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/LICENSE)
+[![Coverage](https://img.shields.io/codecov/c/github/typhonjs-node-build-test/esm-d-ts.svg)](https://codecov.io/github/typhonjs-node-build-test/esm-d-ts)
 [![API Docs](https://img.shields.io/badge/API%20Documentation-476ff0)](https://typhonjs-node-build-test.github.io/esm-d-ts/)
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
-Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript developers to generate
-bundled Typescript declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to build
-types for a primary export and one or more sub-path [exports](https://nodejs.org/api/packages.html#exports) creating
+Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript / Typescript developers to
+generate bundled Typescript declarations from TS or ESM source code utilizing typed `JSDoc`. This tooling can be
+employed to build types for a primary export and one or more sub-path [exports](https://nodejs.org/api/packages.html#exports) creating
 independent _ESM oriented / module_ based declarations utilizing import / export semantics. This tooling can be
 employed by any project, but is particularly useful for library authors as there are many additional options covering
 advanced use cases that library authors may encounter. Some of these optional advanced features include support for
@@ -24,40 +25,43 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 ```json
 {
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": "^0.2.0"
+    "@typhonjs-build-test/esm-d-ts": "^0.3.0"
   }
 }
 ```
+
+`esm-d-ts 0.3.x` supports Typescript `5.5 - 5.9.x`. A forthcoming `0.4.0` release will support Typescript `6.x`.
+
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
 ## What's New:
-### (0.2.2):
-- Added a TS AST transformer to support import types in `@implements` JSDoc tags. This allows you to reference
-  an interface from a class and have it properly converted to `implements <INTERFACE>` in the declarations generated.
-- Added `transformer` "meta-transformer" to reduce the boilerplate of creating custom TS AST transformers.
-
-### (0.2.1):
-
-- Added a new internal AST transformer that corrects the output of the TS compiler for setter accessor parameter names.
-The TS compiler for ESM will rename setter accessor parameter names to `arg` regardless of the value set in the source
-file. If there is a JSDoc comment associated with a setter the first `@param` tag name will be set to the AST node
-param name. Downstream tooling such as TypeDoc `0.25.7+` validates comment / `@param` name against the type declaration
-name; this change fixes that mismatch.
-
-### (0.2.0):
-
-- Optional postprocessing
-  - The first built-in postprocessing function is support for `@inheritDoc`. This is an unsupported JSDoc tag for
-  Typescript and when types are generated any methods or constructor functions that use `@inheritDoc` have parameters
-  that are typed as `any`. It is also possible to create custom postprocessing functions. For more details on
-  postprocessing and AST transformation [please see the wiki](https://github.com/typhonjs-node-build-test/esm-d-ts/wiki/AST-transformation-&-postprocessing#tstranformers).
+### (0.3.0 / partial list):
+- 100% test coverage / all functionality verified in detail.
 
 
-- Support for the JSDoc `@module` / `@packageDocumentation` comment pass-through to the generated DTS bundle. This is
-helpful when generating docs from the DTS bundle. This is only supported for the main entry point source file.
+- Full support for any file format that Typescript supports including React. You may now leverage `esm-d-ts` to create
+  bundled declarations for Typescript source code.
 
 
-- All dependencies updated along with peer dependency requirements of `Rollup 3.3 - 4.x` and `Typescript 5.1+`.
+- Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
+  Svelte 4 components (`.svelte` files). For more information on Svelte component support please see:
+  [@typhonjs-build-test/esm-d-ts-plugin-svelte](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts-plugin-svelte).
+  Eventually, additional 1st party support may be added for alternate file formats / frameworks that can be transpiled
+  to ESM. Presently, 1st party plugins simply need to be installed as additional developer dependencies and load
+  automatically. You may also provide custom 3rd party plugins via new `plugins` configuration option.
+
+
+- Added `bundleDTS` convenience function and new `bundle` command from the CLI which allows easy bundling of existing
+  well formatted module based Typescript declarations.
+
+
+- Added `emitCTS` option to output additional '.d.cts' file for strict Typescript adherence for packages that are dual
+  ESM / CJS. When referencing `require` as an export condition in an dual ESM / CJS package the `types` referenced must
+  be `.d.cts` for the `require` condition for strict Typescript adherence.
+
+
+- Added `importsLocal` support from [@typhonjs-build-test/rollup-plugin-pkg-imports](https://www.npmjs.com/package/@typhonjs-build-test/rollup-plugin-pkg-imports) allowing `#import` sub-paths to be
+  replaced / remapped to actual sub-path package paths.
 
 ## Overview:
 
@@ -269,8 +273,8 @@ configuration CLI frontend to generate API documentation with TypeDoc from a wel
 Typescript declarations.
 
 ## Roadmap
-- Create an initial processing stage where `esm-d-ts` analyzes all exported symbols of the local code base allowing
-local symbols to be used without `import types`.
+- Implement declaration source maps for unbundled package distributions. When shipping direct unbundled ESM source
+code provide a configuration option to create declaration source maps.
 
 
 - Provide a way to manage the generation process entirely in memory. Presently the intermediate individual TS
@@ -278,14 +282,9 @@ declarations created in execution are stored in the `./.dts` folder. Add this fo
 limitation of `rollup-plugin-dts` & the TS compiler API utilized that uses the file system for bundling. I will be
 looking into submitting a PR to `rollup-plugin-dts` to handle virtual bundling.
 
-
-- Generate source maps for the bundled TS declarations allowing IDEs to not just jump to the declarations, but also
-open linked source code.
-
 ## Appreciation
 
 I would like to bring awareness to the awesome underlying packages that make `esm-d-ts` possible:
 
 - [es-module-lexer](https://www.npmjs.com/package/es-module-lexer) - [Guy Bedford](https://github.com/guybedford)
 - [rollup-plugin-dts](https://www.npmjs.com/package/rollup-plugin-dts) - [Arpad Borsos](https://github.com/Swatinem)
-- [resolve.exports](https://www.npmjs.com/package/resolve.exports) - [Luke Edwards](https://github.com/lukeed)

@@ -1,7 +1,6 @@
-import ts               from 'typescript';
-import { parse }        from 'comment-parser';
-
-import { isIterable }   from '@typhonjs-utils/object';
+import { isIterable }            from '@typhonjs-utils/object';
+import ts                        from 'typescript';
+import { parseLeadingComments }  from '#util';
 
 /**
  * Removes all nodes with the matching JSDoc tags provided. This is useful for handling the `@internal` tag removing
@@ -62,20 +61,38 @@ export function jsdocRemoveNodeByTags(tags)
  *    comments: string[],
  *    parsed: import('comment-parser').Block[],
  *    lastComment: string,
- *    lastParsed: import('comment-parser').Block
+ *    lastParsed: import('comment-parser').Block,
+ *    context: ts.TransformationContext
  * }) => *)}  handler - A function to process AST nodes with JSDoc comments.
  *
  * @param {(sourceFile: ts.SourceFile) => ts.SourceFile | undefined} [postHandler] - A function to postprocess the
  *        source file after all nodes visited. Return an updated SourceFile node.
  *
+ * @param {(data: { node?: ts.Node, sourceFile?: ts.SourceFile }) => boolean} [nodeTest] - Test the node type before
+ *        parsing comments. Both Node and SourceFile are available for testing. When defined return a `true` to parse
+ *        the node JSDoc comments.
+ *
  * @returns {ts.TransformerFactory<ts.Bundle|ts.SourceFile>} JSDoc custom "meta-transformer".
  */
-export function jsdocTransformer(handler, postHandler)
+export function jsdocTransformer(handler, postHandler, nodeTest)
 {
    if (typeof handler !== 'function')
    {
       throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'handler' is not a function.`);
    }
+
+   if (postHandler !== void 0 && typeof postHandler !== 'function')
+   {
+      throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'postHandler' is not a function.`);
+   }
+
+   if (nodeTest !== void 0 && typeof nodeTest !== 'function')
+   {
+      throw new TypeError(`[esm-d-ts] jsdocTransformer error: 'nodeTest' is not a function.`);
+   }
+
+   const nodeTestData = { node: void 0, sourceFile: void 0 };
+   Object.seal(nodeTestData);
 
    return (context) =>
    {
@@ -84,11 +101,23 @@ export function jsdocTransformer(handler, postHandler)
          /** @ignore */
          function visit(node, sourceFile)
          {
+            // Early out from parsing any comment blocks if `nodeTest` is returns a falsy value.
+            if (nodeTest)
+            {
+               nodeTestData.node = node;
+               nodeTestData.sourceFile = sourceFile;
+
+               if (!nodeTest(nodeTestData))
+               {
+                  return ts.visitEachChild(node, (childNode) => visit(childNode, sourceFile), context);
+               }
+            }
+
             const { comments, parsed, lastComment, lastParsed } = parseLeadingComments(node, sourceFile);
 
             if (lastParsed)
             {
-               const result = handler({ node, sourceFile, comments, parsed, lastComment, lastParsed });
+               const result = handler({ node, sourceFile, comments, parsed, lastComment, lastParsed, context });
                if (result !== void 0) { return result === null ? void 0 : result; }
             }
 
@@ -100,6 +129,7 @@ export function jsdocTransformer(handler, postHandler)
             const visitedSourceFile = ts.visitNode(sourceFileOrBundle, (node) => visit(node, sourceFileOrBundle));
 
             // Allow postprocessing of source file after all nodes visited.
+            /* v8 ignore next 5 */ // Currently there are no meta-transformers with `postHandlers`.
             if (typeof postHandler === 'function')
             {
                const processedSourceFile = postHandler(visitedSourceFile);
@@ -108,6 +138,7 @@ export function jsdocTransformer(handler, postHandler)
 
             return visitedSourceFile;
          }
+         /* v8 ignore next 18 */  // Currently only single source files are processed
          else if (ts.isBundle(sourceFileOrBundle))
          {
             const newSourceFiles = sourceFileOrBundle.sourceFiles.map((sourceFile) =>
@@ -128,76 +159,4 @@ export function jsdocTransformer(handler, postHandler)
          }
       };
    };
-}
-
-/**
- * Returns the leading comment strings for a Node.
- *
- * @param {ts.Node}  node - Node being processed.
- *
- * @param {ts.SourceFile}  sourceFile - The source file of the Node.
- *
- * @returns {string[]|undefined} All leading comment block strings.
- */
-export function getLeadingComments(node, sourceFile)
-{
-   if (node.pos < 0 || node.end < 0) { return; }
-
-   const commentRanges = ts.getLeadingCommentRanges(sourceFile.text, node.getFullStart());
-
-   if (!commentRanges) { return; }
-
-   const results = [];
-
-   for (const commentRange of commentRanges)
-   {
-      results.push(sourceFile.text.substring(commentRange.pos, commentRange.end));
-   }
-
-   return results;
-}
-
-/**
- * Parses all leading JSDoc like block comments for the given Node.
- *
- * @param {ts.Node}  node - Node being processed.
- *
- * @param {ts.SourceFile}  sourceFile - The source file of the Node.
- *
- * @returns {{
- *    comments: string[],
- *    parsed: import('comment-parser').Block[],
- *    lastComment: string,
- *    lastParsed: import('comment-parser').Block
- * }} The parsed leading comments.
- */
-export function parseLeadingComments(node, sourceFile)
-{
-   const comments = [];
-   const parsed = [];
-   let lastComment, lastParsed;
-
-   const allComments = getLeadingComments(node, sourceFile);
-   if (allComments)
-   {
-      for (const comment of allComments)
-      {
-         const parsedComment = parse(comment);
-
-         if (parsedComment.length)
-         {
-            comments.push(comment);
-            parsed.push(parsedComment[0]);
-         }
-      }
-
-      // Only invoke handler when there is at least one comment.
-      if (parsed.length)
-      {
-         lastComment = comments[comments.length - 1];
-         lastParsed = parsed[parsed.length - 1];
-      }
-   }
-
-   return { comments, parsed, lastComment, lastParsed };
 }

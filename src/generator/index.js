@@ -1,41 +1,49 @@
 /**
- * Provides the main entry points to the package including `checkDTS` and `generateDTS`.
+ * Provides the main entry points to the package including `bundleDTS`, `checkDTS`, and `generateDTS`.
  *
  * @module
  */
 
 import { fileURLToPath }         from 'node:url';
 
-import fs                        from 'fs-extra';
-
 import alias                     from '@rollup/plugin-alias';
-
 import {
    importsExternal,
-   importsResolve }              from '@typhonjs-build-test/rollup-plugin-pkg-imports';
+   importsLocal }                from '@typhonjs-build-test/rollup-plugin-pkg-imports';
 
 import {
    commonPath,
-   getFileList }                 from '@typhonjs-utils/file-util';
+   getFileList,
+   isDirectory,
+   isFile }                      from '@typhonjs-utils/file-util';
 
 import {
+   deepFreeze,
    isIterable,
    isObject }                    from '@typhonjs-utils/object';
 
 import { getPackageWithPath }    from '@typhonjs-utils/package-json';
 import { init, parse }           from 'es-module-lexer';
-import { resolve }               from 'import-meta-resolve';
-import * as resolvePkg           from 'resolve.exports';
+import fs                        from 'fs-extra';
+import globToRegExp              from 'glob-to-regexp';
+import {
+   moduleResolve,
+   resolve }                     from 'import-meta-resolve';
+import {
+   parse as jsoncParse,
+   printParseErrorCode }         from 'jsonc-parser';
+import * as prettier             from 'prettier';
+import * as resolvePkg           from '@es-joy/resolve.exports';
 import { rollup }                from 'rollup';
 import dts                       from 'rollup-plugin-dts';
 import ts                        from 'typescript';
 import upath                     from 'upath';
 
-import * as internalPlugins      from './plugins.js';
-
-import { logger }                from '#util';
+import { DTSPluginManager }      from './plugins/DTSPluginManager.js';
+import * as rollupPlugins        from './plugins/rollupPlugins.js';
 
 import {
+   regexJSExt,
    validateCompilerOptions,
    validateConfig }              from './validation.js';
 
@@ -46,203 +54,399 @@ import { jsdocRemoveNodeByTags } from '../transformer/index.js';
 
 import {
    addSyntheticExports,
-   jsdocImplementsDynamicImport,
+   jsdocImplementsImportType,
    jsdocPreserveModuleTag,
    jsdocSetterParamName,
    removePrivateStatic }         from '../transformer/internal/index.js';
 
+import {
+   isDTSFile,
+   isTSFile,
+   logger }                      from '#util';
+
 /**
- * Invokes TS compiler in `checkJS` mode without processing DTS.
+ * Bundles an existing TS declaration entry point.
  *
- * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
+ * Note: Only options related to bundling apply.
  *
- * @returns {Promise<void>}
+ * @param {import('./types').GenerateConfig} config - Generation configuration object.
+ *
+ * @returns {Promise<boolean>} All operations successful.
  */
-async function checkDTS(config)
+async function bundleDTS(config)
 {
-   if (isIterable(config))
+   let result = true;
+
+   try
    {
-      for (const entry of config)
-      {
-         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
-
-         if (typeof processedConfigOrError === 'string')
-         {
-            logger.error(`checkDTS ${processedConfigOrError} Entry point '${entry.input}'`);
-            continue;
-         }
-
-         logger.logLevel = processedConfigOrError.config.logLevel;
-
-         logger.info(`Checking DTS bundle for: ${entry.input}`);
-
-         await checkDTSImpl(processedConfigOrError);
-      }
-   }
-   else
-   {
-      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_CHECK_COMPILER_OPTIONS);
+      const processedConfigOrError = await processConfig({
+         origConfig: config,
+         defaultCompilerOptions: s_DEFAULT_TS_GEN_COMPILER_OPTIONS,
+         lexer: false
+      });
 
       if (typeof processedConfigOrError === 'string')
       {
-         logger.error(`checkDTS ${processedConfigOrError} Entry point '${config.input}'`);
-         return;
+         logger.error(`bundleDTS ${processedConfigOrError}`);
+         logger.error(`Entry point: ${config?.input}`);
+         result = false;
       }
+      else
+      {
+         logger.info(`Bundling DTS for: ${config?.input}`);
 
-      logger.setLogLevel(processedConfigOrError.config.logLevel);
+         const { generateConfig } = processedConfigOrError;
 
-      logger.info(`Checking DTS bundle for: ${config.input}`);
+         // Handle the case when attempting to bundle a local DTS file in a source repository that may reference other
+         // sub-path exports.
+         if (generateConfig.bundlePackageExports && isObject(processedConfigOrError.packageObj))
+         {
+            const packageObj = processedConfigOrError.packageObj;
+            const packageName = packageObj.name;
 
-      await checkDTSImpl(processedConfigOrError);
+            if (typeof packageName === 'string')
+            {
+               processedConfigOrError.packages.set(packageName, packageName);
+
+               // Add all local sub-path exports to potential bundled package lookups.
+               if (isObject(packageObj.exports))
+               {
+                  for (const key of Object.keys(packageObj.exports))
+                  {
+                     // Skip main package.
+                     if (key === '.') { continue; }
+
+                     // Skip any wild card exports.
+                     if (key.includes('*')) { continue; }
+
+                     const exportName = upath.join(packageName, key);
+
+                     processedConfigOrError.packages.set(exportName, exportName);
+                  }
+               }
+            }
+         }
+
+         await bundle(processedConfigOrError, generateConfig.input);
+
+         // Run prettier on the bundled output file.
+         await prettierExec(processedConfigOrError);
+
+         // For strict Typescript adherence for dual ESM / CJS packages referencing an independent `.d.cts` file is necessary.
+         if (generateConfig.emitCTS)
+         {
+            const outputCTS = upath.changeExt(generateConfig.output, 'cts');
+            if (isFile(generateConfig.output))
+            {
+               fs.copySync(generateConfig.output, outputCTS);
+               logger.verbose(`Output bundled CTS file to: ${outputCTS}`);
+            }
+         }
+      }
    }
+   catch (err)
+   {
+      logger.fatal(`A fatal uncaught exception has been raised. Terminating processing.`);
+      logger.debug(err);
+      result = false;
+   }
+
+   return result;
+}
+
+/**
+ * Invokes TS compiler in `checkJS` mode without processing DTS.
+ *
+ * @param {import('./types').GenerateConfig | Iterable<import('./types').GenerateConfig>} config - Generation
+ *        configuration object.
+ *
+ * @returns {Promise<boolean>} All operations successful.
+ */
+async function checkDTS(config)
+{
+   let result = true;
+
+   // Initial sanity checks.
+   if (!isObject(config) && !isIterable(config))
+   {
+      logger.error(`error: Aborting as 'config' must be an object or iterable list of objects.`);
+      return false;
+   }
+
+   try
+   {
+      if (isIterable(config))
+      {
+         for (const entry of config)
+         {
+            const processedConfigOrError = await processConfig({
+                origConfig: entry,
+                defaultCompilerOptions: s_DEFAULT_TS_CHECK_COMPILER_OPTIONS,
+                extraConfig: { tsCheckJs: true }
+            });
+
+            if (typeof processedConfigOrError === 'string')
+            {
+               logger.error(`checkDTS ${processedConfigOrError}`);
+               logger.error(`Entry point: ${entry?.input}`);
+               result = false;
+               continue;
+            }
+
+            logger.info(`Checking DTS bundle for: ${entry?.input}`);
+
+            await checkDTSImpl(processedConfigOrError);
+         }
+         /* v8 ignore next 1 */ // `}` / line below is reached, but left out of coverage.
+      }
+      else
+      {
+         const processedConfigOrError = await processConfig({
+            origConfig: config,
+            defaultCompilerOptions: s_DEFAULT_TS_CHECK_COMPILER_OPTIONS,
+            extraConfig: { tsCheckJs: true }
+         });
+
+         if (typeof processedConfigOrError === 'string')
+         {
+            logger.error(`checkDTS ${processedConfigOrError}`);
+            logger.error(`Entry point: ${config?.input}`);
+            result = false;
+         }
+         else
+         {
+            logger.info(`Checking DTS bundle for: ${config?.input}`);
+
+            await checkDTSImpl(processedConfigOrError);
+         }
+      }
+   }
+   catch (err)
+   {
+      logger.fatal(`A fatal uncaught exception has been raised. Terminating processing.`);
+      logger.debug(err);
+      result = false;
+   }
+
+   return result;
 }
 
 /**
  * `checkDTS` implementation.
  *
- * @param {ProcessedConfig}   pConfig - Processed Config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed Config.
  *
  * @returns {Promise<void>}
  */
-async function checkDTSImpl(pConfig)
+async function checkDTSImpl(processedConfig)
 {
-   compile(pConfig);
+   const { eventbus } = processedConfig;
+
+   try
+   {
+      await eventbus.triggerAsync('lifecycle:start', { processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'lifecycle:start': ${err.message}`);
+
+      throw err;
+   }
+
+   await compile(processedConfig, false);
+
+   try
+   {
+      await eventbus.triggerAsync('lifecycle:end', { processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'lifecycle:end': ${err.message}`);
+
+      throw err;
+   }
 }
 
 /**
  * Generates TS declarations from ESM source.
  *
- * @param {GenerateConfig | Iterable<GenerateConfig>} config - Generation configuration object.
+ * @param {import('./types').GenerateConfig | Iterable<import('./types').GenerateConfig>} config - Generation
+ *        configuration object.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} All Operations successful.
  */
 async function generateDTS(config)
 {
-   if (isIterable(config))
+   let result = true;
+
+   // Initial sanity checks.
+   if (!isObject(config) && !isIterable(config))
    {
-      for (const entry of config)
+      logger.error(`error: Aborting as 'config' must be an object or iterable list of objects.`);
+      return false;
+   }
+
+   try
+   {
+      if (isIterable(config))
       {
-         const processedConfigOrError = await processConfig(entry, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
+         for (const entry of config)
+         {
+            const processedConfigOrError = await processConfig({
+               origConfig: entry,
+               defaultCompilerOptions: s_DEFAULT_TS_GEN_COMPILER_OPTIONS
+            });
+
+            if (typeof processedConfigOrError === 'string')
+            {
+               logger.error(`generateDTS ${processedConfigOrError}`);
+               logger.error(`Entry point: ${entry?.input}`);
+               result = false;
+               continue;
+            }
+
+            logger.info(`Generating DTS bundle for: ${entry?.input}`);
+
+            await generateDTSImpl(processedConfigOrError);
+         }
+         /* v8 ignore next 1 */ // `}` / line below is reached, but left out of coverage.
+      }
+      else
+      {
+         const processedConfigOrError = await processConfig({
+            origConfig: config,
+            defaultCompilerOptions: s_DEFAULT_TS_GEN_COMPILER_OPTIONS
+         });
 
          if (typeof processedConfigOrError === 'string')
          {
-            logger.error(`generateDTS ${processedConfigOrError} Entry point '${entry.input}'`);
-            continue;
+            logger.error(`generateDTS ${processedConfigOrError}`);
+            logger.error(`Entry point: ${config?.input}`);
+            result = false;
          }
+         else
+         {
+            logger.info(`Generating DTS bundle for: ${config?.input}`);
 
-         logger.setLogLevel(processedConfigOrError.config.logLevel);
-
-         logger.info(`Generating DTS bundle for: ${entry.input}`);
-
-         await generateDTSImpl(processedConfigOrError);
+            await generateDTSImpl(processedConfigOrError);
+         }
       }
    }
-   else
+   catch (err)
    {
-      const processedConfigOrError = await processConfig(config, s_DEFAULT_TS_GEN_COMPILER_OPTIONS);
-
-      if (typeof processedConfigOrError === 'string')
-      {
-         logger.error(`generateDTS ${processedConfigOrError} Entry point '${config.input}'`);
-         return;
-      }
-
-      logger.setLogLevel(processedConfigOrError.config.logLevel);
-
-      logger.info(`Generating DTS bundle for: ${config.input}`);
-
-      await generateDTSImpl(processedConfigOrError);
+      logger.fatal(`A fatal uncaught exception has been raised. Terminating processing.`);
+      logger.debug(err);
+      result = false;
    }
+
+   return result;
 }
 
 /**
  * `generateDTS` implementation.
  *
- * @param {ProcessedConfig}   pConfig - Processed Config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed Config.
  *
  * @returns {Promise<void>}
  */
-async function generateDTSImpl(pConfig)
+async function generateDTSImpl(processedConfig)
 {
-   const { compilerOptions } = pConfig;
+   const { dtsDirectoryPath, eventbus, generateConfig } = processedConfig;
+
+   logger.debug(`Intermediate declarations output path: ${upath.relative(process.cwd(), dtsDirectoryPath)}`);
+
+   try
+   {
+      await eventbus.triggerAsync('lifecycle:start', { processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'lifecycle:start': ${err.message}`);
+
+      throw err;
+   }
 
    // Empty intermediate declaration output directory.
-   if (fs.existsSync(compilerOptions.outDir)) { fs.emptyDirSync(compilerOptions.outDir); }
+   if (isDirectory(dtsDirectoryPath)) { fs.emptyDirSync(dtsDirectoryPath); }
 
    // Log emit diagnostics as warnings.
-   const jsdocModuleComments = compile(pConfig, true);
+   const { dtsEntryPathActual, jsdocModuleComments } = await compile(processedConfig, true);
 
-   await bundleDTS(pConfig, jsdocModuleComments);
+   await bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments);
+
+   // Run prettier on the bundled output file.
+   await prettierExec(processedConfig);
+
+   // For strict Typescript adherence for dual ESM / CJS packages referencing an independent `.d.cts` file is necessary.
+   if (generateConfig.emitCTS)
+   {
+      const outputCTS = upath.changeExt(generateConfig.output, 'cts');
+      if (isFile(generateConfig.output))
+      {
+         fs.copySync(generateConfig.output, outputCTS);
+         logger.verbose(`Output bundled CTS file to: ${outputCTS}`);
+      }
+   }
+
+   try
+   {
+      await eventbus.triggerAsync('lifecycle:end', { processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'lifecycle:end': ${err.message}`);
+
+      throw err;
+   }
 }
 
 /**
  * Provides a Rollup plugin generating a bundled TS declaration after the bundle has been written.
  *
- * @type {(options?: GeneratePluginConfig) => import('rollup').Plugin}
+ * @type {(options?: Partial<import('./types').GenerateConfig>) => import('rollup').Plugin}
  */
-generateDTS.plugin = internalPlugins.generateDTSPlugin(generateDTS);
+generateDTS.plugin = rollupPlugins.generateDTSPlugin(generateDTS);
 
-export { checkDTS, generateDTS };
+export { bundleDTS, checkDTS, generateDTS };
 
 // Internal Implementation -------------------------------------------------------------------------------------------
 
 /**
- * @param {ProcessedConfig}   pConfig - Processed config.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config.
  *
- * @param {{ comment: string, filepath: string}[]} jsdocModuleComments - Any comments with the `@module` tag.
+ * @param {string} dtsEntryPathActual - The actual processed DTS entry path.
+ *
+ * @param {{ comment: string, filepath: string}[]} [jsdocModuleComments] - Any comments with the `@module` tag.
  *
  * @returns {Promise<void>}
  */
-async function bundleDTS(pConfig, jsdocModuleComments)
+async function bundle(processedConfig, dtsEntryPathActual, jsdocModuleComments = [])
 {
-   const { config, compilerOptions, dtsMainPath, packages } = pConfig;
+   const { generateConfig, packageObj } = processedConfig;
 
-   const packageAlias = typeof config.bundlePackageExports === 'boolean' && config.bundlePackageExports ?
-    resolvePackageExports(packages, config, compilerOptions.outDir) : [];
+   // Collect any banner / header ------------------------------------------------------------------------------------
 
-   // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
-   let dtsMainPathActual = upath.changeExt(dtsMainPath, '.d.ts');
-
-   // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
-   if (!fs.existsSync(dtsMainPathActual)) { dtsMainPathActual = upath.changeExt(dtsMainPath, '.d.mts'); }
-
-   if (!fs.existsSync(dtsMainPathActual))
-   {
-      logger.error(`bundleDTS error: could not locate DTS main file in './dts' output.'`);
-      process.exit(1);
-   }
-
-   if (jsdocModuleComments.length > 1)
-   {
-      const filepaths = jsdocModuleComments.map((entry) => entry?.filepath).join('\n');
-
-      logger.warn(
-       `bundleDTS warning: multiple JSDoc comments detected with the '@module' / '@packageDocumentation' tag from:\n${
-         filepaths}`);
-   }
-
-   // Prepend any comment with the `@module` tag preserving it in the bundled DTS file.
-
+   // Prepend any comment with the `@module` / `@packageDocumentation` tag preserving it in the bundled DTS file.
    let banner = jsdocModuleComments.length === 1 && typeof jsdocModuleComments[0]?.comment === 'string' ?
     `${jsdocModuleComments[0].comment}\n` : '';
 
-   if (isIterable(config.prependFiles))
+   if (isIterable(generateConfig.prependFiles))
    {
-      const dir = upath.dirname(config.input);
+      const dir = upath.dirname(generateConfig.input);
 
-      for (const prependFile of config.prependFiles)
+      for (const prependFile of generateConfig.prependFiles)
       {
          const resolvedPath = upath.resolve(dir, prependFile);
 
          // First attempt to load the file relative to the entry point file.
-         if (fs.existsSync(resolvedPath))
+         if (isFile(resolvedPath))
          {
             banner += fs.readFileSync(resolvedPath, 'utf-8');
             continue;
          }
 
          // Make a second attempt to load the file with the path provided.
-         if (fs.existsSync(prependFile))
+         if (isFile(prependFile))
          {
             banner += fs.readFileSync(prependFile, 'utf-8');
             continue;
@@ -252,98 +456,190 @@ async function bundleDTS(pConfig, jsdocModuleComments)
       }
    }
 
-   if (isIterable(config.prependString))
+   if (isIterable(generateConfig.prependString))
    {
-      for (const prependStr of config.prependString) { banner += prependStr; }
+      for (const prependStr of generateConfig.prependString) { banner += prependStr; }
    }
+
+   // Configure Rollup plugins ---------------------------------------------------------------------------------------
 
    const plugins = [];
 
+   // Add `importsLocal` plugin if configured.
+   if (generateConfig.importsLocal)
+   {
+      plugins.push(importsLocal(isObject(generateConfig.importsLocal) ?
+       { packageObj, ...generateConfig.importsLocal } : { packageObj }));
+   }
+
    // Add `importsExternal` plugin if configured.
-   if (config.importsExternal)
+   if (generateConfig.importsExternal)
    {
-      plugins.push(importsExternal(isObject(config.importsExternal) ? config.importsExternal : void 0));
+      plugins.push(importsExternal(isObject(generateConfig.importsExternal) ?
+       { packageObj, ...generateConfig.importsExternal } : { packageObj }));
    }
 
-   // Add `importsResolve` plugin if configured.
-   if (config.importsResolve)
-   {
-      plugins.push(importsResolve(isObject(config.importsResolve) ? config.importsResolve : void 0));
-   }
-
-   plugins.push(...[
-      alias({ entries: packageAlias }),
+   plugins.push(
+      alias({ entries: resolvePackageExports(processedConfig) }),
+      alias({ entries: resolveLocalImports(processedConfig) }),
       dts()
-   ]);
+   );
 
    const rollupConfig = {
       input: {
-         input: dtsMainPathActual,
+         input: dtsEntryPathActual,
          plugins
       },
       output: {
          banner,
-         file: config.output,
+         file: generateConfig.output,
          format: 'es',
       }
    };
 
    // Further config modification through optional GenerateConfig parameters -----------------------------------------
 
-   if (config.rollupExternal !== void 0) { rollupConfig.input.external = config.rollupExternal; }
+   if (generateConfig.rollupExternal !== void 0) { rollupConfig.input.external = generateConfig.rollupExternal; }
 
-   if (config.rollupOnwarn !== void 0) { rollupConfig.input.onwarn = config.rollupOnwarn; }
+   if (generateConfig.rollupOnwarn !== void 0) { rollupConfig.input.onwarn = generateConfig.rollupOnwarn; }
 
-   if (config.rollupPaths !== void 0) { rollupConfig.output.paths = config.rollupPaths; }
+   if (generateConfig.rollupPaths !== void 0) { rollupConfig.output.paths = generateConfig.rollupPaths; }
 
-   if (isObject(config.dtsReplace))
+   if (isObject(generateConfig.dtsReplace))
    {
-      rollupConfig.input.plugins.push(internalPlugins.naiveReplace(config.dtsReplace));
+      rollupConfig.input.plugins.push(rollupPlugins.naiveReplace(generateConfig.dtsReplace));
    }
 
-   // ----------------------------------------------------------------------------------------------------------------
+   // Generate bundle ------------------------------------------------------------------------------------------------
 
    const bundle = await rollup(rollupConfig.input);
    await bundle.write(rollupConfig.output);
    await bundle.close();
 
+   // Postprocess ----------------------------------------------------------------------------------------------------
+
    // Collect the postprocessor functions.
+   const processors = [...(isIterable(generateConfig.postprocess) ? generateConfig.postprocess : [])];
+
    // Add the internal `outputGraph` post processor if `config.outputGraph` is defined.
-   const processors = typeof config.outputGraph === 'string' ? [
-      ...(isIterable(config.postprocess) ? config.postprocess : []),
-      outputGraph(config.outputGraph, config.outputGraphIndentation)
-   ] : [...(isIterable(config.postprocess) ? config.postprocess : [])];
+   if (typeof generateConfig.outputGraph === 'string')
+   {
+      processors.push(outputGraph(generateConfig.outputGraph, generateConfig.outputGraphIndentation));
+   }
 
    // Handle any postprocessing of the bundled declarations.
    if (processors.length)
    {
       PostProcess.process({
-         filepath: config.output,
-         output: config.outputPostprocess,
-         processors
+         filepath: generateConfig.output,
+         output: generateConfig.outputPostprocess,
+         processors,
+         dependencies: true,
+         logStart: true
       });
    }
 
-   logger.verbose(`Output bundled DTS file to: '${config.output}'`);
+   // ----------------------------------------------------------------------------------------------------------------
+
+   logger.verbose(`Output bundled DTS file to: ${generateConfig.output}`);
 }
 
 /**
  * Compiles TS declaration files from the provided list of ESM & TS files.
  *
- * @param {ProcessedConfig}   pConfig - Processed config object.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config object.
  *
- * @param {boolean}  [warn=false] - Log the emit diagnostics as warnings for `generateDTS`.
+ * @param {boolean}  isGenerate - Indicates compilation is from DTS generation vs just `checkJs`.
  *
- * @returns {{ comment: string, filepath: string }[]} Any parsed JSDoc comments with the `@module` tag.
+ * @returns {(Promise<{
+ *    dtsEntryPathActual: string,
+ *    jsdocModuleComments: { comment: string, filepath: string }[]
+ * }>)} The actual processed DTS entry path and any parsed JSDoc comments with the `@module` tag.
  */
-function compile(pConfig, warn = false)
+async function compile(processedConfig, isGenerate)
 {
-   const { config, compilerOptions, filepaths, inputRelativeDir, tsFilepaths } = pConfig;
+   const {
+      compilerOptions,
+      compileFilepaths,
+      dtsDirectoryPath,
+      dtsEntryPath,
+      eventbus,
+      generateConfig,
+      isTSMode,
+      tsFilepaths
+   } = processedConfig;
 
    const host = ts.createCompilerHost(compilerOptions, /* setParentNodes */ true);
 
+   /**
+    * Stores any in-memory transformed file data from plugin processing. The key is the file name and value is
+    * transformed code.
+    *
+    * @type {Map<string, string>}
+    */
+   const memoryFiles = new Map();
+
+   try
+   {
+      // Allow any plugins to handle non-JS files potentially modifying `compileFilepaths` and adding transformed code
+      // to `memoryFiles`.
+      await eventbus.triggerAsync('compile:transform', { logger, memoryFiles, processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'compile:transform': ${err.message}`);
+
+      throw err;
+   }
+
+   const origReadFile = host.readFile.bind(host);
+
+   /**
+    * Replace default CompilerHost `readFile` to be able to load transformed file data in memory.
+    *
+    * @param {string} fileName - File path to read.
+    *
+    * @returns {string | undefined} File contents.
+    */
+   host.readFile = (fileName) =>
+   {
+      /* v8 ignore next 1 */ // Covered in plugin package tests.
+      if (memoryFiles.has(fileName)) { return memoryFiles.get(fileName); }
+
+      return origReadFile(fileName);
+   };
+
+   const origWriteFile = host.writeFile.bind(host);
+
+   /**
+    * Overrides the compiler host `writeFile` hook to enforce declaration-emit boundaries.
+    *
+    * When generating declarations, the TypeScript compiler may resolve and type-check additional source files outside
+    * the intended compilation unit. If such files fall outside `rootDir`, TypeScript may attempt to emit `.d.ts` files
+    * adjacent to their source locations as a fallback.
+    *
+    * This override filters all emit operations so that only declaration files targeting the designated output directory
+    * are written. Any stray or transitive declaration emits outside the expected output path are intentionally
+    * suppressed.
+    *
+    * Note: This does not affect type-checking or resolution; it only constrains where emitted declaration files are
+    * allowed to be written.
+    *
+    * @param {string} fileName - File path to write.
+    *
+    * @param {string} content - File contents.
+    *
+    * @param {any[]} rest - Additional parameters.
+    */
+   host.writeFile = (fileName, content, ...rest) =>
+   {
+      if (!fileName.startsWith(dtsDirectoryPath)) { return; }
+
+      origWriteFile(fileName, content, ...rest);
+   };
+
    // Prepare and emit the d.ts files
-   const program = ts.createProgram(filepaths, compilerOptions, host);
+   const program = ts.createProgram(compileFilepaths, compilerOptions, host);
 
    let emitResult;
 
@@ -352,26 +648,45 @@ function compile(pConfig, warn = false)
    /**
     * Add `jsdocPreserveModuleTag` to store any `@module` / `@packageDescription` tags to prepend to output DTS.
     *
+    * Optionally add `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
+    */
+   const alwaysTransformers = [
+      jsdocPreserveModuleTag(jsdocModuleComments, generateConfig.input),
+
+      ...(typeof generateConfig.filterTags === 'string' || isIterable(generateConfig.filterTags) ?
+       [jsdocRemoveNodeByTags(generateConfig.filterTags)] : []),
+   ];
+
+   /**
+    * Add `jsdocImplementsImportType` to support adding interfaces to classes via import types and `@implements`.
+    *
     * Add `jsdocSetterParamName` to correct TS compiler renaming of setter param name.
     *
     * Optionally add `removePrivateStatic` as the Typescript compiler changes private static members to become public
     * defined with a string pattern that can be detected.
     *
-    * Optionally add `jsdocRemoveNodeByTags` to remove internal tags if `filterTags` is defined.
-    *
     * Optionally add `addSyntheticExports` to add exports for any additional TS files compiled.
-    *
-    * Optionally add any user defined transformers.
+    */
+   const jsTransformers = isTSMode ? [] : [
+      // TODO: REMOVE FOR TS 5.5; favor `@import`.
+      jsdocImplementsImportType(),
+
+      // TODO: The problem this transformer solves is fixed in TS 5.3+; Keep until minimum peer dependency is bumped.
+      jsdocSetterParamName(),
+
+      ...(typeof generateConfig.removePrivateStatic === 'boolean' && generateConfig.removePrivateStatic ?
+       [removePrivateStatic()] : []),
+
+      ...(tsFilepaths.length ? [addSyntheticExports(generateConfig.input, tsFilepaths)] : []),
+   ];
+
+   /**
+    * Combines all transformers optionally including any user specified transformers.
     */
    const transformers = [
-      jsdocPreserveModuleTag(jsdocModuleComments, config.input),
-      jsdocImplementsDynamicImport(),
-      jsdocSetterParamName(),
-      ...(typeof config.removePrivateStatic === 'boolean' && config.removePrivateStatic ? [removePrivateStatic()] : []),
-      ...(typeof config.filterTags === 'string' || isIterable(config.filterTags) ?
-       [jsdocRemoveNodeByTags(config.filterTags)] : []),
-      ...(tsFilepaths.length ? [addSyntheticExports(config.input, tsFilepaths)] : []),
-      ...(isIterable(config.tsTransformers) ? config.tsTransformers : [])
+      ...alwaysTransformers,
+      ...jsTransformers,
+      ...(isIterable(generateConfig.tsTransformers) ? generateConfig.tsTransformers : [])
    ];
 
    if (transformers.length)
@@ -379,6 +694,7 @@ function compile(pConfig, warn = false)
       emitResult = program.emit(void 0, void 0, void 0, void 0, {
          afterDeclarations: transformers,
       });
+      /* v8 ignore next 5 */ // Currently there are always transformers.
    }
    else
    {
@@ -387,83 +703,214 @@ function compile(pConfig, warn = false)
 
    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
+   const compileFilepathSet = new Set(compileFilepaths);
+
    // Default filter to exclude non-project files when option `tsDiagnosticExternal` is true and no explicit
-   // `tsDiagnosticFilter` option is set.
-   const filterExternalDiagnostic = (diagnostic) =>
+   // `tsDiagnosticFilter` option is set. Only diagnostics that are a part of `compileFilepaths` are reported.
+   const filterExternalDiagnostic = ({ diagnostic }) =>
    {
+      /**
+       * TS6059 (`File is not under 'rootDir'`) is intentionally suppressed.
+       *
+       * Source files are first transformed to ESM and the runtime module graph is derived from ESM import / export
+       * traversal. TypeScript is then used only for type resolution and declaration emission over that predefined file
+       * set.
+       *
+       * During type-checking, TypeScript may resolve additional type-only dependencies that were erased prior to
+       * ESM analysis and fall outside the effective `rootDir` triggering TS6059. This is a structural containment
+       * warning and does not indicate incorrect types or invalid declaration output in this pipeline.
+       */
+      if (diagnostic.code === 6059) { return true; }
+
+      // Ignore any diagnostic errors from files that are not in `compileFilepaths`.
       if (diagnostic.file)
       {
-         const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
-         if (!fileName.startsWith(inputRelativeDir)) { return true; }
+         /* v8 ignore next 2 */ // This requires a dependent package with diagnostic errors to test; it works.
+         if (!compileFilepathSet.has(diagnostic.file.fileName)) { return true; }
       }
 
       return false;
    };
 
-   // Provide a default implementation to allow all diagnostic messages through.
-   const filterDiagnostic = config.tsDiagnosticFilter ?? !config.tsDiagnosticExternal ? filterExternalDiagnostic :
-    (() => false);
+   /** @type {Function[]} */
+   const filterDiagnostic = !generateConfig.tsDiagnosticExternal ? [filterExternalDiagnostic] : [];
+
+   if (typeof generateConfig.tsDiagnosticFilter === 'function')
+   {
+      filterDiagnostic.push(generateConfig.tsDiagnosticFilter);
+   }
+
+   /**
+    * Helper method used to log a diagnostic instance. This is passed to plugins for consistent formatting.
+    *
+    * @param {import('typescript').Diagnostic}  diagnostic - A diagnostic to log.
+    *
+    * @param {import('@typhonjs-utils/logger-color').LogLevel} [logLevel='warn'] - Log level to use.
+    */
+   const diagnosticLog = (diagnostic, logLevel = 'warn') =>
+   {
+      /* v8 ignore next 5 */ // Any invalid log level is set to `warn`.
+      if (!logger.isValidLevel(logLevel))
+      {
+         logger.warn(`[diagnosticLog] Unknown log level: ${logLevel}`);
+         logLevel = 'warn';
+      }
+
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+
+      if (diagnostic.file)
+      {
+         const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
+         const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
+         logger.ext[`${logLevel}Raw`](`${fileName} (${line + 1},${character + 1})[33m: [TS] ${message}[0m`);
+         /* v8 ignore next 5 */ // All diagnostic messages should have an associated file.
+      }
+      else
+      {
+         logger[logLevel](`[TS] ${message}`);
+      }
+   };
 
    for (const diagnostic of allDiagnostics)
    {
       const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
 
-      if (filterDiagnostic(diagnostic, message)) { continue; }
+      let filter = false;
+      for (const filterFn of filterDiagnostic) { filter |= filterFn({ diagnostic, message }); }
+      if (filter) { continue; }
+
+      try
+      {
+         const result = await eventbus.triggerAsync('compile:diagnostic:filter',
+          { diagnostic, diagnosticLog, logger, message });
+
+         if (typeof result === 'boolean' && result) { continue; }
+      }
+      catch (err)
+      {
+         logger.error(`External plugin error for event 'compile:diagnostic:filter': ${err.message}`);
+
+         throw err;
+      }
 
       // Special handling for `generateDTS` / log as warnings.
-      if (warn)
+      if (isGenerate)
       {
          // Only log if logLevel is not `error` or `tsDiagnosticLog` is true.
-         if (!config.tsDiagnosticLog || !logger.is.warn) { continue; }
+         if (!generateConfig.tsDiagnosticLog || !logger.is.warn) { continue; }
 
-         if (diagnostic.file)
-         {
-            const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
-            const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
-            console.warn(`${fileName} (${line + 1},${character + 1})[33m: [TS] ${message}[0m`);
-         }
-         else
-         {
-            console.warn(`[33m[esm-d-ts] [TS] ${message}[0m`);
-         }
+         diagnosticLog(diagnostic);
       }
       else
       {
-         if (diagnostic.file)
-         {
-            const { line, character } = ts.getLineAndCharacterOfPosition(diagnostic.file, diagnostic.start);
-            const fileName = upath.relative(process.cwd(), diagnostic.file.fileName);
-            console.warn(`${fileName} (${line + 1},${character + 1}): [TS] ${message}`);
-         }
-         else
-         {
-            console.warn(`[esm-d-ts] [TS] ${message}`);
-         }
+         diagnosticLog(diagnostic);
       }
    }
 
-   return jsdocModuleComments;
+   let dtsEntryPathActual;
+
+   if (isGenerate)
+   {
+      // Find the output main path. This will be `.d.ts` for initial source files with `.js` extension.
+      dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.ts');
+
+      // If that doesn't exist check for `.mts` which is generated for `.mjs` files.
+      if (!isFile(dtsEntryPathActual)) { dtsEntryPathActual = upath.changeExt(dtsEntryPath, '.d.mts'); }
+
+      /* v8 ignore next 8 */ // Only occurs if there is a s fatal error; not common.
+      if (!isFile(dtsEntryPathActual))
+      {
+         logger.fatal(`compile error: could not locate DTS entry point file in output directory: ${
+          compilerOptions.outDir}`);
+
+         throw new Error(`compile error: could not locate DTS entry point file in output directory: ${
+          compilerOptions.outDir}`);
+      }
+   }
+
+   try
+   {
+      // Allow any plugins to handle postprocessing of generated DTS files.
+      await eventbus.triggerAsync('compile:end', { logger, memoryFiles, PostProcess, processedConfig });
+   }
+   catch (err)
+   {
+      logger.error(`External plugin error for event 'compile:end': ${err.message}`);
+
+      throw err;
+   }
+
+   return { dtsEntryPathActual, jsdocModuleComments };
 }
 
 /**
- * Fully parses all file paths provided. Includes top level "re-exported" packages in `packages` data.
+ * Convenience function to test whether an identifier string is formatted as a NPM package.
  *
- * @param {GenerateConfig} config - Generate config.
+ * @param {string}   identifier - Identifier to test.
  *
- * @returns {Promise<{files: Set<string>, packages: Set<string>}>} Parsed files and top level packages exported.
+ * @returns {boolean} Is the value a NPM package identifier.
  */
-async function parseFiles(config)
+function isPackage(identifier)
+{
+   return s_REGEX_PACKAGE.test(identifier) || s_REGEX_PACKAGE_SCOPED.test(identifier);
+}
+
+/**
+ * Lexically parses all files connected to the entry point. Additional data includes top level "re-exported" packages
+ * in `packages` data.
+ *
+ * @param {object} opts - Options.
+ *
+ * @param {import('@typhonjs-plugin/manager/eventbus').EventbusSecure} opts.eventbus - Plugin manager eventbus.
+ *
+ * @param {import('./types').GenerateConfig} opts.generateConfig - Generate config.
+ *
+ * @param {ts.CompilerOptions} opts.compilerOptions - Typescript compiler options.
+ *
+ * @param {boolean} opts.isTSMode - Is Typescript mode enabled.
+ *
+ * @param {boolean} [opts.lexer=true] - Perform lexical analysis.
+ *
+ * @returns {Promise<{
+ *    lexerFilepaths: string[],
+ *    localPackageImports: Map<string, string>,
+ *    packages: Map<string, string>,
+ *    packageObj: import('type-fest').PackageJson,
+ *    success: boolean
+ * }>} Lexically parsed files, top level packages exported, and closest `package.json` object from input source file.
+ * When `success` is false this indicates there was an error encountered in parsing.
+ */
+async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode, lexer = true })
 {
    await init;
 
-   const { packageObj } = getPackageWithPath({ filepath: config.input });
+   const { packageObj, filepathUnix } = getPackageWithPath({ filepath: generateConfig.input });
 
-   const filepaths = [config.input];
+   const packageDir = upath.dirname(filepathUnix);
+
+   deepFreeze(packageObj);
+
+   let success = true;
+
+   const entrypoint = [generateConfig.input];
 
    const parsedFiles = new Set();
 
-   const files = new Set();
-   const packages = new Set();
+   const lexerFilepaths = new Set();
+
+   /**
+    * Stores any top level exported packages.
+    *
+    * @type {Map<string, string>}
+    */
+   const packages = new Map();
+
+   /**
+    * Stores any local files referenced by `imports` in `package.json`.
+    *
+    * @type {Map<any, any>}
+    */
+   const localPackageImports = new Map();
 
    /**
     * Stores any unresolved imports from the closest `package.json` from `config.input`. The key is the import symbol
@@ -473,57 +920,140 @@ async function parseFiles(config)
     */
    const unresolvedImports = new Map();
 
-   const parsePaths = (fileList, topLevel = false) =>
+   const parsePaths = async (fileList, topLevel = false) =>
    {
       const toParseFiles = new Set();
 
       for (const file of fileList)
       {
-         let resolved = upath.isAbsolute(file) ? file : upath.resolve(file);
+         /* v8 ignore next 1 */ // `file` should always be the absolute path by this point.
+         let resolvedPath = upath.isAbsolute(file) ? file : upath.resolve(file);
 
          // Must indicate warnings for the case when an `index.js` / `index.mjs` file is referenced by directory.
-         const stats = fs.statSync(resolved);
-         if (stats.isDirectory())
+         if (isDirectory(resolvedPath))
          {
-            if (fs.existsSync(`${resolved}/index.js`) || fs.existsSync(`${resolved}/index.mjs`))
+            /* v8 ignore start */
+            // TS will not transpile malformed imports that don't have a proper `index.(m)ts` and diagnostic warnings
+            // are ignored in `DTSPluginTypescript.lexerTransform`, diagnostic logs are not checked in `lexerTransform`.
+            // The following code is never reached, but kept just in case for now.
+            // TODO: Consider removing the if conditional code below.
+            if (isTSMode)
             {
-               // Could not resolve index reference so skip file.
-               logger.warn(`parseFiles warning: detected bare directory import without expected '/index.(m)js'`);
+               const hasIndexTs = isFile(`${resolvedPath}/index.ts`);
+               const hasIndexMts = isFile(`${resolvedPath}/index.mts`);
+
+               if (!hasIndexTs && !hasIndexMts)
+               {
+                  // Could not resolve index reference so skip file.
+                  logger.error(
+                   `Parse files error: detected bare directory import without expected '/index.(m)ts'\ntarget: '${
+                    resolvedPath}'`);
+
+                  success = false;
+                  continue;
+               }
+
+               if (hasIndexTs) { resolvedPath = `${resolvedPath}/index.ts`; }
+               else if (hasIndexMts) { resolvedPath = `${resolvedPath}/index.mts`; }
             }
+            /* v8 ignore stop */
             else
             {
-               logger.warn(`parseFiles warning: could not resolve directory; '${resolved}'`);
-            }
+               const hasIndexJs = isFile(`${resolvedPath}/index.js`);
+               const hasIndexMjs = isFile(`${resolvedPath}/index.mjs`);
 
+               if (!hasIndexJs && !hasIndexMjs)
+               {
+                  // Could not resolve index reference so skip file.
+                  logger.error(
+                   `Parse files error: detected bare directory import without expected '/index.(m)js'\ntarget: '${
+                     resolvedPath}'`);
+
+                  success = false;
+                  continue;
+               }
+
+               if (hasIndexJs) { resolvedPath = `${resolvedPath}/index.js`; }
+               else if (hasIndexMjs) { resolvedPath = `${resolvedPath}/index.mjs`; }
+            }
+         }
+
+         if (parsedFiles.has(resolvedPath)) { continue; }
+
+         parsedFiles.add(resolvedPath);
+
+         const dirpath = upath.dirname(resolvedPath);
+
+         let tsErrorMessage = '';
+
+         if (isTSMode && !isFile(resolvedPath))
+         {
+            // Store original resolved path for any potential error message.
+            tsErrorMessage = ` from '${resolvedPath}'`;
+
+            // Attempt to resolve a few fallbacks when in Typescript mode such as changing the extension:
+            // - `.js` to `.ts`
+            // - Adding `.ts` when there is no extension.
+            if (resolvedPath.endsWith('.js'))
+            {
+               resolvedPath = upath.changeExt(resolvedPath, '.ts');
+            }
+            else if (s_REGEX_FILEPATH_NO_EXTENSION.test(resolvedPath))
+            {
+               resolvedPath = upath.addExt(resolvedPath, '.ts');
+            }
+         }
+
+         if (!isFile(resolvedPath))
+         {
+            logger.error(`Parse files error: could not resolve; '${resolvedPath}'${tsErrorMessage}`);
+            success = false;
             continue;
          }
 
-         if (parsedFiles.has(resolved)) { continue; }
+         let fileData = fs.readFileSync(resolvedPath, 'utf-8').toString();
 
-         parsedFiles.add(resolved);
+         // TODO: Consider multi-part file extensions in the future as applicable. `extname` extracts just the last.
+         const fileExt = upath.extname(resolvedPath);
 
-         const dirpath = upath.dirname(resolved);
-
-         if (!fs.existsSync(resolved))
+         // For non-Javascript files allow any loaded plugins to attempt to transform the file data.
+         if (!regexJSExt.test(fileExt))
          {
-            if (fs.existsSync(`${resolved}.js`)) { resolved = `${resolved}.js`; }
-            else if (fs.existsSync(`${resolved}.mjs`)) { resolved = `${resolved}.mjs`; }
-            else
+            const event = `lexer:transform:${fileExt}`;
+
+            try
             {
-               logger.warn(`parseFiles warning: could not resolve; '${resolved}'`);
-               continue;
+               const transformed = await eventbus.triggerAsync(event,
+                { compilerOptions, fileData, logger, resolvedPath });
+
+               /* v8 ignore next 4 */ // Not common fatal error.
+               if (typeof transformed !== 'string')
+               {
+                  throw new Error(`External plugin failed to return a 'string'.`);
+               }
+
+               fileData = transformed;
+            }
+            catch (err)
+            {
+               logger.error(`Lexer failed to transform: '${resolvedPath}'`);
+               logger.error(`External plugin error for event '${event}': ${err.message}`);
+
+               throw err;
             }
          }
 
-         files.add(resolved);
-
-         const fileData = fs.readFileSync(resolved, 'utf-8').toString();
+         lexerFilepaths.add(resolvedPath);
 
          const [imports] = parse(fileData);
 
          for (const data of imports)
          {
+            /* v8 ignore next 1 */ // Skip if import target is not defined or is a dynamic import.
             if (data.n === void 0 || data.d === -2) { continue; }
+
+            // Stores original `imports` package alias if any.
+            let packageAlias;
 
             // There is a local `imports` specifier so lookup and attempt to resolve via `resolve.exports` package.
             if (data.n.startsWith('#'))
@@ -532,21 +1062,25 @@ async function parseFiles(config)
 
                try
                {
-                  const result = resolvePkg.imports(packageObj, data.n, config.conditionImports);
+                  const result = resolvePkg.imports(packageObj, data.n, generateConfig.conditionImports);
 
                   if (Array.isArray(result) && result.length)
                   {
+                     const resultValue = result[0];
+
                      // Examine the first result returned and process if it starts with `.` indicating a local file.
                      // `config.conditionImports` should be provided for a more specific lookup as necessary.
-                     //
-                     // Note: Local imports specifiers that resolve to packages are handled separately via
-                     // `importsExternal` & `importsResolve` config options.
-                     if (result[0]?.startsWith?.('.'))
+                     if (resultValue?.startsWith?.('.'))
                      {
-                        const fullpath = upath.resolve(result[0]);
-                        if (fs.existsSync(fullpath))
+                        // Join `package.json` directory with local file path as there may be an intermediate
+                        // `package.json` above the project root.
+                        const fullpath = upath.resolve(upath.join(packageDir, resultValue));
+
+                        if (isFile(fullpath))
                         {
                            importpath = fullpath;
+
+                           if (!localPackageImports.has(data.n)) { localPackageImports.set(data.n, fullpath); }
                         }
                         else
                         {
@@ -554,10 +1088,17 @@ async function parseFiles(config)
                            {
                               unresolvedImports.set(data.n,
                                `Imports specifier '${data.n}' in package imports did not resolve to an existing file: ${
-                                result[0]}.`);
+                                resultValue}.`);
                            }
                         }
                      }
+                     else if (isPackage(resultValue))
+                     {
+                        // Store the original identifier in case it is an `imports` package alias.
+                        packageAlias = data.n;
+                        importpath = resultValue;
+                     }
+                     /* v8 ignore next 8 */ // `resolve.exports` throws on error, but this is a sanity catch all.
                   }
                   else
                   {
@@ -580,6 +1121,7 @@ async function parseFiles(config)
                if (importpath) { data.n = importpath; }
             }
 
+            /* v8 ignore next 5 */ // Not common - Hard to automate absolute path tests.
             if (upath.isAbsolute(data.n))
             {
                toParseFiles.add(data.n);
@@ -594,23 +1136,32 @@ async function parseFiles(config)
             const substring = fileData.substring(data.ss, data.se);
 
             // Only add packages exported from the top level as part of the public contract.
-            if (topLevel && s_REGEX_EXPORT.exec(substring)) { packages.add(data.n); }
+            if (topLevel && s_REGEX_EXPORT.exec(substring) && isPackage(data.n))
+            {
+               // Save any package imports alias as the key / value is resolved package name.
+               packages.set(packageAlias ?? data.n, data.n);
+            }
          }
       }
 
-      if (toParseFiles.size > 0) { parsePaths(toParseFiles); }
+      if (toParseFiles.size > 0) { await parsePaths(toParseFiles); }
    };
 
-   parsePaths(filepaths, true);
+   if (lexer)
+   {
+      await parsePaths(entrypoint, true);
+   }
 
    // Produce any warnings about unresolved imports specifiers.
    if (unresolvedImports.size > 0)
    {
+      success = false;
+
       const keys = [...unresolvedImports.keys()].sort();
-      for (const key of keys) { logger.warn(unresolvedImports.get(key)); }
+      for (const key of keys) { logger.error(unresolvedImports.get(key)); }
    }
 
-   return { files, packages };
+   return { lexerFilepaths: [...lexerFilepaths], localPackageImports, packages, packageObj, success };
 }
 
 /**
@@ -618,11 +1169,11 @@ async function parseFiles(config)
  *
  * @param {string}         packageName - NPM package name.
  *
- * @param {GenerateConfig} config - The generate configuration.
+ * @param {import('./types').GenerateConfig} generateConfig - The generate configuration.
  *
  * @returns {string} Returns any found TS declaration for the given package.
  */
-function parsePackage(packageName, config)
+function parsePackage(packageName, generateConfig)
 {
    const isOrgPackage = packageName.startsWith('@');
 
@@ -646,18 +1197,37 @@ function parsePackage(packageName, config)
    {
       try
       {
-         // Attempt to load exact package name / path.
-         const exportedPath = fileURLToPath(resolve(packageName, import.meta.url));
+         // Attempt to load exact package name / path. Use `moduleResolve` to provide expanded set of conditions.
+         const exportedPath = fileURLToPath(moduleResolve(packageName, new URL(import.meta.url),
+          s_DEFAULT_RESOLVE_CONDITIONS));
 
          const { packageObj, filepath } = getPackageWithPath({ filepath: exportedPath });
 
          packageJSON = packageObj;
          packagePath = filepath;
       }
-      catch (err) { /**/ }
+      catch (err)
+      {
+         // Attempt one last package lookup from the input file. If the package object name starts with the base
+         // package path of `packageName` then proceed. This allows bundling from a local source repository not
+         // installed in `node_modules`.
+         try
+         {
+            const { packageObj, filepath } = getPackageWithPath({ filepath: generateConfig.input });
+
+            if (packageObj?.name?.startsWith?.(match[1]))
+            {
+               packageJSON = packageObj;
+               packagePath = filepath;
+            }
+         }
+         /* v8 ignore next 1 */ // No-op
+         catch (err) { /**/ }
+      }
    }
 
-   if (typeof packageJSON !== 'object')
+   /* v8 ignore next 7 */ // Not common; unless a package is malformed or when lookup fails above.
+   if (!isObject(packageJSON))
    {
       logger.warn(
        `parsePackage warning: Could not locate package.json for top level exported package; '${packageName}'`);
@@ -668,7 +1238,7 @@ function parsePackage(packageName, config)
    const packageDir = `./${upath.relative('.', upath.dirname(packagePath))}`;
 
    // Handle parsing package exports.
-   if (typeof packageJSON.exports === 'object')
+   if (isObject(packageJSON.exports))
    {
       // The export path is the last match. This may not be defined which in this case '.' is used to match
       // the default export path.
@@ -688,68 +1258,90 @@ function parsePackage(packageName, config)
          resolvePath = upath.join(packageDir, ...exportTypesPath);
 
          // If a declaration is found and the file exists return now.
-         if (resolvePath.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(resolvePath)) { return `./${resolvePath}`; }
-      }
-
-      const exportConditionPath = resolvePkg.exports(packageJSON, exportPath, config.conditionExports);
-
-      if (exportConditionPath)
-      {
-         // Now resolve any provided export condition configuration option or default to `imports`.
-         resolvePath = upath.join(packageDir, ...exportConditionPath);
-
-         // In the chance case that the user provided export condition matches `types` check again for declaration file
-         // before changing the extension and resolving further.
-         const resolveDTS = resolvePath.match(s_REGEX_DTS_EXTENSIONS) ? `./${resolvePath}` :
-          `./${upath.changeExt(resolvePath, '.d.ts')}`;
-
-         // Found a TS declaration directly associated with the export then return it.
-         if (fs.existsSync(resolveDTS)) { return resolveDTS; }
-      }
-
-      // Now attempt to find the nearest `package.json` that isn't the root `package.json`.
-      const { packageObj, filepath } = getPackageWithPath({ filepath: resolvePath });
-
-      // A specific subpackage export was specified, but no associated declaration found and the package.json found
-      // is the root package, so a specific declaration for the subpackage is not resolved.
-      if (upath.relative('.', filepath) === packagePath) { return void 0; }
-
-      // Now check `package.json` `types` as last fallback.
-      if (packageObj && typeof packageObj.types === 'string')
-      {
-         const lastResolveDTS = `./${upath.join(packageDir, packageObj.types)}`;
-         if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+         if (isDTSFile(resolvePath)) { return `./${resolvePath}`; }
       }
    }
-
-   // Now check `package.json` `types` as last fallback.
-   if (typeof packageJSON.types === 'string')
+   else // Handle older fallback methods for defining default package types.
    {
-      const lastResolveDTS = `./${upath.join(packageDir, packageJSON.types)}`;
-      if (lastResolveDTS.match(s_REGEX_DTS_EXTENSIONS) && fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
-   }
+      // Now check `package.json` `types`.
+      if (typeof packageJSON.types === 'string')
+      {
+         const lastResolveDTS = `./${upath.join(packageDir, packageJSON.types)}`;
+         if (isDTSFile(lastResolveDTS)) { return lastResolveDTS; }
+      }
 
-   // The reason this is gated behind a config option is that typically a package without an `exports` / `types` field
-   // in `package.json` is indicative of an older package that might not have compliant types.
-   if (config.checkDefaultPath)
-   {
-      const lastResolveDTS = `./${packageDir}/index.d.ts`;
-      if (fs.existsSync(lastResolveDTS)) { return lastResolveDTS; }
+      // Now check `package.json` `typings`.
+      if (typeof packageJSON.typings === 'string')
+      {
+         const lastResolveDTS = `./${upath.join(packageDir, packageJSON.typings)}`;
+         if (isDTSFile(lastResolveDTS)) { return lastResolveDTS; }
+      }
+
+      // The reason this is gated behind a config option is that typically a package without an `exports` / `types`
+      // field in `package.json` is indicative of an older package that might not have compliant types.
+      if (generateConfig.checkDefaultPath)
+      {
+         const lastResolveDTS = `./${packageDir}/index.d.ts`;
+         if (isDTSFile(lastResolveDTS)) { return lastResolveDTS; }
+      }
    }
 
    return void 0;
 }
 
 /**
+ * Executes `prettier` when configured.
+ *
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config object.
+ *
+ * @returns {Promise<void>}
+ */
+async function prettierExec(processedConfig)
+{
+   const { generateConfig } = processedConfig;
+
+   // Run prettier on the bundled output file.
+   if (generateConfig.prettier !== void 0)
+   {
+      /** @type {import('prettier').Options} */
+      let prettierOptions;
+
+      if (typeof generateConfig.prettier === 'boolean' && generateConfig.prettier)
+      {
+         prettierOptions = { parser: 'typescript', printWidth: 120, singleQuote: true };
+      }
+      else if (isObject(generateConfig.prettier))
+      {
+         // Always use the `typescript` parser.
+         prettierOptions = Object.assign({}, generateConfig.prettier, { parser: 'typescript' });
+      }
+
+      if (prettierOptions)
+      {
+         const text = fs.readFileSync(generateConfig.output, 'utf-8');
+         const formatted = await prettier.format(text, prettierOptions);
+         fs.writeFileSync(generateConfig.output, formatted);
+      }
+   }
+}
+
+/**
  * Processes an original GenerateConfig object returning all processed data required to compile / bundle DTS.
  *
- * @param {GenerateConfig} origConfig - An original GenerateConfig.
+ * @param {object} opts - Options.
  *
- * @param {import('type-fest').TsConfigJson.CompilerOptions} defaultCompilerOptions - Default compiler options.
+ * @param {import('./types').GenerateConfig} opts.origConfig - The original GenerateConfig.
  *
- * @returns {Promise<ProcessedConfig | string>} Processed config or error string.
+ * @param {import('type-fest').TsConfigJson.CompilerOptions} opts.defaultCompilerOptions - Default compiler options.
+ *
+ * @param {Partial<import('./types').GenerateConfig>} [opts.extraConfig] - Additional config parameters to override
+ *        user supplied config.
+ *
+ * @param {boolean} [opts.lexer=true] - When true the input is lexically analyzed.
+ *
+ * @returns {Promise<import('./types').ProcessedConfig | string>} Processed config or error string.
  */
-async function processConfig(origConfig, defaultCompilerOptions)
+async function processConfig({ origConfig, defaultCompilerOptions, extraConfig = {}, lexer = true })
 {
    // Initial sanity checks.
    if (!isObject(origConfig))
@@ -757,79 +1349,117 @@ async function processConfig(origConfig, defaultCompilerOptions)
       return `error: Aborting as 'config' must be an object.`;
    }
 
-   if (origConfig?.compilerOptions !== void 0 && !isObject(origConfig.compilerOptions))
-   {
-      return `error: Aborting as 'config.compilerOptions' must be an object.`;
-   }
-
    /**
     * A shallow copy of the original configuration w/ default values for , `filterTags`,`logLevel`,
     * `removePrivateStatic`, `tsDiagnosticExternal`, and `tsDiagnosticLog`.
     *
-    * @type {GenerateConfig}
+    * @type {import('./types').GenerateConfig}
     */
-   const config = Object.assign({
+   const generateConfig = Object.assign({
+      emitCTS: false,
       filterTags: 'internal',
       logLevel: 'info',
+      plugins: [],
+      prettier: true,
       removePrivateStatic: true,
       tsDiagnosticExternal: false,
       tsDiagnosticLog: true,
       tsFileWalk: true
-   }, origConfig);
+   }, origConfig, extraConfig);
 
    // Set default output extension and output file if not defined.
-   if (config.outputExt === void 0) { config.outputExt = '.d.ts'; }
+   if (generateConfig.outputExt === void 0) { generateConfig.outputExt = '.d.ts'; }
 
-   // If not defined change extension of input to DTS extension and use as output.
-   if (config.output === void 0) { config.output = upath.changeExt(config.input, config.outputExt); }
+   let validationResult = true;
 
-   if (!validateConfig(config))
+   if (typeof generateConfig.input !== 'string')
+   {
+      logger.error(`validateConfig error: 'config.input' must be a string.`);
+      validationResult = false;
+   }
+
+   if (typeof generateConfig.outputExt !== 'string')
+   {
+      logger.error(`validateConfig error: 'config.outputExt' must be a string.`);
+      validationResult = false;
+   }
+
+   if (!validationResult)
    {
       return `error: Aborting as 'config' failed validation.`;
    }
 
+   // If not defined change extension of input to DTS extension and use as output.
+   if (generateConfig.output === void 0)
+   {
+      generateConfig.output = upath.changeExt(generateConfig.input, generateConfig.outputExt);
+   }
+
+   if (!validateConfig(generateConfig))
+   {
+      return `error: Aborting as 'config' failed validation.`;
+   }
+
+   logger.setLogLevel(generateConfig.logLevel);
+
+   // Resolve to full path.
+   generateConfig.input = upath.resolve(generateConfig.input);
+
+   const isTSMode = isTSFile(generateConfig.input);
+
+   const pluginManager = new DTSPluginManager();
+
+   // Initialize plugin manager after logger log level set. Initialization only occurs once per entire invocation.
+   await pluginManager.initialize(generateConfig, isTSMode);
+
+   const eventbus = pluginManager.createEventbusSecure('esm-d-ts-eventbus');
+
    // Load default or configured `tsconfig.json` file to configure `compilerOptions`. --------------------------------
-
-   let tsconfigPath;
-
-   // Verify any tsconfig provided path.
-   if (config.tsconfig)
-   {
-      if (fs.existsSync(config.tsconfig)) { tsconfigPath = config.tsconfig; }
-      else { return `error: Aborting as 'tsconfig' path is specified, but file does not exist; '${config.tsconfig}'`; }
-   }
-   else
-   {
-      // Check for default `./tsconfig.json`
-      if (fs.existsSync('./tsconfig.json')) { tsconfigPath = './tsconfig.json'; }
-   }
 
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
    let tsconfigCompilerOptions = {};
 
-   if (tsconfigPath)
+   if (generateConfig.tsconfig)
    {
-      logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${tsconfigPath}`);
+      logger.verbose(`Loading TS compiler options from 'tsconfig' path: ${generateConfig.tsconfig}`);
 
       try
       {
-         const configJSON = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8').toString());
+         const parseErrors = [];
+         const configJSON = jsoncParse(fs.readFileSync(generateConfig.tsconfig, 'utf-8').toString(), parseErrors);
+
+         // Abort on parse errors.
+         if (parseErrors.length > 0)
+         {
+            let errorMsg = `error: Aborting as 'tsconfig' path is specified, but failed to load;\ntsconfig path: ${
+             generateConfig.tsconfig}\n`;
+
+            for (const error of parseErrors)
+            {
+               errorMsg += `Error at offset ${error.offset}: ${printParseErrorCode(error.error)}\n`;
+            }
+
+            return errorMsg;
+         }
+
          if (isObject(configJSON?.compilerOptions)) { tsconfigCompilerOptions = configJSON.compilerOptions; }
       }
+      /* v8 ignore next 5 */ // Bad file paths are caught in validation.
       catch (err)
       {
          return `error: Aborting as 'tsconfig' path is specified, but failed to load; '${
-          err.message}'\ntsconfig path: ${tsconfigPath};`;
+          err.message}'\ntsconfig path: ${generateConfig.tsconfig};`;
       }
    }
 
    // ----------------------------------------------------------------------------------------------------------------
 
    /** @type {import('type-fest').TsConfigJson.CompilerOptions} */
-   const compilerOptionsJson = Object.assign(defaultCompilerOptions, config.compilerOptions, tsconfigCompilerOptions);
+   const compilerOptionsJson = Object.assign({}, defaultCompilerOptions, generateConfig.compilerOptions,
+    tsconfigCompilerOptions);
 
    // Apply config override if available.
-   if (typeof config.tsCheckJs === 'boolean') { compilerOptionsJson.checkJs = config.tsCheckJs; }
+   if (typeof generateConfig.tsCheckJs === 'boolean') { compilerOptionsJson.checkJs = generateConfig.tsCheckJs; }
 
    // Validate compiler options with Typescript.
    const compilerOptions = validateCompilerOptions(compilerOptionsJson);
@@ -845,113 +1475,319 @@ async function processConfig(origConfig, defaultCompilerOptions)
 
    // Parse project files --------------------------------------------------------------------------------------------
 
-   // Resolve to full path.
-   config.input = upath.resolve(config.input);
+   let tsFilepaths = [];
 
-   // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS files
-   // will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
-   const tsFilepaths = await getFileList({
-      dir: upath.dirname(config.input),
-      includeFile: /^(?!.*\.d\.ts$).*\.ts$/,
-      resolve: true,
-      walk: config.tsFileWalk
-   });
+   if (lexer && !isTSMode)
+   {
+      // Get all files ending in `.ts` that are not declarations in the entry point folder or sub-folders. These TS
+      // files will be compiled and added to the declaration bundle generated as synthetic wildcard exports.
+      tsFilepaths = await getFileList({
+         dir: upath.dirname(generateConfig.input),
+         includeFile: /^(?!.*\.d\.ts$).*\.ts$/,
+         resolve: true,
+         walk: generateConfig.tsFileWalk
+      });
+   }
 
    // Parse input source file and gather any top level NPM packages that may be referenced.
-   const { files, packages } = await parseFiles(config);
+   const {
+      lexerFilepaths,
+      localPackageImports,
+      packages,
+      packageObj,
+      success } = await parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode, lexer });
+
+   if (!success)
+   {
+      return `error: One or more file parsing errors occurred.`;
+   }
 
    // Parsed input source files and any TS files found from input root.
-   const filepaths = [...files, ...tsFilepaths];
+   const compileFilepaths = [...lexerFilepaths, ...tsFilepaths];
 
    // Common path for all input source files linked to the entry point.
-   const commonPathFiles = commonPath(...files);
+   const commonPathFiles = commonPath(...compileFilepaths);
 
    // Update options / configuration based on common parsed files path -----------------------------------------------
 
    // Adjust compilerOptions rootDir to common path of all source files detected.
    if (compilerOptions.rootDir === void 0)
    {
-      compilerOptions.rootDir = commonPathFiles === '' && filepaths.length === 1 ? upath.dirname(filepaths[0]) :
-       commonPathFiles;
+      compilerOptions.rootDir = commonPathFiles === '' && compileFilepaths.length === 1 ?
+       upath.dirname(compileFilepaths[0]) : commonPathFiles;
    }
 
    // ---
 
-   // Find the common base path for all parsed files and find the relative path to the input source file.
-   const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, config.input) :
-    upath.basename(config.input);
+   let dtsEntryPath = '';
 
-   // Get the input DTS entry point; this is without DTS extension change.
-   const dtsMainPath = `${compilerOptions.outDir}/${localRelativePath}`;
+   // Find the common base path for all parsed files and find the relative path to the input source file.
+   if (lexer)
+   {
+      const localRelativePath = commonPathFiles !== '' ? upath.relative(commonPathFiles, generateConfig.input) :
+       upath.basename(generateConfig.input);
+
+      dtsEntryPath = `${compilerOptions.outDir}/${localRelativePath}`;
+   }
+
+   // Rewrite `#imports` referenced file paths with the relative path from commonPathFiles.
+   for (const [importKey, importPath] of localPackageImports)
+   {
+      localPackageImports.set(importKey, upath.relative(commonPathFiles, importPath));
+   }
+
+   // Get the input DTS entry point; this is without DTS extension change which occurs after compilation.
+   const dtsDirectoryPath = compilerOptions.outDir;
 
    // ---
 
    // Relative path from current working directory to local common path. Used for filtering diagnostic errors.
-   const inputRelativeDir = upath.relative(process.cwd(), commonPathFiles);
+   const inputRelativeDir = commonPathFiles ? upath.relative(process.cwd(), commonPathFiles) : '';
 
    // ----------------------------------------------------------------------------------------------------------------
 
-   return { config, compilerOptions, dtsMainPath, filepaths, inputRelativeDir, packages, tsFilepaths };
+   const processedConfig = {
+      compileFilepaths,
+      compilerOptions,
+      dtsDirectoryPath,
+      dtsEntryPath,
+      eventbus,
+      generateConfig,
+      inputRelativeDir,
+      isTSMode,
+      lexerFilepaths,
+      localPackageImports,
+      packages,
+      packageObj,
+      tsFilepaths,
+   };
+
+   // Don't deep freeze 'compileFilepaths', 'eventbus', 'generateConfig'.
+   deepFreeze(processedConfig, { skipKeys: new Set(['compileFilepaths', 'eventbus', 'generateConfig']) });
+
+   return processedConfig;
 }
 
 /**
- * Attempt to resolve Typescript declarations for any packages and provide a correct alias for Rollup from the
- * outDir; default: `./.dts`. As of Typescript v5 it is necessary to copy the external NPM package types to the local
- * output directory.
+ * Resolve local `imports` files from `package.json` substituting the `#imports` alias for the actual path in
+ * generated declarations.
  *
- * Note: This is useful for libraries that re-bundle NPM modules.
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config.
  *
- * @param {Set<string>} packages - List of top level exported packages.
- *
- * @param {GenerateConfig} config - The config object.
- *
- * @param {string}   outDir - The DTS output directory path.
- *
- * @returns {{}[]} Resolved local package types.
+ * @returns {import('@rollup/plugin-alias').Alias[]} Resolved local `imports` files for Rollup plugin alias.
  */
-function resolvePackageExports(packages, config, outDir)
+function resolveLocalImports(processedConfig)
 {
+   const { dtsDirectoryPath, localPackageImports } = processedConfig;
+
+   const importsAlias = [];
+
+   for (const [importKey, importPath] of localPackageImports)
+   {
+      const regexImportKey = importKey.replace(/\//g, '\\/');
+
+      importsAlias.push({
+         find: new RegExp(`^${regexImportKey}$`),
+         replacement: upath.join(dtsDirectoryPath, upath.trimExt(importPath))
+      });
+   }
+
+   return importsAlias;
+}
+
+/**
+ * Attempt to resolve Typescript declarations for any top level exported packages providing a correct alias for Rollup
+ * depending on `bundlePackageExports`, `importsExternal`, and `importsResolve` options.
+ *
+ * Note: This is useful for libraries that re-bundle NPM packages.
+ *
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config.
+ *
+ * @returns {import('@rollup/plugin-alias').Alias[]} Resolved local package types for Rollup plugin alias.
+ */
+function resolvePackageExports(processedConfig)
+{
+   const { generateConfig, packages } = processedConfig;
+
+   const { isImportsExternalKey, isImportsResolveKey } = resolvePackageImportKeys(processedConfig);
+
    const packageAlias = [];
 
-   for (const packageName of packages)
+   for (const [packageNameOrAlias, packageName] of packages)
    {
-      const resolveDTS = parsePackage(packageName, config);
-      if (!resolveDTS)
-      {
-         logger.warn(`resolvePackageExports warning: Could not locate TS declaration for package; '${packageName}'.`);
+      // Is this an imports package alias?
+      const isImportsKey = packageNameOrAlias.startsWith('#');
 
-         continue;
+      // Do not resolve / parse package if it is marked as imports external.
+      if (isImportsKey && isImportsExternalKey(packageNameOrAlias)) { continue; }
+
+      let resolved = packageNameOrAlias;
+
+      // Match against any imports resolve key regexes. If a match is found then substitute for `packageName`.
+      if (isImportsKey && isImportsResolveKey(resolved)) { resolved = packageName; }
+
+      if (generateConfig.bundlePackageExports)
+      {
+         resolved = parsePackage(resolved, generateConfig);
+
+         if (!resolved)
+         {
+            logger.warn(
+             `[resolvePackageExports]: Could not locate TS declaration for package; '${packageName}'.`);
+
+            continue;
+         }
       }
 
-      const dtsBasename = upath.basename(resolveDTS);
+      // If the resolved package is the same as original package name / alias then skip adding to Rollup plugin alias.
+      if (packageNameOrAlias === resolved) { continue; }
 
-      const dtsFileData = fs.readFileSync(resolveDTS, 'utf-8');
-      const outputDir = `${outDir}${upath.sep}._node_modules${upath.sep}${packageName}`;
-      const outputFilepath = `${outputDir}${upath.sep}${dtsBasename}`;
-
-      fs.ensureDirSync(outputDir);
-      fs.writeFileSync(outputFilepath, dtsFileData, 'utf-8');
+      const regexPackageName = packageNameOrAlias.replace(/\//g, '\\/');
 
       packageAlias.push({
-         find: packageName,
-         replacement: outputFilepath
+         find: new RegExp(`^${regexPackageName}$`),
+         replacement: resolved
       });
    }
 
    return packageAlias;
 }
 
+/**
+ * Parses the `imports` field of the closest `package.json` from the input source file for import specifier keys that
+ * map to packages.
+ *
+ * @param {import('./types').ProcessedConfig}   processedConfig - Processed config.
+ *
+ * @returns {({
+ *    isImportsExternalKey: (key: string) => boolean,
+ *    isImportsResolveKey: (key: string) => boolean
+ * })} Respective functions to test if a given package name / alias is an `imports` key for resolution or marked as
+ *     external.
+ */
+function resolvePackageImportKeys(processedConfig)
+{
+   const { generateConfig, packageObj } = processedConfig;
+
+   const regexImportsExternalKeys = [];
+   const regexImportsResolveKeys = [];
+
+   let importsExternalKeys = new Set();
+   let importsResolveKeys = new Set();
+
+   /**
+    * Match against any external imports key regexes.
+    *
+    * @param {string}   key - package alias to test.
+    *
+    * @returns {boolean} Is an import package alias to mark as external.
+    */
+   function isImportsExternalKey(key)
+   {
+      for (const regex of regexImportsExternalKeys)
+      {
+         if (regex.test(key)) { return true; }
+      }
+
+      return false;
+   }
+
+   /**
+    * Match against any resolve imports key regexes.
+    *
+    * @param {string}   key - package alias to test.
+    *
+    * @returns {boolean} Is an import package alias to resolve.
+    */
+   function isImportsResolveKey(key)
+   {
+      for (const regex of regexImportsResolveKeys)
+      {
+         if (regex.test(key)) { return true; }
+      }
+
+      return false;
+   }
+
+   // Collect all relevant `importsExternal` keys.
+   if (generateConfig.importsExternal !== void 0)
+   {
+      importsExternalKeys = new Set(Array.isArray(generateConfig.importsExternal?.importKeys) ?
+       /* v8 ignore next 1 */ // Just covers optional branch for sanity.
+       generateConfig.importsExternal.importKeys : Object.keys(packageObj?.imports ?? {}));
+   }
+
+   // Collect all relevant `importsResolve` keys.
+   if (generateConfig.importsResolve !== void 0)
+   {
+      importsResolveKeys = new Set(Array.isArray(generateConfig.importsResolve?.importKeys) ?
+       /* v8 ignore next 1 */ // Just covers optional branch for sanity.
+       generateConfig.importsResolve.importKeys : Object.keys(packageObj?.imports ?? {}));
+   }
+
+   // Store any imports key lookup failures for later logging.
+   const lookupFailureKeys = new Set();
+
+   // Combine external and resolve keys in one Set to perform the lookups once.
+   const allImportsKeys = new Set([...importsExternalKeys, ...importsResolveKeys]);
+
+   /* v8 ignore next 9 */ // Sanity check case.
+   if (!isObject(packageObj?.imports))
+   {
+      if (allImportsKeys.size)
+      {
+         logger.warn(
+          `[resolvePackageImportsKeys]: Closest 'package.json' to input source file doesn't have 'imports'.`);
+      }
+      return { isImportsExternalKey, isImportsResolveKey };
+   }
+
+   for (const key of allImportsKeys)
+   {
+      try
+      {
+         const importPackage = resolvePkg.imports(packageObj, key)?.[0];
+
+         // Skip all local path mappings for imports and anything that isn't a package.
+         if (!isPackage(importPackage)) { continue; }
+
+         const regex = globToRegExp(key);
+
+         if (importsExternalKeys.has(key)) { regexImportsExternalKeys.push(regex); }
+         if (importsResolveKeys.has(key)) { regexImportsResolveKeys.push(regex); }
+      }
+      catch (err)
+      {
+         lookupFailureKeys.add(key);
+      }
+   }
+
+   for (const key of lookupFailureKeys)
+   {
+      logger.warn(`[resolvePackageImportKeys]: Failure to find imports specifier '${key}'.`);
+   }
+
+   return { isImportsExternalKey, isImportsResolveKey };
+}
+
+/**
+ * Provides an expanded set of resolve conditions for `moduleResolve` in `parsePackage`.
+ *
+ * @type {Set<string>}
+ */
+const s_DEFAULT_RESOLVE_CONDITIONS = new Set(['node', 'import', 'require', 'types', 'default', 'browser']);
 
 /**
  * @type {import('type-fest').TsConfigJson.CompilerOptions}
  */
 const s_DEFAULT_TS_GEN_COMPILER_OPTIONS = {
+   allowImportingTsExtensions: true,
    allowJs: true,
    declaration: true,
    emitDeclarationOnly: true,
    moduleResolution: 'bundler',
-   module: 'es2022',
-   target: 'es2022',
+   module: 'esnext',
+   target: 'esnext',
    outDir: './.dts'
 };
 
@@ -959,144 +1795,18 @@ const s_DEFAULT_TS_GEN_COMPILER_OPTIONS = {
  * @type {import('type-fest').TsConfigJson.CompilerOptions}
  */
 const s_DEFAULT_TS_CHECK_COMPILER_OPTIONS = {
+   allowImportingTsExtensions: true,
    allowJs: true,
    checkJs: true,
    declaration: true,
    noEmit: true,
    moduleResolution: 'bundler',
-   module: 'es2022',
-   target: 'es2022',
+   module: 'esnext',
+   target: 'esnext',
    outDir: './.dts'
 };
 
-const s_REGEX_DTS_EXTENSIONS = /\.d\.m?ts$/;
 const s_REGEX_EXPORT = /^\s*export/;
+const s_REGEX_FILEPATH_NO_EXTENSION = /^(?:.*\/)?[^.]*$/;
 const s_REGEX_PACKAGE = /^([a-z0-9-~][a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
 const s_REGEX_PACKAGE_SCOPED = /^(@[a-z0-9-~][a-z0-9-._~]*\/[a-z0-9-._~]*)(\/[a-z0-9-._~/]*)*/;
-
-/**
- * @typedef {{ input: string } & GeneratePluginConfig} GenerateConfig Data used to generate the bundled TS declaration.
- */
-
-/**
- * @typedef {object} GeneratePluginConfig Data used to generate the bundled TS declaration.
- *
- * @property {string}               [input] The input entry ESM source path.
- *
- * @property {boolean}              [bundlePackageExports=false] When true attempt to bundle types of top level
- * exported packages. This is useful for re-bundling libraries.
- *
- * @property {boolean}              [checkDefaultPath=false] When true and bundling top level package exports via
- * `bundlePackageExports` check for `index.d.ts` in package root; this is off by default as usually this is indicative
- * of and older package not updated for `exports` in `package.json`.
- *
- * @property {import('resolve.exports').Options}   [conditionExports] `resolve.exports` conditional options for
- * `package.json` exports field type.
- *
- * @property {import('resolve.exports').Options}   [conditionImports] `resolve.exports` conditional options for
- * `package.json` imports field type.
- *
- * @property {Record<string, string>} [dtsReplace] Options for naive text replacement operating on the final bundled
- * TS declaration file. The keys are converted into RegExp instances so may be a valid pattern to match.
- *
- * @property {string|Iterable<string>|false|null|undefined} [filterTags='internal'] By default,
- * `jsdocRemoveNodeByTags('internal')` transformer is automatically added removing all AST nodes that have the
- * `@internal` tag. To generate declarations with internal tags set to `false` / null / undefined.
- *
- * @property {boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsPluginOptions} [importsExternal]
- * When defined enables `importsExternal` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
- *
- * @property {boolean | import('@typhonjs-build-test/rollup-plugin-pkg-imports').ImportsResolvePluginOptions} [importsResolve]
- * When defined enables `importsResolve` from the `@typhonjs-build-test/rollup-plugin-pkg-imports` package.
- *
- * @property {'all' | 'verbose' | 'info' | 'warn' | 'error'} [logLevel='info'] Defines the logging level.
- *
- * @property {string}               [output] The output file path for the bundled TS declarations.
- *
- * @property {string}               [outputExt='.d.ts'] The bundled output TS declaration file extension. Normally a
- * complete `output` path is provided when using `generateDTS`, but this can be useful when using the Rollup plugin to
- * change the extension as desired.
- *
- * @property {string}               [outputGraph] Outputs the package dependency graph to the given file path. The
- * graph JSON is suitable for use in various graph libraries like cytoscape / Svelte Flow / amongst others.
-
- * @property {number}               [outputGraphIndentation] When outputting the dependency graph use this indentation
- * value for the JSON output.
- *
- * @property {string}               [outputPostprocess] When postprocessing is configured this is a helpful debugging
- * mechanism to output the postprocessed declarations to a separate file making it easier to compare the results of
- * any additional processing. You must specify a valid filepath.
- *
- * @property {Iterable<import('@typhonjs-build-test/esm-d-ts/postprocess').ProcessorFunction>} [postprocess] An
- * iterable list of postprocessing functions. Note: This is experimental!
- *
- * @property {Iterable<string>}     [prependFiles] Directly prepend these files to the bundled output. The files are
- * first attempted to be resolved relative to the entry point folder allowing a common configuration to be applied
- * across multiple subpath exports. Then a second attempt is made with the path provided.
- *
- * @property {Iterable<string>}     [prependString] Directly prepend these strings to the bundled output.
- *
- * @property {boolean}              [removePrivateStatic=true] When true a custom transformer is added to remove the
- * renaming of private static class members that Typescript currently renames.
- *
- *
- *
- * @property {import('type-fest').TsConfigJson.CompilerOptions}   [compilerOptions] Typescript compiler options.
- * {@link https://www.typescriptlang.org/tsconfig}
- *
- * @property {boolean}  [tsCheckJs=false] When true set `checkJs` to default compiler options. This is a
- * convenience parameter to quickly turn `checkJs` on / off.
- *
- * @property {string}   [tsconfig] Provide a path to a `tsconfig.json` for `compilerOptions` configuration.
- *
- * @property {boolean} [tsDiagnosticExternal=false] By default, all diagnostic errors that are external to the common
- * root path from the `input` source file will be filtered from diagnostic logging. Set to `true` to include all
- * diagnostic errors in logging. If you set an explicit diagnostic filter function via the `tsDiagnosticFilter` this
- * option is ignored.
- *
- * @property {(diagnostic: import('typescript').Diagnostic, message?: string) => boolean} [tsDiagnosticFilter] Optional
- * filter function to handle diagnostic messages in a similar manner as the `onwarn` Rollup callback. Return `true` to
- * filter the given diagnostic from posting to `console.error` otherwise return false to include.
- *
- * @property {boolean} [tsDiagnosticLog=true] When generating a DTS bundle you may opt to turn off any emitted TS
- * compiler diagnostic messages.
- *
- * @property {boolean} [tsFileWalk=true] When true all TS files located at the `input` path and all subdirectories
- * are included as synthetic exports in the generated declarations. Setting to false only includes TS files in the
- * direct `input` path.
- *
- * @property {Iterable<ts.TransformerFactory<ts.Bundle | ts.SourceFile> | ts.CustomTransformerFactory>} [tsTransformers]
- * A list of TransformerFactory or CustomTransformerFactory functions to process generated declaration AST while
- * emitting intermediate types for bundling. {@link https://github.com/itsdouges/typescript-transformer-handbook}
- *
- *
- *
- * @property {(string | RegExp)[] | RegExp | string |
- * ((id: string, parentId: string, isResolved: boolean) => boolean)}  [rollupExternal] Rollup `external` option.
- * {@link https://rollupjs.org/configuration-options/#external}
- *
- * @property {Record<string, string> | ((id: string) => string)} [rollupPaths] Rollup `paths` option.
- * {@link https://rollupjs.org/configuration-options/#output-paths}
- *
- * @property {(warning: import('rollup').RollupLog,
- * defaultHandler: (warning: string | import('rollup').RollupLog) => void) => void} [rollupOnwarn] Rollup `onwarn`
- * option. {@link https://rollupjs.org/configuration-options/#onwarn}
- */
-
-/**
- * @typedef {object} ProcessedConfig Contains the processed config and associated data.
- *
- * @property {ts.CompilerOptions} compilerOptions TS compiler options.
- *
- * @property {GenerateConfig} config Generate config w/ default data.
- *
- * @property {string}      dtsMainPath - The main output path for intermediate TS declarations generated.
- *
- * @property {string[]}    filepaths A list of all file paths to compile.
- *
- * @property {Set<string>} packages Top level packages exported from entry point.
- *
- * @property {string}      inputRelativeDir Relative directory of common project files path.
- *
- * @property {string[]}    tsFilepaths A list of all TS files to add synthetic exports.
- */

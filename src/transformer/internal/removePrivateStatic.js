@@ -2,8 +2,16 @@ import ts               from 'typescript';
 
 import { transformer }  from '../external/transformer.js';
 
-// Provides a regex to test the shape of renamed static private members.
-const s_REGEX_STATIC_PRIVATE = /__#\d+@#.*/;
+/**
+ * Provides a regex to test the shape of renamed static private members.
+ *
+ * TS <5.9.x renamed the private static variable / function with a pattern similar to `__#1@name`. TS 5.9.0-2 no longer
+ * renames the variable / function, but still needs to be removed. TS 5.9.3 reintroduced prepending via `__#private@#`.
+ * This regex matches all patterns.
+ *
+ * @type {RegExp}
+ */
+const s_REGEX_STATIC_PRIVATE = /^(#|__#\d+@#|__#private@#)/;
 
 /**
  * Test if a Node is in the shape of a private static member.

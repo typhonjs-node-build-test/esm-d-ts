@@ -1,0 +1,11 @@
+[
+  [
+    "\u001b[32m[esm-d-ts] Generating DTS bundle for: ./test/fixture/src/generate/typescript/errors/parseFile/dir-missing-index/index.ts\u001b[0m"
+  ],
+  [
+    "test/fixture/src/generate/typescript/errors/parseFile/dir-missing-index/index.ts (2,22)\u001b[33m: [TS] Cannot find module './empty' or its corresponding type declarations.\u001b[0m"
+  ],
+  [
+    "test/fixture/src/generate/typescript/errors/parseFile/dir-missing-index/index.ts (3,22)\u001b[33m: [TS] Cannot find module './missing.ts' or its corresponding type declarations.\u001b[0m"
+  ]
+]

@@ -1,0 +1,11 @@
+[
+  [
+    "\u001b[32m[esm-d-ts] Generating DTS bundle for: ./test/fixture/src/generate/packages/imports/resolve/index.js\u001b[0m"
+  ],
+  [
+    "\u001b[33m[esm-d-ts] [resolvePackageImportKeys]: Failure to find imports specifier 'BAD_KEY'.\u001b[0m"
+  ],
+  [
+    "\u001b[33m[esm-d-ts] [resolvePackageExports]: Could not locate TS declaration for package; 'esm-d-ts-test-default'.\u001b[0m"
+  ]
+]

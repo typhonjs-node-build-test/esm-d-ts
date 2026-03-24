@@ -1,0 +1,6 @@
+{
+  // Some comments to verify `jsonc-parser`.
+  "compilerOptions" : {
+    "outDir" : "./test/fixture/output/generate/javascript/valid-tsconfig/.dts"
+  }
+}

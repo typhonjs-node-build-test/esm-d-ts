@@ -18,13 +18,17 @@ export function jsdocPreserveModuleTag(moduleComments, fileName)
    {
       for (const entry of lastParsed.tags)
       {
-         if ((entry.tag === 'module' || entry.tag === 'packageDocumentation') && fileName === sourceFile.fileName)
+         if ((entry.tag === 'module' || entry.tag === 'packageDocumentation'))
          {
-            moduleComments.push({
-               filepath: sourceFile.fileName,
-               comment: lastComment
-            });
+            // Only push first encountered comment block.
+            if (!moduleComments.length)
+            {
+               moduleComments.push({
+                  filepath: sourceFile.fileName,
+                  comment: lastComment
+               });
+            }
          }
       }
-   });
+   }, void 0, ({ sourceFile }) => fileName === sourceFile.fileName);
 }

@@ -1,0 +1,22 @@
+[
+   {
+      "id": "B",
+      "type": "ClassDeclaration"
+   },
+   {
+      "id": "A",
+      "type": "ClassDeclaration"
+   },
+   {
+      "id": "C",
+      "type": "ClassDeclaration"
+   },
+   {
+      "source": "A",
+      "target": "B"
+   },
+   {
+      "source": "B",
+      "target": "C"
+   }
+]

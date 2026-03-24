@@ -12,7 +12,7 @@
  * `import('@typhonjs-build-test/esm-d-ts').GenerateConfig)`
  */
 
-/** @type {import('./src/generator').GenerateConfig[]} */
+/** @type {import('./src/generator/types').GenerateConfig[]} */
 const configs = [
    { input: './src/generator/index.js' },
    { input: './src/postprocess/index.js' },

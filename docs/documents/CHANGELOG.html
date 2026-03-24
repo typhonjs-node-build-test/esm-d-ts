@@ -1,0 +1,80 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><style>body { visibility: hidden; }</style><meta charset="utf-8"><meta http-equiv="x-ua-compatible" content="IE=edge"><title>CHANGELOG | @typhonjs-build-test/esm-d-ts</title><meta name="description" content="Documentation for @typhonjs-build-test/esm-d-ts"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="../assets/style.css"><link rel="stylesheet" href="../assets/highlight.css"><script defer="" src="../assets/main.js"></script><script async="" src="../assets/icons.js" id="tsd-icons-script"></script><link rel="stylesheet" href="../assets/dmt/dmt-components.css" layer="theme-dmt"><link rel="stylesheet" href="../assets/dmt/dmt-theme.css" layer="theme-dmt"><script src="../assets/dmt/dmt-components.js" type="module"></script><link rel="icon" href="../favicon.ico"><noscript><style>body { visibility: visible; }</style></noscript></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";</script><div class="overlay"></div>
+<main><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container" id="dmt-toolbar"><a href="../index.html" class="title">@typhonjs-build-test/esm-d-ts</a><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header><div class="container container-main" tabindex="-1"><div class="col-content"><div class="tsd-page-title"><ul class="tsd-breadcrumb" aria-label="Breadcrumb"></ul></div><div class="tsd-panel tsd-typography"><h1 id="changelog" class="tsd-anchor-link">Changelog<a href="#changelog" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<h2 id="release-030" class="tsd-anchor-link">Release 0.3.0<a href="#release-030" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>
+<p>100% test coverage / all functionality verified in detail.</p>
+</li>
+<li>
+<p>Full support for any file format that Typescript supports including React. You may now leverage <code>esm-d-ts</code> to create
+bundled declarations for Typescript source code.</p>
+</li>
+<li>
+<p><code>esm-d-ts 0.3.0</code> supports Typescript <code>5.5 - 5.9.x</code>. A forthcoming <code>0.4.0</code> release will support Typescript <code>6.x</code>.</p>
+</li>
+<li>
+<p>Added plugin support for alternate file formats that support ES Modules. The first plugin available adds support for
+Svelte 4 components (<code>.svelte</code> files). For more information on Svelte component support please see:
+<a href="https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts-plugin-svelte">@typhonjs-build-test/esm-d-ts-plugin-svelte</a>.
+Eventually, additional 1st party support may be added for alternate file formats / frameworks that can be transpiled
+to ESM. Presently, 1st party plugins simply need to be installed as additional developer dependencies and load
+automatically. You may also provide custom 3rd party plugins via new <code>plugins</code> configuration option.</p>
+</li>
+<li>
+<p>Added <code>bundleDTS</code> convenience function and new <code>bundle</code> command from the CLI which allows easy bundling of existing
+well formatted module based Typescript declarations.</p>
+</li>
+<li>
+<p>Added <code>emitCTS</code> option to output additional '.d.cts' file for strict Typescript adherence for packages that are dual
+ESM / CJS. When referencing <code>require</code> as an export condition in an dual ESM / CJS package the <code>types</code> referenced must
+be <code>.d.cts</code> for the <code>require</code> condition for strict Typescript adherence.</p>
+</li>
+<li>
+<p>Added <code>importsLocal</code> support from <code>@typhonjs-build-test/rollup-plugin-pkg-imports</code> allowing <code>#import</code> sub-paths to be
+replaced / remapped to actual sub-path package paths.</p>
+</li>
+</ul>
+<h2 id="release-022" class="tsd-anchor-link">Release 0.2.2<a href="#release-022" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>Added a TS AST transformer to support import types in <code>@implements</code> JSDoc tags. This allows you to reference
+an interface from a class and have it properly converted to <code>implements &lt;INTERFACE&gt;</code> in the declarations generated.</li>
+<li>Added <code>transformer</code> "meta-transformer" to reduce the boilerplate of creating custom TS AST transformers.</li>
+</ul>
+<h2 id="release-021" class="tsd-anchor-link">Release 0.2.1<a href="#release-021" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>Added a new internal AST transformer that corrects the output of the TS compiler for setter accessor parameter names.
+The TS compiler for ESM will rename setter accessor parameter names to <code>arg</code> regardless of the value set in the source
+file. If there is a JSDoc comment associated with a setter the first <code>@param</code> tag name will be set to the AST node
+param name. Downstream tooling such as TypeDoc <code>0.25.7+</code> validates comment / <code>@param</code> name against the type declaration
+name; this change fixes that mismatch.</li>
+</ul>
+<h2 id="release-020" class="tsd-anchor-link">Release 0.2.0<a href="#release-020" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>
+<p>Added <code>@module</code> / <code>@packageDocumentation</code> comment pass-through to generated DTS when this comment type appears in the main entry point source
+file. This is helpful when generating docs from the DTS file.</p>
+</li>
+<li>
+<p>Introduces optional postprocessing of the generated bundled Typescript declaration.</p>
+<ul>
+<li>First post processor is for <code>@inheritDoc</code> support.</li>
+</ul>
+</li>
+<li>
+<p>Added <code>outputPostprocess</code> configuration option to separately output postprocessing to an alternate filepath for
+easier debugging / comparison.</p>
+</li>
+</ul>
+<h2 id="release-011" class="tsd-anchor-link">Release 0.1.1<a href="#release-011" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>Support for <code>.mjs</code> source files.
+<ul>
+<li>Caveat: when using <code>import types</code> you must specify the <code>.mjs</code> extension like: <code>@param {import('./AFile.mjs').ASymbol}</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="release-010" class="tsd-anchor-link">Release 0.1.0<a href="#release-010" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>Initial beta release</li>
+</ul>
+</div></div><div class="col-sidebar" tabindex="-1"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg><h3>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked=""><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected" checked=""><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open="" class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg><h3>On This Page</h3></summary><div class="tsd-accordion-details" tabindex="-1"><a href="#changelog"><span>Changelog</span></a><ul><li><a href="#release-030"><span>Release 0.3.0</span></a></li><li><a href="#release-022"><span>Release 0.2.2</span></a></li><li><a href="#release-021"><span>Release 0.2.1</span></a></li><li><a href="#release-020"><span>Release 0.2.0</span></a></li><li><a href="#release-011"><span>Release 0.1.1</span></a></li><li><a href="#release-010"><span>Release 0.1.0</span></a></li></ul></div></details></div><div class="site-menu" tabindex="-1"><nav class="tsd-navigation"><a href="../modules.html">@typhonjs-build-test/esm-d-ts</a><ul class="tsd-small-nested-navigation" id="tsd-nav-container"></ul></nav></div></div></div></main></body></html>

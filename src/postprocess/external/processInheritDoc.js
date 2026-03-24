@@ -30,6 +30,7 @@ export function processInheritDoc({ logger, dependencies })
          const id = v.data('id');
          const node = dependencies.nodes.get(id);
 
+         /* v8 ignore next 5 */
          if (!node)
          {
             logger.warn(`[processInheritDoc] ts-morph node for graph id '${id}' could not be retrieved.`);
@@ -147,6 +148,10 @@ function processClass(node, methods, classCtor, logger)
                   }
                }
             }
+         }
+         else
+         {
+            logger.warn(`[processInheritDoc] Parent class does not define a constructor.`);
          }
       }
 

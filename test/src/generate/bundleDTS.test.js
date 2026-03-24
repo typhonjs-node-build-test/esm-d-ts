@@ -1,0 +1,96 @@
+/* eslint no-undef: "off" */
+import fs            from 'fs-extra';
+
+import {
+   expect,
+   vi }              from 'vitest';
+
+import { bundleDTS } from '../../../src/generator/index.js';
+
+describe('bundleDTS()', () =>
+{
+   it('bundles existing DTS', async () =>
+   {
+      const success = await bundleDTS({
+         input: './test/fixture/data/dts/index.d.ts',
+         output: './test/fixture/output/generate/bundle/bundled.d.ts'
+      });
+
+      expect(success).toBe(true);
+
+      const result = fs.readFileSync('./test/fixture/output/generate/bundle/bundled.d.ts', 'utf-8');
+
+      await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
+   });
+
+   it('bundles existing DTS w/ emitCTS', async () =>
+   {
+      const success = await bundleDTS({
+         input: './test/fixture/data/dts/index.d.ts',
+         output: './test/fixture/output/generate/bundle/bundled.d.ts',
+         emitCTS: true
+      });
+
+      expect(success).toBe(true);
+
+      const result = fs.readFileSync('./test/fixture/output/generate/bundle/bundled.d.ts', 'utf-8');
+
+      await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
+
+      const resultCTS = fs.readFileSync('./test/fixture/output/generate/bundle/bundled.d.cts', 'utf-8');
+
+      await expect(resultCTS).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled.d.ts');
+   });
+
+   it('bundles existing DTS (internal w/ bundlePackageExports)', async () =>
+   {
+      const success = await bundleDTS({
+         bundlePackageExports: true,
+         input: './test/fixture/packages/not-installed/@esm-d-ts-test-not-installed-org/bundle-internal/types-local-ref.d.ts',
+         output: './test/fixture/output/generate/bundle/bundled-internal.d.ts'
+      });
+
+      expect(success).toBe(true);
+
+      const result = fs.readFileSync('./test/fixture/output/generate/bundle/bundled-internal.d.ts', 'utf-8');
+
+      await expect(result).toMatchFileSnapshot('../../fixture/snapshot/generate/bundle/bundled-internal.d.ts');
+   });
+
+   it('config error (bad input path)', async () =>
+   {
+      const consoleLog = [];
+      vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+      const success = await bundleDTS({
+         input: './bad-path.d.ts',
+         output: './test/fixture/output/generate/bundle/no-op.d.ts'
+      });
+
+      vi.restoreAllMocks();
+
+      expect(success).toBe(false);
+
+      await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+       `../../fixture/snapshot/generate/bundle/bad-path-warning-console-log.json`);
+   });
+
+   it('Rollup error (bad input path)', async () =>
+   {
+      const consoleLog = [];
+      vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+
+      const success = await bundleDTS({
+         input: './test/fixture/data/dts/index.d.ts',
+         output: './test/fixture/output/generate/bundle/no-op.d.ts',
+         rollupExternal: () => { throw Error('Exception in Rollup processing'); }
+      });
+
+      vi.restoreAllMocks();
+
+      expect(success).toBe(false);
+
+      await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(
+       `../../fixture/snapshot/generate/bundle/rollup-exception-console-log.json`);
+   });
+});
