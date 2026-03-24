@@ -16,6 +16,8 @@ import {
 
 import { logger }       from '#util';
 
+import { normalizeLog } from '../../util/normalizeLog.js';
+
 describe('API Errors (postprocess)', () =>
 {
    beforeAll(() =>
@@ -139,7 +141,7 @@ describe('API Errors (postprocess)', () =>
          it('process bad outputPostprocess path', async () =>
          {
             const consoleLog = [];
-            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(normalizeLog(args)));
 
             await generateDTS({
                input: './test/fixture/src/postprocess/processInheritDoc/valid/simple/index.js',
@@ -159,7 +161,7 @@ describe('API Errors (postprocess)', () =>
          it('process - processors[0] throws', async () =>
          {
             const consoleLog = [];
-            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(normalizeLog(args)));
 
             logger.setLogLevel('error');
 
@@ -183,7 +185,7 @@ describe('API Errors (postprocess)', () =>
       it('bad outputPostprocess path', async () =>
       {
          const consoleLog = [];
-         vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+         vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(normalizeLog(args)));
 
          await generateDTS({
             input: './test/fixture/src/postprocess/processInheritDoc/valid/simple/index.js',
@@ -203,7 +205,7 @@ describe('API Errors (postprocess)', () =>
       it('bad outputGraph path', async () =>
       {
          const consoleLog = [];
-         vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+         vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(normalizeLog(args)));
 
          await generateDTS({
             input: './test/fixture/src/postprocess/processInheritDoc/valid/simple/index.js',

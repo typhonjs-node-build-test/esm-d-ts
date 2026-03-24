@@ -946,8 +946,8 @@ async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode,
                {
                   // Could not resolve index reference so skip file.
                   logger.error(
-                   `Parse files error: detected bare directory import without expected '/index.(m)ts'\ntarget: ${
-                    resolvedPath}`);
+                   `Parse files error: detected bare directory import without expected '/index.(m)ts'\ntarget: '${
+                    resolvedPath}'`);
 
                   success = false;
                   continue;
@@ -966,8 +966,8 @@ async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode,
                {
                   // Could not resolve index reference so skip file.
                   logger.error(
-                   `Parse files error: detected bare directory import without expected '/index.(m)js'\ntarget: ${
-                     resolvedPath}`);
+                   `Parse files error: detected bare directory import without expected '/index.(m)js'\ntarget: '${
+                     resolvedPath}'`);
 
                   success = false;
                   continue;
@@ -1036,7 +1036,7 @@ async function parseFiles({ eventbus, generateConfig, compilerOptions, isTSMode,
             }
             catch (err)
             {
-               logger.error(`Lexer failed to transform: ${resolvedPath}`);
+               logger.error(`Lexer failed to transform: '${resolvedPath}'`);
                logger.error(`External plugin error for event '${event}': ${err.message}`);
 
                throw err;

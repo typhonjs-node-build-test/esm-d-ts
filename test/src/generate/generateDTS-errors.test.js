@@ -8,6 +8,8 @@ import {
 
 import { generateDTS }  from '../../../src/generator/index.js';
 
+import { normalizeLog } from '../../util/normalizeLog.js';
+
 describe('generateDTS() warnings / errors', () =>
 {
    beforeAll(() =>
@@ -95,7 +97,7 @@ describe('generateDTS() warnings / errors', () =>
          it(`dir-missing-index no 'index.(m)js'`, async () =>
          {
             const consoleLog = [];
-            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(normalizeLog(args)));
 
             const success = await generateDTS({
                input: './test/fixture/src/generate/javascript/errors/parseFile/dir-missing-index/index.js',
@@ -147,7 +149,7 @@ describe('generateDTS() warnings / errors', () =>
          it(`dir-missing-index no 'index.(m)ts'`, async () =>
          {
             const consoleLog = [];
-            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+            vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(normalizeLog(args)));
 
             const success = await generateDTS({
                input: './test/fixture/src/generate/typescript/errors/parseFile/dir-missing-index/index.ts',

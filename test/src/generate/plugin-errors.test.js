@@ -10,6 +10,8 @@ import {
    checkDTS,
    generateDTS }  from '../../../src/generator/index.js';
 
+import { normalizeLog } from '../../util/normalizeLog.js';
+
 const pluginEvents = [
    'lifecycle:start',
    'lexer:transform:.ts',
@@ -36,7 +38,7 @@ describe('Plugin Errors (generate)', () =>
             it(event, async () =>
             {
                const consoleLog = [];
-               vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+               vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(normalizeLog(args)));
 
                const result = await checkDTS({
                   input: './test/fixture/src/generate/plugin/errors/index.js',
@@ -67,7 +69,7 @@ describe('Plugin Errors (generate)', () =>
             it(event, async () =>
             {
                const consoleLog = [];
-               vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(args));
+               vi.spyOn(console, 'log').mockImplementation((...args) => consoleLog.push(normalizeLog(args)));
 
                const result = await generateDTS({
                   input: './test/fixture/src/generate/plugin/errors/index.js',
