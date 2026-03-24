@@ -3,16 +3,14 @@
 [![NPM](https://img.shields.io/npm/v/@typhonjs-build-test/esm-d-ts.svg?label=npm)](https://www.npmjs.com/package/@typhonjs-build-test/esm-d-ts)
 [![Code Style](https://img.shields.io/badge/code%20style-allman-yellowgreen.svg?style=flat)](https://en.wikipedia.org/wiki/Indent_style#Allman_style)
 [![License](https://img.shields.io/badge/license-MPLv2-yellowgreen.svg?style=flat)](https://github.com/typhonjs-node-build-test/esm-d-ts/blob/main/LICENSE)
+[![Coverage](https://img.shields.io/codecov/c/github/typhonjs-node-utils/object.svg)](https://codecov.io/github/typhonjs-node-utils/object)
 [![API Docs](https://img.shields.io/badge/API%20Documentation-476ff0)](https://typhonjs-node-build-test.github.io/esm-d-ts/)
 [![Discord](https://img.shields.io/discord/737953117999726592?label=Discord%20-%20TyphonJS&style=plastic)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
-This is a beta test version of the next mainline release (`0.3.0-next.12`). There are many new features to describe
-(updated README soon)!
-
 Provides a modern battle tested near zero configuration tool for ESM / ES Module / Javascript / Typescript developers to
-generate bundled Typescript declarations from ESM source code utilizing typed `JSDoc`. This tooling can be employed to
-build types for a primary export and one or more sub-path [exports](https://nodejs.org/api/packages.html#exports) creating
+generate bundled Typescript declarations from TS or ESM source code utilizing typed `JSDoc`. This tooling can be
+employed to build types for a primary export and one or more sub-path [exports](https://nodejs.org/api/packages.html#exports) creating
 independent _ESM oriented / module_ based declarations utilizing import / export semantics. This tooling can be
 employed by any project, but is particularly useful for library authors as there are many additional options covering
 advanced use cases that library authors may encounter. Some of these optional advanced features include support for
@@ -27,10 +25,13 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 ```json
 {
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": "^0.3.0-next.1"
+    "@typhonjs-build-test/esm-d-ts": "^0.3.0"
   }
 }
 ```
+
+`esm-d-ts 0.3.0` supports Typescript `5.5 - 5.9.x`. A forthcoming `0.4.0` release will support Typescript `6.x`.
+
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
 ## What's New:
@@ -52,6 +53,15 @@ Presently the CLI and `esm-d-ts` can not be installed or used globally; this wil
 
 - Added `bundleDTS` convenience function and new `bundle` command from the CLI which allows easy bundling of existing
   well formatted module based Typescript declarations.
+
+
+- Added `emitCTS` option to output additional '.d.cts' file for strict Typescript adherence for packages that are dual
+  ESM / CJS. When referencing `require` as an export condition in an dual ESM / CJS package the `types` referenced must
+  be `.d.cts` for the `require` condition for strict Typescript adherence.
+
+
+- Added `importsLocal` support from [@typhonjs-build-test/rollup-plugin-pkg-imports](https://www.npmjs.com/package/@typhonjs-build-test/rollup-plugin-pkg-imports) allowing `#import` sub-paths to be
+  replaced / remapped to actual sub-path package paths.
 
 ## Overview:
 
@@ -267,18 +277,10 @@ Typescript declarations.
 code provide a configuration option to create declaration source maps.
 
 
-- Create an initial processing stage where `esm-d-ts` analyzes all exported symbols of the local code base allowing
-local symbols to be used without `import types`.
-
-
 - Provide a way to manage the generation process entirely in memory. Presently the intermediate individual TS
 declarations created in execution are stored in the `./.dts` folder. Add this folder to your `.gitignore`. This is a
 limitation of `rollup-plugin-dts` & the TS compiler API utilized that uses the file system for bundling. I will be
 looking into submitting a PR to `rollup-plugin-dts` to handle virtual bundling.
-
-
-- Generate source maps for the bundled TS declarations allowing IDEs to not just jump to the declarations, but also
-open linked source code.
 
 ## Appreciation
 
@@ -286,4 +288,3 @@ I would like to bring awareness to the awesome underlying packages that make `es
 
 - [es-module-lexer](https://www.npmjs.com/package/es-module-lexer) - [Guy Bedford](https://github.com/guybedford)
 - [rollup-plugin-dts](https://www.npmjs.com/package/rollup-plugin-dts) - [Arpad Borsos](https://github.com/Swatinem)
-- [resolve.exports](https://www.npmjs.com/package/resolve.exports) - [Luke Edwards](https://github.com/lukeed)
