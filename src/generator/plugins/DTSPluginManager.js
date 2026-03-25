@@ -83,8 +83,8 @@ export class DTSPluginManager extends PluginManager
          {
             const name = upath.basename(plugin);
             await super.add({ name, target: plugin, options: generateConfig });
+            /* v8 ignore next 5 */ // Not tested locally.
          }
-         /* v8 ignore next 4 */ // Not tested locally.
          else // Load as NPM package.
          {
             await super.add({ name: plugin, options: generateConfig });
