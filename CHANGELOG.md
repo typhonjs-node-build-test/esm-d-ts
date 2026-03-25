@@ -1,4 +1,7 @@
 # Changelog
+## Release 0.4.0
+- Typescript `6.x+` support. For Typescript `5.x` please use `esm-d-ts` `0.3.x`.
+
 ## Release 0.3.0
 - 100% test coverage / all functionality verified in detail.
 
