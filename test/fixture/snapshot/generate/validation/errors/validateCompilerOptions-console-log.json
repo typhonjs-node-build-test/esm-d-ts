@@ -1,6 +1,6 @@
 [
   [
-    "\u001b[31m[esm-d-ts] [TS] Argument for '--module' option must be: 'none', 'commonjs', 'amd', 'system', 'umd', 'es6', 'es2015', 'es2020', 'es2022', 'esnext', 'node16', 'node18', 'node20', 'nodenext', 'preserve'.\u001b[0m"
+    "\u001b[31m[esm-d-ts] [TS] Argument for '--module' option must be: 'commonjs', 'es6', 'es2015', 'es2020', 'es2022', 'esnext', 'node16', 'node18', 'node20', 'nodenext', 'preserve'.\u001b[0m"
   ],
   [
     "\u001b[31m[esm-d-ts] generateDTS error: Aborting as 'config.compilerOptions' failed validation.\u001b[0m"

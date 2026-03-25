@@ -146,27 +146,30 @@ describe('Validation Errors (generate)', () =>
 
          expect(result).toBe(false);
 
-         const tsVersion = parseFloat(ts.versionMajorMinor);
+         // const tsVersion = parseFloat(ts.versionMajorMinor);
+
+         // Previously in TS 5.x changes required multiple snapshot variations.
+         // Presently in TS 6.x there are no variations.
 
          // Takes into account new `module` option that is being tested as error message has new values
          // in error validation for TS 5.9+.
-         let snapshot;
+         const snapshot = '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-console-log.json';
 
-         if (tsVersion >= 5.9)
-         {
-            snapshot =
-             '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.9-console-log.json';
-         }
-         else if (tsVersion >= 5.8)
-         {
-            snapshot =
-             '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.8-console-log.json';
-         }
-         else
-         {
-            snapshot =
-             '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.4-console-log.json';
-         }
+         // if (tsVersion >= 5.9)
+         // {
+         //    snapshot =
+         //     '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.9-console-log.json';
+         // }
+         // else if (tsVersion >= 5.8)
+         // {
+         //    snapshot =
+         //     '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.8-console-log.json';
+         // }
+         // else
+         // {
+         //    snapshot =
+         //     '../../fixture/snapshot/generate/validation/errors/validateCompilerOptions-post-5.4-console-log.json';
+         // }
 
          await expect(JSON.stringify(consoleLog, null, 2)).toMatchFileSnapshot(snapshot);
       });
