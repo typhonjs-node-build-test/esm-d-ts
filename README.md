@@ -25,16 +25,19 @@ It is recommended to install `esm-d-ts` as a developer dependency in `package.js
 ```json
 {
   "devDependencies": {
-    "@typhonjs-build-test/esm-d-ts": "^0.3.0"
+    "@typhonjs-build-test/esm-d-ts": "^0.4.0-next.1"
   }
 }
 ```
 
-`esm-d-ts 0.3.x` supports Typescript `5.5 - 5.9.x`. A forthcoming `0.4.0` release will support Typescript `6.x`.
+`esm-d-ts 0.4.x` supports Typescript `6.x+`. For Typescript `5.x` support use `esm-d-ts` `0.3.x`.
 
 Presently the CLI and `esm-d-ts` can not be installed or used globally; this will be addressed in a future update.
 
 ## What's New:
+### (0.4.0):
+- Typescript `6.x+` support. For Typescript `5.x` support use `esm-d-ts` `0.3.x`.
+
 ### (0.3.0 / partial list):
 - 100% test coverage / all functionality verified in detail.
 
