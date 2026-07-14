@@ -1,5 +1,12 @@
 /**
- * Provides common object manipulation utility functions and TypeScript type guards.
+ * Provides JavaScript and TypeScript utilities for validating, inspecting, traversing, comparing, and modifying
+ * objects.
+ *
+ * The package includes runtime assertions and type guards, strongly typed property-path access using dotted strings
+ * or exact {@link PropertyKey} arrays, hardened mutation and deep-merge operations, symbol-aware traversal, iterative
+ * freeze / seal helpers, prototype and descriptor inspection, and iterable utilities.
+ *
+ * The cloning API from `klona/full` is re-exported.
  *
  * @packageDocumentation
  */
@@ -7,7 +14,14 @@
 declare function klona<T>(input: T): T;
 
 /**
- * Provides common object manipulation utility functions and TypeScript type guards.
+ * Provides JavaScript and TypeScript utilities for validating, inspecting, traversing, comparing, and modifying
+ * objects.
+ *
+ * The package includes runtime assertions and type guards, strongly typed property-path access using dotted strings
+ * or exact {@link PropertyKey} arrays, hardened mutation and deep-merge operations, symbol-aware traversal, iterative
+ * freeze / seal helpers, prototype and descriptor inspection, and iterable utilities.
+ *
+ * The cloning API from `klona/full` is re-exported.
  *
  * @packageDocumentation
  */
@@ -241,6 +255,21 @@ declare function hasGetter<T extends object, K extends keyof T>(
   [P in K]: T[P];
 };
 /**
+ * Determines whether an accessor path exists on an object.
+ *
+ * Traversal aborts immediately when a property is missing, an intermediate value cannot be traversed, or an invalid
+ * array index is encountered. Properties whose values are `undefined` or `null` are considered present.
+ *
+ * Array indexes may only be accessed by number through the array accessor form.
+ *
+ * @param data - An object to inspect.
+ *
+ * @param accessor - A dotted string accessor or an array of exact string, number, or symbol property keys.
+ *
+ * @returns Whether the complete accessor path exists.
+ */
+declare function hasProperty(data: object, accessor: SafeAccessor): boolean;
+/**
  * Returns whether the target is or has the given prototype walking up the prototype chain.
  *
  * @param target - Any target class / constructor function to test.
@@ -404,13 +433,14 @@ declare function objectKeys<T extends object>(object: T): (keyof T)[];
  */
 declare function objectSize(object: any): number;
 /**
- * Provides a way to safely access an objects data / entries given an accessor string which describes the
- * entries to walk. To access deeper entries into the object format the accessor string with `.` between entries
- * to walk.
+ * Provides a way to safely access an object's data / entries using either a dotted accessor string or an array of
+ * exact property keys.
+ *
+ * Array indexes may only be accessed by number through the array accessor form.
  *
  * @param data - An object to access entry data.
  *
- * @param accessor - A string describing the entries to access with keys separated by `.`.
+ * @param accessor - A dotted string accessor or an array of exact string, number, or symbol property keys.
  *
  * @param [defaultValue] - (Optional) A default value to return if an entry for accessor is not found.
  *
@@ -420,7 +450,7 @@ declare function objectSize(object: any): number;
  * @typeParam P - Accessor type.
  * @typeParam R - Return value / Inferred deep access type or any provided default value type.
  */
-declare function safeAccess<T extends object, P extends string, R = DeepAccess<T, P>>(
+declare function safeAccess<T extends object, const P extends SafeAccessor, R = DeepAccess<T, P>>(
   data: T,
   accessor: P,
   defaultValue?: DeepAccess<T, P> extends undefined ? R : DeepAccess<T, P>,
@@ -430,7 +460,8 @@ declare function safeAccess<T extends object, P extends string, R = DeepAccess<T
  * the target object then `true` is returned otherwise `false`. If either object is undefined or null then false
  * is returned.
  *
- * Note: The source and target should be JSON objects.
+ * Note: The source and target should be ordinary objects or arrays; {@link Map} and {@link Set} entries are not
+ * compared. Present properties whose values are `undefined` or `null` remain distinct from missing properties.
  *
  * @param source - Source object.
  *
@@ -438,7 +469,7 @@ declare function safeAccess<T extends object, P extends string, R = DeepAccess<T
  *
  * @param [options] - Options.
  *
- * @param [options.arrayIndex] - Set to `false` to exclude equality testing for array contents; default: `true`.
+ * @param [options.arrayIndex] - Set to `false` to exclude equality testing for numeric array indexes; default: `true`.
  *
  * @param [options.hasOwnOnly] - Set to `false` to include enumerable prototype properties; default: `true`.
  *
@@ -453,15 +484,17 @@ declare function safeEqual<T extends object>(
   },
 ): target is T;
 /**
- * Returns an iterator of safe keys useful with {@link safeAccess} and {@link safeSet} by traversing the given object.
+ * Returns an iterator of property-key accessor arrays useful with {@link safeAccess} and {@link safeSet} by traversing
+ * the given object. Enumerable string and symbol keys are included, and array indexes are emitted as numbers.
  *
- * Note: Keys are only generated for JSON objects; {@link Map} and {@link Set} are not indexed.
+ * Note: Keys are only generated for ordinary objects and arrays; {@link Map} and {@link Set} are not indexed.
  *
  * @param data - An object to traverse for accessor keys.
  *
  * @param [options] - Options.
  *
- * @param [options.arrayIndex] - Set to `false` to exclude safe keys for array indexing; default: `true`.
+ * @param [options.arrayIndex] - Set to `false` to exclude numeric array indexes. Enumerable symbol properties
+ *        on arrays remain included; default: `true`.
  *
  * @param [options.hasOwnOnly] - Set to `false` to include enumerable prototype properties; default: `true`.
  *
@@ -476,15 +509,19 @@ declare function safeKeyIterator(
     arrayIndex?: boolean;
     hasOwnOnly?: boolean;
   },
-): IterableIterator<string>;
+): IterableIterator<readonly PropertyKey[]>;
 /**
- * Provides a way to safely set an objects data / entries given an accessor string which describes the
- * entries to walk. To access deeper entries into the object format the accessor string with `.` between entries
- * to walk.
+ * Provides a way to safely set an object's data / entries using either a dotted accessor string or an array of exact
+ * property keys. Array indexes may only be accessed by number through the array accessor form.
  *
  * @param data - An object to access entry data.
  *
- * @param accessor - A string describing the entries to access.
+ * @param accessor - A dotted string accessor or an array of exact string, number, or symbol property keys.
+ *
+ * The string keys `__proto__`, `prototype`, and `constructor` are rejected to prevent prototype-pollution access
+ * paths. ECMAScript well-known symbols, such as `Symbol.toStringTag`, `Symbol.iterator`, and `Symbol.toPrimitive`,
+ * are also rejected because they modify built-in language protocols and object behavior. User-created symbols and
+ * symbols from {@link Symbol.for} remain valid.
  *
  * @param value - A new value to set if an entry for accessor is found.
  *
@@ -500,7 +537,7 @@ declare function safeKeyIterator(
  */
 declare function safeSet(
   data: object,
-  accessor: string,
+  accessor: SafeAccessor,
   value: any,
   {
     operation,
@@ -511,14 +548,57 @@ declare function safeSet(
   },
 ): boolean;
 /**
- * Utility type for `safeAccess`. Infers compound accessor strings in object T.
+ * Accessor accepted by {@link hasProperty}, {@link safeAccess}, and {@link safeSet}. String accessors use `.`
+ * delimiters while array accessors preserve each {@link PropertyKey} as an exact property key. Array indexes require
+ * numeric keys.
  */
-type DeepAccess<T, P extends string> = P extends `${infer K}.${infer Rest}`
-  ? K extends keyof T
-    ? DeepAccess<T[K], Rest>
-    : undefined
-  : P extends keyof T
-    ? T[P]
+type SafeAccessor = string | readonly PropertyKey[];
+/**
+ * Utility type for `safeAccess`. Infers compound string accessors and readonly tuple accessors in object T.
+ */
+type DeepAccess<T, P extends SafeAccessor> = P extends string
+  ? P extends ''
+    ? undefined
+    : DeepAccessString<T, P>
+  : P extends readonly PropertyKey[]
+    ? DeepAccessArray<T, P>
+    : undefined;
+/**
+ * Infers a dotted string accessor in object T. Primitive and array traversal is rejected, matching runtime behavior.
+ */
+type DeepAccessString<T, P extends string> = T extends object
+  ? T extends readonly unknown[]
+    ? undefined
+    : P extends `${infer K}.${infer Rest}`
+      ? K extends keyof T
+        ? DeepAccessString<T[K], Rest>
+        : undefined
+      : P extends keyof T
+        ? T[P]
+        : undefined
+  : undefined;
+/**
+ * Infers a readonly tuple accessor in object T. Array traversal accepts only numeric or symbol keys, matching runtime
+ * behavior. Primitive traversal is rejected. A non-tuple accessor array returns `unknown`.
+ */
+type DeepAccessArray<T, P extends readonly PropertyKey[]> = number extends P['length']
+  ? unknown
+  : P extends readonly [infer K extends PropertyKey, ...infer Rest extends readonly PropertyKey[]]
+    ? T extends object
+      ? T extends readonly unknown[]
+        ? K extends number | symbol
+          ? K extends keyof T
+            ? Rest extends readonly []
+              ? T[K]
+              : DeepAccessArray<T[K], Rest>
+            : undefined
+          : undefined
+        : K extends keyof T
+          ? Rest extends readonly []
+            ? T[K]
+            : DeepAccessArray<T[K], Rest>
+          : undefined
+      : undefined
     : undefined;
 /**
  * Recursively merges multiple object types ensuring correct property resolution.
@@ -549,6 +629,7 @@ export {
   ensureNonEmptyIterable,
   hasAccessor,
   hasGetter,
+  hasProperty,
   hasPrototype,
   hasSetter,
   isAsyncIterable,
@@ -564,3 +645,4 @@ export {
   safeKeyIterator,
   safeSet,
 };
+export type { SafeAccessor };

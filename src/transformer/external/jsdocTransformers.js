@@ -137,8 +137,8 @@ export function jsdocTransformer(handler, postHandler, nodeTest)
             }
 
             return visitedSourceFile;
+            /* v8 ignore next 19 */  // Currently only single source files are processed
          }
-         /* v8 ignore next 18 */  // Currently only single source files are processed
          else if (ts.isBundle(sourceFileOrBundle))
          {
             const newSourceFiles = sourceFileOrBundle.sourceFiles.map((sourceFile) =>

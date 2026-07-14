@@ -193,13 +193,14 @@ describe('generateDTS() package options', () =>
                       './test/fixture/output/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index.d.ts',
                        'utf-8');
 
-                     const tsVersion = parseFloat(ts.versionMajorMinor);
+                     // const tsVersion = parseFloat(ts.versionMajorMinor);
 
-                     // Takes into account changes in TS declaration generation pre / post TS `5.4`. Post `5.4` the
-                     // package that has no types is present in the declarations.
-                     const snapshot = tsVersion >= 5.4 ?
-                      '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index-post-5_4.d.ts' :
-                       '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index-pre-5_4.d.ts';
+                     // Previously in TS 5.x changes required multiple snapshot variations.
+                     // Presently in TS 6.x there are no variations.
+
+                     // IE const snapshot = tsVersion >= 5.4 ? '' : ''
+
+                     const snapshot = '../../fixture/snapshot/generate/packages/bundlePackageExports/imports/resolve-warning/no-types/index.d.ts';
 
                      await expect(result).toMatchFileSnapshot(snapshot);
 
