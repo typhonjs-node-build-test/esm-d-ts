@@ -112,7 +112,7 @@ declare class Inherited1_A extends Base {
     /**
      * @inheritDoc
      */
-    constructor(options: { one?: boolean; two?: string; three?: number; });
+    constructor(options: { one?: boolean; two?: string; three?: number; } | undefined);
     /**
      * @inheritDoc
      */
@@ -128,11 +128,11 @@ declare class Inherited1_A extends Base {
     /**
      * @inheritDoc
      */
-    bang({ one, two, three }?: { one?: number; two?: string; three?: boolean; }): string;
+    bang({ one, two, three }?: { one?: number; two?: string; three?: boolean; } | undefined): string;
     /**
      * @inheritDoc
      */
-    boom(options: { one?: number; two?: string; three?: boolean; }): {
+    boom(options: { one?: number; two?: string; three?: boolean; } | undefined): {
         foo: boolean;
         bar: boolean;
     };
@@ -145,7 +145,7 @@ declare class Inherited1_B extends Base {
     /**
      * @inheritdoc
      */
-    constructor(options: { one?: boolean; two?: string; three?: number; });
+    constructor(options: { one?: boolean; two?: string; three?: number; } | undefined);
     /**
      * @inheritdoc
      */
@@ -161,11 +161,11 @@ declare class Inherited1_B extends Base {
     /**
      * @inheritdoc
      */
-    bang(options: { one?: number; two?: string; three?: boolean; }): string;
+    bang(options: { one?: number; two?: string; three?: boolean; } | undefined): string;
     /**
      * @inheritdoc
      */
-    boom(options: { one?: number; two?: string; three?: boolean; }): {
+    boom(options: { one?: number; two?: string; three?: boolean; } | undefined): {
         foo: boolean;
         bar: boolean;
     };
@@ -180,19 +180,19 @@ declare class Inherited2_A extends Inherited1_A {
     /**
      * @inheritDoc
      */
-    constructor({ one, two, three }: { one?: boolean; two?: string; three?: number; });
+    constructor({ one, two, three }: { one?: boolean; two?: string; three?: number; } | undefined);
     /**
      * Change signature
      *
      * @inheritDoc
      */
-    bang(options: { one?: number; two?: string; three?: boolean; }): string;
+    bang(options: { one?: number; two?: string; three?: boolean; } | undefined): string;
     /**
      * Change signature
      *
      * @inheritDoc
      */
-    boom({ one, two, three }?: { one?: number; two?: string; three?: boolean; }): {
+    boom({ one, two, three }?: { one?: number; two?: string; three?: boolean; } | undefined): {
         foo: boolean;
         bar: boolean;
     };
@@ -219,7 +219,7 @@ declare class PartialInherited2_A extends PartialInherited1_A {
     /**
      * @inheritDoc
      */
-    constructor(options: { one?: boolean; two?: string; three?: number; });
+    constructor(options: { one?: boolean; two?: string; three?: number; } | undefined);
     /**
      * @inheritDoc
      */
@@ -227,11 +227,11 @@ declare class PartialInherited2_A extends PartialInherited1_A {
     /**
      * @inheritDoc
      */
-    bang(options: { one?: number; two?: string; three?: boolean; }): string;
+    bang(options: { one?: number; two?: string; three?: boolean; } | undefined): string;
     /**
      * @inheritDoc
      */
-    boom(options: { one?: number; two?: string; three?: boolean; }): {
+    boom(options: { one?: number; two?: string; three?: boolean; } | undefined): {
         foo: boolean;
         bar: boolean;
     };
